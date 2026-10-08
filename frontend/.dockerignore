@@ -1,0 +1,34 @@
+# O build multi-stage (Dockerfile) instala as dependências num estágio
+# próprio (npm ci) e roda `npm run build` — o node_modules e o .next do
+# host NÃO devem entrar no contexto: além de ~1 GB de contexto inútil por
+# build, o `COPY . .` do estágio builder sobrescreveria o node_modules
+# recém-instalado pelo estágio deps por um do host (possivelmente de outra
+# versão de Node / desatualizado).
+node_modules
+.next
+out
+
+# Build/tooling que o Docker regenera ou não usa
+tsconfig.tsbuildinfo
+next-env.d.ts
+coverage
+playwright-report
+test-results
+*.log
+npm-debug.log*
+
+# Nunca copiar segredos/ambiente local para dentro da imagem — o
+# Dockerfile injeta placeholders de build e os valores reais vêm do
+# `environment:` em runtime (docker-compose.yml).
+.env
+.env.*
+
+# Metadados que não afetam o build
+.git
+.gitignore
+.dockerignore
+Dockerfile
+Dockerfile.prod
+README.md
+.vscode
+.idea

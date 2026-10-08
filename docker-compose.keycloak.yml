@@ -1,0 +1,65 @@
+# Keycloak de TESTE (realm "nexus" com a estrutura e os usuários fictícios
+# de deploy/keycloak/realm-nexus.json). Opcional: ative com
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.keycloak.yml
+# no .env (scripts/demo-keycloak.sh faz isso). Substitua por um Keycloak
+# oficial trocando KEYCLOAK_ISSUER_URL e removendo este arquivo do
+# COMPOSE_FILE — nada do Nexus depende deste container em si.
+#
+# start-dev: HTTP e banco embutido (H2 em arquivo, no volume
+# keycloak_data). Adequado para teste, NUNCA para produção.
+volumes:
+  keycloak_data: null
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6
+    restart: unless-stopped
+    # --import-realm só importa se o realm ainda não existir: editar o
+    # JSON depois não altera um realm já importado (ver docs/DEPLOY.md).
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set}
+      # URL pública: vira o "iss" dos tokens, então API e frontend usam
+      # exatamente esta mesma URL (KEYCLOAK_ISSUER_URL).
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:?KEYCLOAK_PUBLIC_URL must be set}
+      KC_HEALTH_ENABLED: "true"
+      # Atrás do proxy HTTPS (docker-compose.https.yml) esquema/host/porta
+      # reais vêm dos X-Forwarded-*; acessado direto, sem os cabeçalhos,
+      # nada muda.
+      KC_PROXY_HEADERS: xforwarded
+      JAVA_OPTS_KC_HEAP: "-Xms256m -Xmx768m"
+      # Placeholders do realm-nexus.json, resolvidos no import.
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL must be set}
+      KEYCLOAK_FRONTEND_CLIENT_SECRET: ${KEYCLOAK_FRONTEND_CLIENT_SECRET:?KEYCLOAK_FRONTEND_CLIENT_SECRET must be set}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?KEYCLOAK_CLIENT_SECRET must be set}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:?DEMO_USER_PASSWORD must be set}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./deploy/keycloak:/opt/keycloak/data/import:ro
+    ports:
+      - "${HOST_BIND:-0.0.0.0}:${HOST_KEYCLOAK_PORT:-8180}:8080"
+    networks:
+      - nexus_internal
+    healthcheck:
+      # A imagem não traz curl/wget: HTTP cru pelo /dev/tcp do bash na
+      # porta de gerenciamento (9000).
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"UP"' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+  # A API faz o discovery OIDC no boot e recusa subir com o issuer fora do
+  # ar; o frontend precisa dele para o login.
+  backend-api:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+  frontend:
+    depends_on:
+      keycloak:
+        condition: service_healthy

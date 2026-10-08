@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1
+
+# ---- builder ----
+FROM golang:1.26-bookworm AS builder
+WORKDIR /src
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/worker ./cmd/worker
+
+# ---- runtime ----
+FROM debian:bookworm-slim AS runtime
+
+# Só o binário Go do próprio worker — nenhum runtime externo (git,
+# scanners, extração de PDF) é invocado por este processo (confirmado:
+# zero exec.Command/exec.LookPath em todo o backend).
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -r nix && useradd -r -g nix nix
+
+USER nix
+WORKDIR /app
+COPY --from=builder --chown=nix:nix /out/worker ./worker
+
+ENTRYPOINT ["./worker"]

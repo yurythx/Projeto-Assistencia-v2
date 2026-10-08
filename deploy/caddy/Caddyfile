@@ -1,0 +1,78 @@
+# Proxy HTTPS do Projeto Nexus (docker-compose.https.yml).
+#
+# Sem domínio público: a CA interna do Caddy emite os certificados para
+# PUBLIC_HOST (IP ou nome da rede interna). Cada máquina de teste instala a
+# raiz uma vez, baixando http://<PUBLIC_HOST>/nexus-ca.crt — ver
+# docs/DEPLOY.md. Com um domínio e certificado oficiais, troque "tls
+# internal" pelo certificado da instituição.
+{
+	# Quem acessa por IP não manda SNI: sem isto o handshake falha.
+	default_sni {$PUBLIC_HOST}
+	skip_install_trust
+	# Os redirecionamentos HTTP->HTTPS automáticos disputavam a porta 80 com
+	# o bloco abaixo (e iam para uma porta qualquer): só o nosso vale.
+	auto_https disable_redirects
+	pki {
+		ca local {
+			name "Projeto Nexus - CA de teste"
+		}
+	}
+}
+
+# TLS 1.2 e 1.3 (o Caddy só oferece cifras modernas no 1.2). A skill §4 pede
+# 1.3; o 1.2 fica aceito porque o Windows 10 (TLS do sistema) não tem 1.3 —
+# para exigir só 1.3: "protocols tls1.3".
+(tls_local) {
+	tls internal {
+		protocols tls1.2 tls1.3
+	}
+}
+
+# Frontend (NextAuth, BFF, site público) e o WebSocket de notificações na
+# MESMA origem: o navegador não mostra aviso de certificado para WebSocket —
+# numa porta à parte, quem só aceitou o aviso do site (sem instalar a CA)
+# ficava sem tempo real, recusado em silêncio.
+https://{$PUBLIC_HOST} {
+	import tls_local
+	log
+	handle /ws {
+		reverse_proxy backend-api:{$HTTP_PORT}
+	}
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
+
+# API direta (health, integrações; o REST do navegador passa pelo BFF). O
+# /ws também responde aqui, para quem ainda aponta para esta porta.
+https://{$PUBLIC_HOST}:8443 {
+	import tls_local
+	reverse_proxy backend-api:{$HTTP_PORT}
+}
+
+# MinIO: URLs pré-assinadas. O Host original segue intacto (é parte da
+# assinatura) e não há limite de tamanho do corpo.
+https://{$PUBLIC_HOST}:9443 {
+	import tls_local
+	reverse_proxy minio:9000
+}
+
+# Keycloak de teste (emissor dos tokens: https://<host>:8543/realms/nexus)
+https://{$PUBLIC_HOST}:8543 {
+	import tls_local
+	reverse_proxy keycloak:8080
+}
+
+# HTTP: só entrega a raiz da CA para instalar e redireciona o resto.
+http://{$PUBLIC_HOST}, :80 {
+	handle /nexus-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition "attachment; filename=nexus-ca.crt"
+		file_server
+	}
+	handle {
+		redir https://{host}{uri} permanent
+	}
+}

@@ -1,0 +1,315 @@
+@import "tailwindcss";
+
+/* Design tokens do Projeto Nexus — paleta DSGov (Padrão Digital de
+   Governo) como base, 100% substituível por white-label: cada órgão
+   sobrescreve os tokens pela tela Configurações > Identidade visual
+   (GET /api/v1/branding -> CSS custom properties no layout raiz).
+   O modo e-MAG Alto Contraste sempre prevalece sobre o white-label.
+
+   Vocabulário de cor: use os tokens `surface` / `surface-border` / `muted`
+   como base. Os aliases `border` / `card` / `muted-foreground` existem só
+   porque parte do código nasceu com a nomenclatura shadcn/ui — apontam para
+   os mesmos valores e seguem o tema sozinhos (são `var()` preguiçosos). */
+:root {
+  --header-topbar: #14284b;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-border: #e2e8f0;
+  --surface-hover: #f1f5f9;
+  /* #52606d ≈ 5.4:1 sobre surface-hover (#f1f5f9) e ≈ 5.9:1 sobre #fff —
+     folga acima do mínimo AA (4.5:1) p/ texto pequeno secundário. A-04. */
+  --muted: #52606d;
+  --primary: #1b365d;
+  --primary-hover: #2563eb;
+  --primary-foreground: #ffffff;
+  --accent: #0284c7;
+  --danger: #dc2626;
+  --success: #059669;
+  --warning: #d97706;
+
+  --brand-panel: #0f1e36;
+  --footer-bg: #071d41;
+  --footer-foreground: #ffffff;
+
+  /* Assinatura visual: tinta de carimbo oficial. Usada com MUITA parcimônia
+     — só no selo da marca, em elementos de autenticidade e no destaque do
+     motivo "documento oficial". Nunca como cor de UI genérica. */
+  --seal: #8a1c1c;
+
+  --status-online: #059669;
+  --status-offline: #dc2626;
+  --status-degraded: #d97706;
+  --status-disabled: #64748b;
+  --status-unknown: #94a3b8;
+
+  /* Aliases (ver nota acima) — resolvidos no ponto de uso, então seguem
+     qualquer redefinição de tema das variáveis de origem. */
+  --border: var(--surface-border);
+  --border-hover: var(--muted);
+  --card: var(--surface);
+  --muted-foreground: var(--muted);
+
+  /* Métricas do shell do dashboard — FONTE ÚNICA. Topbar.tsx, Sidebar.tsx
+     e DashboardShell.tsx derivam altura/largura/offset daqui, então
+     alinhar o conteúdo à Sidebar (e ao rodapé) é mudar um valor só.
+     --topbar-h = faixa e-MAG (AccessibilityBar, h-10 = 2.5rem) +
+     barra principal de navegação (h-14 = 3.5rem). */
+  --topbar-h: 6rem;
+  --sidebar-w: 15rem;
+  --sidebar-w-collapsed: 4rem;
+
+  /* Recolher/expandir a Sidebar: a largura do <nav> e o padding-left do
+     conteúdo animam JUNTOS com estes valores. Curva "ease-out" (começa
+     rápido, desacelera) e 150ms — mesma cadência dos modais — pra parecer
+     imediato; animar width/padding remexe o layout, então quanto mais
+     curto, menos custo por frame. */
+  --shell-motion: 150ms;
+  --shell-ease: cubic-bezier(0, 0, 0.2, 1);
+}
+
+@theme inline {
+  --color-header-topbar: var(--header-topbar);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-border: var(--surface-border);
+  --color-surface-hover: var(--surface-hover);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-brand-panel: var(--brand-panel);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-foreground: var(--footer-foreground);
+  --color-seal: var(--seal);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-card: var(--card);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-status-online: var(--status-online);
+  --color-status-offline: var(--status-offline);
+  --color-status-degraded: var(--status-degraded);
+  --color-status-disabled: var(--status-disabled);
+  --color-status-unknown: var(--status-unknown);
+
+  /* Tipografia deliberada (§ redesenho 2026-08):
+     - display  → Newsreader: serifada de notícia/editorial, o registro de
+                  imprensa/documento oficial. Só em h1/h2 (título de página e de seção).
+     - sans     → Inter: neutra e densa, para toda a UI e dados.
+     - mono     → Geist Mono: só onde o monoespaçado carrega significado
+                  (nº de contrato, matrícula, competência, código de
+                  autenticidade). */
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Modo Escuro Padrão */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-high-contrast="true"]) {
+    --header-topbar: #0a1324;
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --surface: #1e293b;
+    --surface-border: #334155;
+    --surface-hover: #334155;
+    --muted: #94a3b8;
+    --primary: #38bdf8;
+    --primary-hover: #60a5fa;
+    --primary-foreground: #0f172a;
+    --accent: #38bdf8;
+    --brand-panel: #070d18;
+    --seal: #d1524a;
+  }
+}
+
+:root[data-theme="dark"]:not([data-high-contrast="true"]) {
+  --header-topbar: #0a1324;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --surface: #1e293b;
+  --surface-border: #334155;
+  --surface-hover: #334155;
+  --muted: #94a3b8;
+  --primary: #38bdf8;
+  --primary-hover: #60a5fa;
+  --primary-foreground: #0f172a;
+  --accent: #38bdf8;
+  --brand-panel: #070d18;
+  --seal: #d1524a;
+}
+
+:root[data-theme="light"]:not([data-high-contrast="true"]) {
+  --header-topbar: #14284b;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-border: #e2e8f0;
+  --surface-hover: #f1f5f9;
+  /* #52606d ≈ 5.4:1 sobre surface-hover (#f1f5f9) e ≈ 5.9:1 sobre #fff —
+     folga acima do mínimo AA (4.5:1) p/ texto pequeno secundário. A-04. */
+  --muted: #52606d;
+  --primary: #1b365d;
+  --primary-hover: #2563eb;
+  --primary-foreground: #ffffff;
+  --accent: #0284c7;
+  --brand-panel: #0f1e36;
+  --seal: #8a1c1c;
+}
+
+/* Modo e-MAG Alto Contraste (Acessibilidade Governamental) */
+:root[data-high-contrast="true"] {
+  --header-topbar: #000000;
+  --background: #000000;
+  --foreground: #ffffff;
+  --surface: #000000;
+  --surface-border: #ffff00;
+  --surface-hover: #1a1a1a;
+  --muted: #ffff00;
+  --primary: #ffff00;
+  --primary-hover: #ffffff;
+  --primary-foreground: #000000;
+  --accent: #00ffff;
+  --danger: #ff0000;
+  --success: #00ff00;
+  --warning: #ffff00;
+  --brand-panel: #000000;
+  --footer-bg: #000000;
+  --footer-foreground: #ffff00;
+  /* No modo e-MAG a assinatura de marca cede à paleta rígida de alto
+     contraste: a tinta de carimbo vira o mesmo amarelo dos outros
+     acentos (19:1 sobre preto), em vez de um coral que ficaria abaixo
+     do AAA para texto pequeno como a numeração de etapa. */
+  --seal: #ffff00;
+}
+
+/* Escala de Tamanho de Fonte (e-MAG) — A-/A/A+ na AccessibilityBar grava fontSizeScale no branding; o BrandingContext
+   reflete em html[data-font-scale=...] e o % abaixo redimensiona TODO o
+   documento (todas as medidas em rem/em acompanham). */
+html[data-font-scale="90"] {
+  font-size: 90%;
+}
+html[data-font-scale="110"] {
+  font-size: 110%;
+}
+html[data-font-scale="120"] {
+  font-size: 120%;
+}
+html[data-font-scale="130"] {
+  font-size: 130%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Registro tipográfico: as serifadas ficam RESERVADAS ao topo da
+   hierarquia (título de página e de seção). h3 pra baixo — inclusive
+   CardTitle — seguem a sans, o que mantém os componentes densos calmos. */
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Eyebrow com cara de dateline de jornal oficial (ex.: "COMPETÊNCIA ·
+   AGOSTO/2026"). Fio curto à esquerda + versalete espaçado. */
+.dateline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dateline::before {
+  content: "";
+  width: 1.5rem;
+  height: 2px;
+  background: var(--seal);
+}
+
+/* Entrada/saída dos modais <dialog> (ModalShell / Dialog) — transição
+   nativa via @starting-style, sem JS nem biblioteca. `allow-discrete`
+   mantém o elemento no top layer durante o fade de saída. O bloco de
+   prefers-reduced-motion abaixo zera a duração pra quem pediu. */
+dialog {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    overlay 150ms ease allow-discrete,
+    display 150ms ease allow-discrete;
+  opacity: 0;
+  transform: translateY(4px) scale(0.985);
+}
+dialog[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+}
+dialog::backdrop {
+  opacity: 0;
+  transition:
+    opacity 150ms ease,
+    overlay 150ms ease allow-discrete,
+    display 150ms ease allow-discrete;
+}
+dialog[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Quality floor: respeita quem pediu menos movimento no SO. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Impressão (Atlas: procedimento e série da TTDD): só o conteúdo da página. */
+@media print {
+  .gov-header,
+  .gov-footer,
+  #main-menu {
+    display: none !important;
+  }
+  :has(> #main-content) {
+    padding: 0 !important;
+  }
+  #main-content {
+    padding: 0 !important;
+  }
+}

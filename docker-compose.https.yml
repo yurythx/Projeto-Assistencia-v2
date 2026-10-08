@@ -1,0 +1,66 @@
+# HTTPS na frente da stack (Caddy com CA interna). Ative com
+# scripts/enable-https.sh, que acrescenta este arquivo ao COMPOSE_FILE do
+# .env e troca as URLs públicas para https. Ver deploy/caddy/Caddyfile.
+#
+# Portas: 443 frontend, 8443 API/WebSocket, 9443 MinIO, 8543 Keycloak,
+# 80 -> redireciona e serve /nexus-ca.crt.
+volumes:
+  caddy_data: null
+  caddy_config: null
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      PUBLIC_HOST: ${HTTPS_PUBLIC_HOST:?HTTPS_PUBLIC_HOST must be set}
+      HTTP_PORT: ${HTTP_PORT:-8002}
+    volumes:
+      # A PASTA, não o arquivo: o git pull troca o Caddyfile por um arquivo
+      # novo, e um bind de arquivo único continuaria mostrando o antigo ao
+      # container. O deploy recarrega o Caddy (caddy reload) a cada subida.
+      - ./deploy/caddy:/etc/caddy:ro
+      # caddy_data guarda a CA (chave privada inclusive): perdê-lo obriga
+      # toda máquina de teste a instalar uma raiz nova — está no backup.
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8443:8443"
+      - "9443:9443"
+      - "8543:8543"
+    networks:
+      - nexus_internal
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # API e frontend falam com o Keycloak pela URL pública (https) — o "iss"
+  # dos tokens tem de bater —, então confiam na CA interna, extraída para
+  # secrets/ca/ por scripts/enable-https.sh. Go: SSL_CERT_DIR soma o
+  # diretório às raízes do sistema (egress para a internet segue valendo).
+  backend-api:
+    environment:
+      SSL_CERT_DIR: /etc/ssl/certs:/run/secrets/ca
+    depends_on:
+      caddy:
+        condition: service_healthy
+  backend-worker:
+    environment:
+      SSL_CERT_DIR: /etc/ssl/certs:/run/secrets/ca
+  frontend:
+    environment:
+      NODE_EXTRA_CA_CERTS: /run/secrets/ca/nexus-ca.crt
+      # O Caddy sobrescreve o X-Forwarded-For com o IP real: o frontend
+      # pode repassá-lo à API (rate limit, lockout, prova LGPD). Só é
+      # seguro porque, com HTTPS, as portas diretas ficam em 127.0.0.1
+      # (HOST_BIND) e o Caddy é a única entrada — ver lib/api/clientIp.ts.
+      TRUST_PROXY_HEADERS: "true"
+    volumes:
+      - ./secrets/ca:/run/secrets/ca:ro
+    depends_on:
+      caddy:
+        condition: service_healthy

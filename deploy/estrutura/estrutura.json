@@ -1,0 +1,1487 @@
+{
+  "gerado_por": "scripts/estrutura/ad-para-estrutura.mjs",
+  "entidades": [
+    {
+      "nome": "Administração",
+      "sigla": "SEMAD",
+      "slug": "administracao",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEMAD",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Agricultura e Pecuária",
+      "sigla": "SEMAGRI",
+      "slug": "agricultura-e-pecuaria",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEMAGRI",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Ciência, Tecnologia e Inovação",
+      "sigla": "SECITI",
+      "slug": "ciencia-tecnologia-e-inovacao",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SECITI",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Cultura",
+      "sigla": "SECULT",
+      "slug": "cultura",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SECULT",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Desenvolvimento Econômico",
+      "sigla": "SEDEC",
+      "slug": "desenvolvimento-economico",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEDEC",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Esporte e Lazer",
+      "sigla": "SEMEL",
+      "slug": "esporte-e-lazer",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEMEL",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Finanças",
+      "sigla": "SEFIN",
+      "slug": "financas",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEFIN",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Gabinete Comunicação",
+      "sigla": "GAB",
+      "slug": "gabinete-comunicacao",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "GAB",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Gestão de Pessoas",
+      "sigla": "SEGEP",
+      "slug": "gestao-de-pessoas",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEGEP",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Governo",
+      "sigla": "SEGOV",
+      "slug": "governo",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEGOV",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Habitação",
+      "sigla": "SEHAB",
+      "slug": "habitacao",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEHAB",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "IPPUR - SINFRA",
+      "sigla": "IPPUR",
+      "slug": "ippur-sinfra",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "IPPUR",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Meio Ambiente",
+      "sigla": "SEMMA",
+      "slug": "meio-ambiente",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEMMA",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Pesquisa e Planejamento Urbano",
+      "sigla": "SEPPU",
+      "slug": "pesquisa-e-planejamento-urbano",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEPPU",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Planejamento",
+      "sigla": "SEPLAN",
+      "slug": "planejamento",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEPLAN",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "PROCON",
+      "sigla": "PROCON",
+      "slug": "procon",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "PROCON",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Procuradoria Geral",
+      "sigla": "PGM",
+      "slug": "procuradoria-geral",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "PGM",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Receita",
+      "sigla": "SEREC",
+      "slug": "receita",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SEREC",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Segurança Pública",
+      "sigla": "SESP",
+      "slug": "seguranca-publica",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SESP",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "SINFRA",
+      "sigla": "SINFRA",
+      "slug": "sinfra",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SINFRA",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Transportes e Trânsito",
+      "sigla": "SETRAT",
+      "slug": "transportes-e-transito",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "SETRAT",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Unidade Central de Controle Interno",
+      "sigla": "UCCI",
+      "slug": "unidade-central-de-controle-interno",
+      "unidades": [
+        {
+          "nome": "Sede",
+          "sigla": "UCCI",
+          "departamentos": []
+        }
+      ]
+    },
+    {
+      "nome": "Secretaria Municipal de Educação",
+      "sigla": "SEMED",
+      "unidades": [
+        {
+          "nome": "Secretaria Executiva",
+          "sigla": "SEMED",
+          "departamentos": [
+            {
+              "nome": "Almoxarifado"
+            },
+            {
+              "nome": "Avaliação e Monitoramento da Aprendizagem"
+            },
+            {
+              "nome": "Comunicação"
+            },
+            {
+              "nome": "Conselho de Educação"
+            },
+            {
+              "nome": "DTI"
+            },
+            {
+              "nome": "Educação Inclusiva"
+            },
+            {
+              "nome": "Educação Infantil"
+            },
+            {
+              "nome": "Engenharia Arquitetura"
+            },
+            {
+              "nome": "Ensino Fundamental"
+            },
+            {
+              "nome": "Financeiro SEMED"
+            },
+            {
+              "nome": "Formação Profissional"
+            },
+            {
+              "nome": "Gabinete"
+            },
+            {
+              "nome": "Gestão Escolar"
+            },
+            {
+              "nome": "Gestão Infraestrutura"
+            },
+            {
+              "nome": "Jurídico"
+            },
+            {
+              "nome": "Merenda"
+            },
+            {
+              "nome": "Planejamento Finanças"
+            },
+            {
+              "nome": "Programas e Projetos"
+            },
+            {
+              "nome": "Projetos Educacionais"
+            },
+            {
+              "nome": "Recursos Humanos"
+            },
+            {
+              "nome": "Serviços Gerais"
+            },
+            {
+              "nome": "Transporte Escolar"
+            }
+          ]
+        },
+        {
+          "nome": "Escola de Música",
+          "departamentos": []
+        },
+        {
+          "nome": "Educação Infantil",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "CMEI Agton Kayro Leite dos Santos",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Anterina Miranda de Moraes",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Antônio Vânier de Oliveira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Aparecida de Souza Vetorasso",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Arthur Araujo Lula da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Augustim Alves de Oliveira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Bruna Cristina da Silva Santos",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Carlos Alberto de Carvalho",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Celina Fialho Bezerra",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Ely Carlos",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Enezio Machado Vieira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Giovanni Gomes Moreira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Hildegard Erika Bauchrowitz",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Iracy Pereira da Conceicao Araujo",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Jessica Adriana Lima Ferreira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Joana Maria dos Anjos Meireles",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI João Cesar Domingos da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI João Lopes da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Jonas Nunes Cavalcante",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Jose Antonio de Oliveira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Leonese de Pinho Carvalho",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Mãe Margarida",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Magnólia Angélica Araújo",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Marcia Gleide Ribeiro Clara Souto",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Maria Amelia de Araujo",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Maria das Graças",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Maria Severina da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Natalia Maximo Lima",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Prof. Alessandro Gomes de Jesus",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Prof. Geraldo Jose de Oliveira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Prof. Vilma Moreira dos Santos",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Professora Ivan Santos Arruda",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Professora Liege Santos Pereira",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Rita Maria Correia",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEI Widisney Aparecido Pereira Rodrigues",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEITI Engenheiro Nafes Antonio Daud",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEITI Maria de Souza Miranda",
+              "departamentos": []
+            },
+            {
+              "nome": "CMEITI Natália Junqueira Botelho de Azevedo",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Cora Coralina",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Elaine Aparecida de Oliveira Lopes",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Machado de Assis",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Mateus Vinicius",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Rubens Alves de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEI Selma Doho",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Charmene Rosa da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Gabriel de Oliveira Dias",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI João de Paula Mendonça de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI José dos Reis Sales",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Luiz Henrique Dias Bulhões",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Mateus Vinicius Braz",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Monteiro Lobato",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Natalia Maximo Lima",
+              "departamentos": []
+            },
+            {
+              "nome": "UMEI Pequenos Brilhantes",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Ensino Fundamental",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "EMEB Aparecida de Souza Vetorasso",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Bernardo Venancio de Carvalho",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Celson Antonio de Carvalho",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Dom Wunibaldo Talleur",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Evania Rodrigues da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Giselio da Nobrega",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Gleba Dom Bosco",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Irmã Elza Geovanella",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB João Evangelista Porto Fernandes",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Mario de Andrade",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Melchiades Figueiredo Miranda",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Nossa Senhora Aparecida",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Odorico Leocadio da Rosa",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Padre Joao Paulo Nolli",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Prefeito Fausto de Souza Faria",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Prof. Maria Aparecida de Oliveira",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Prof. Evania Rodrigues da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Prof. Gildazia Souza Pirozzi",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Prof. Sebastiana R. de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Professor Carlos Pereira Barbosa",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Professora Dulcineia Cascão Barbosa",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Professora Renilda Silva Moraes",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Professora Sebastiana Rodrigues de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Terezinha Silva de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEB Vereador Rozendo Ferreira de Souza",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEBTI Altamirando de Araújo Miranda",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEBTI Prof. Virgilina de Melo Ferreira",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Albino Saldanha Dantas",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Alcides Pereira dos Santos",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Alfredo de Castro Araujo",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Antonio Guimaraes Balbino",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Arão Gomes Bezerra",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Bonifácio Sachetti",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF CPAC São José",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Daniel Paulista Campos",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Edivaldo Zuliano Belo",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Firmicio Alves Barreto",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Frei Milton",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Jose Antonio da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Primeiro de Maio",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Princesa Isabel",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Rosalino Antonio da Silva",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Tancredo Neves",
+              "departamentos": []
+            },
+            {
+              "nome": "EMEF Vila Paulista",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Escolas Rurais",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "EIMEB Leosidio Fermau",
+              "departamentos": []
+            },
+            {
+              "nome": "EMCEB Fazenda Carima",
+              "departamentos": []
+            },
+            {
+              "nome": "EMCEB Maraja",
+              "departamentos": []
+            },
+            {
+              "nome": "EMCEB Padre Dionisio Kuduavizcz",
+              "departamentos": []
+            },
+            {
+              "nome": "EMCEB Rui Barbosa",
+              "departamentos": []
+            },
+            {
+              "nome": "EMCEB São Domingos Sávio",
+              "departamentos": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "Secretaria Municipal de Saúde",
+      "sigla": "SMS",
+      "unidades": [
+        {
+          "nome": "Sede da SMS",
+          "sigla": "SMS",
+          "departamentos": [
+            {
+              "nome": "Ações Programáticas de Saúde"
+            },
+            {
+              "nome": "Administração e Finanças"
+            },
+            {
+              "nome": "Arquivo da Saúde"
+            },
+            {
+              "nome": "Assessoria Jurídica"
+            },
+            {
+              "nome": "Atenção à Saúde"
+            },
+            {
+              "nome": "Auditor SUS"
+            },
+            {
+              "nome": "Comunicação"
+            },
+            {
+              "nome": "Educação Permanente"
+            },
+            {
+              "nome": "Engenharia Arquitetura"
+            },
+            {
+              "nome": "Gabinete"
+            },
+            {
+              "nome": "Gestão do SUS"
+            },
+            {
+              "nome": "Manutenção"
+            },
+            {
+              "nome": "Ouvidoria"
+            },
+            {
+              "nome": "Planejamento"
+            },
+            {
+              "nome": "RH em Saúde"
+            },
+            {
+              "nome": "Saúde Bucal"
+            },
+            {
+              "nome": "Saúde do Trabalhador"
+            },
+            {
+              "nome": "Transporte"
+            },
+            {
+              "nome": "Vigilância Epidemiológica"
+            }
+          ]
+        },
+        {
+          "nome": "Almoxarifado",
+          "departamentos": []
+        },
+        {
+          "nome": "Assistência Farmacêutica",
+          "departamentos": []
+        },
+        {
+          "nome": "Central Regulação",
+          "departamentos": []
+        },
+        {
+          "nome": "Conselho Municipal",
+          "departamentos": []
+        },
+        {
+          "nome": "Laboratório Central",
+          "departamentos": []
+        },
+        {
+          "nome": "SAMU",
+          "departamentos": []
+        },
+        {
+          "nome": "Tecnologia",
+          "departamentos": []
+        },
+        {
+          "nome": "Vigilância Sanitária",
+          "departamentos": []
+        },
+        {
+          "nome": "Centros de Especialidades Odontológicas",
+          "sigla": "CEO",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "CEO Itamaraty",
+              "departamentos": []
+            },
+            {
+              "nome": "CEO MAMED",
+              "departamentos": []
+            },
+            {
+              "nome": "CEO N.S. do Amparo",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Centros de Saúde",
+          "sigla": "CS",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "CS COHAB",
+              "departamentos": []
+            },
+            {
+              "nome": "CS Conjunto São José",
+              "departamentos": []
+            },
+            {
+              "nome": "CS N.S. do Amparo",
+              "departamentos": []
+            },
+            {
+              "nome": "CS São Francisco",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Estratégia Saúde da Família",
+          "sigla": "ESF",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "ESF Alfredo de Castro I",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Alfredo de Castro II",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF André Maggi",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Assunção",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Belo Horizonte",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Bispo Pedro Casaldaliga",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Bom Pastor",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF CAIC",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Canaã",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Cidade Alta",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Cidade de Deus",
+              "departamentos": [
+                {
+                  "nome": "3º Turno"
+                }
+              ]
+            },
+            {
+              "nome": "ESF Conjunto São José I",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Conjunto São José II",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Dom Osório",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Itamaraty",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jambrapi",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Adriana",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Atlântico",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Europa",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Iguaçu",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Ipiranga",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Itapuã",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Liberdade",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Luz D'Yara",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Morumbi",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Paineiras",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Parque Industrial",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Primavera",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Jardim Ypê",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF João de Barro",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF MAMED",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Marechal Rondon",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Margarida",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Maria Amélia",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Mathias Neves I",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Mathias Neves II",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Monte Libano",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Padre Miguel",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Padre Rodolfo",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Parque das Rosas",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Parque São Jorge",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Parque Universitário",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Paulista",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Pedra 90",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Pindorama",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Santa Clara",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Serra Dourada",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Sumaré",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Verde Teto",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Vila Cardoso",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Vila Goulart",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Vila Mineira",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Vila Olinda",
+              "departamentos": [
+                {
+                  "nome": "3º Turno"
+                }
+              ]
+            },
+            {
+              "nome": "ESF Vila Operária",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Vila Rica",
+              "departamentos": [
+                {
+                  "nome": "3º Turno"
+                }
+              ]
+            },
+            {
+              "nome": "ESF Vila Verde",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Especialidades",
+          "sigla": "",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "Abrigo Municipal de Animais",
+              "departamentos": []
+            },
+            {
+              "nome": "Ambulatório de Saúde Mental",
+              "departamentos": []
+            },
+            {
+              "nome": "Ambulatório VIVA",
+              "departamentos": []
+            },
+            {
+              "nome": "CAISM",
+              "departamentos": []
+            },
+            {
+              "nome": "CAPS AD",
+              "departamentos": []
+            },
+            {
+              "nome": "CAPS Infantil",
+              "departamentos": []
+            },
+            {
+              "nome": "CEADAS",
+              "departamentos": []
+            },
+            {
+              "nome": "Cedero",
+              "departamentos": []
+            },
+            {
+              "nome": "CERARO",
+              "departamentos": []
+            },
+            {
+              "nome": "Nefrologia",
+              "departamentos": []
+            },
+            {
+              "nome": "Nilmo Junior",
+              "departamentos": []
+            },
+            {
+              "nome": "SAE",
+              "departamentos": []
+            },
+            {
+              "nome": "UVZ",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Farmácias",
+          "sigla": "",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "Farmácia Administração",
+              "departamentos": []
+            },
+            {
+              "nome": "Farmácia Alto Custo",
+              "departamentos": []
+            },
+            {
+              "nome": "Farmácia Central",
+              "departamentos": []
+            },
+            {
+              "nome": "Farmácia Judicial",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Hospitais e Pronto Atendimento",
+          "sigla": "",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "Hospital Cristyan Mary (lions)",
+              "departamentos": []
+            },
+            {
+              "nome": "Hospital Municipal Antônio Muniz",
+              "departamentos": []
+            },
+            {
+              "nome": "Hospital Retaguarda - UTI",
+              "departamentos": []
+            },
+            {
+              "nome": "PA Infantil",
+              "departamentos": []
+            },
+            {
+              "nome": "UPA",
+              "departamentos": []
+            }
+          ]
+        },
+        {
+          "nome": "Policlínicas",
+          "sigla": "",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "Policlínica Central",
+              "departamentos": [
+                {
+                  "nome": "3º Turno"
+                }
+              ]
+            },
+            {
+              "nome": "Policlínica Itamaraty",
+              "departamentos": [
+                {
+                  "nome": "3º Turno"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "nome": "Zona Rural",
+          "sigla": "",
+          "agrupadora": true,
+          "subunidades": [
+            {
+              "nome": "ESF Boa Vista",
+              "departamentos": []
+            },
+            {
+              "nome": "ESF Nova Galiléia",
+              "departamentos": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "Secretaria Municipal de Promoção e Assistência Social",
+      "sigla": "SEMPRAS",
+      "unidades": [
+        {
+          "nome": "Sede da SEMPRAS",
+          "sigla": "SEMPRAS",
+          "departamentos": [
+            {
+              "nome": "Administrativo"
+            },
+            {
+              "nome": "Cadastro Único"
+            },
+            {
+              "nome": "Compras"
+            },
+            {
+              "nome": "Engenharia"
+            },
+            {
+              "nome": "Financeiro"
+            },
+            {
+              "nome": "Jurídico"
+            },
+            {
+              "nome": "Núcleo de Conselhos"
+            },
+            {
+              "nome": "Proteção Social Básica"
+            },
+            {
+              "nome": "Proteção Social Especial"
+            }
+          ]
+        },
+        {
+          "nome": "Casa Abrigo",
+          "departamentos": []
+        },
+        {
+          "nome": "Casa da Mulher",
+          "departamentos": []
+        },
+        {
+          "nome": "Centro POP",
+          "departamentos": []
+        },
+        {
+          "nome": "CEU",
+          "departamentos": []
+        },
+        {
+          "nome": "Conselho Tutelar Central",
+          "departamentos": []
+        },
+        {
+          "nome": "Conselho Tutelar Vila Operária",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Alfredo de Castro",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Ana Carla",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Central",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Conjunto São José",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Iguaçu",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Luz Dyara",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Padre Lothar",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Rio Vermelho",
+          "departamentos": []
+        },
+        {
+          "nome": "CRAS Sagrada Família",
+          "departamentos": []
+        },
+        {
+          "nome": "CREAS",
+          "departamentos": []
+        },
+        {
+          "nome": "SCFV Padre Lothar",
+          "departamentos": []
+        },
+        {
+          "nome": "Vila Olímpica",
+          "departamentos": []
+        }
+      ]
+    }
+  ],
+  "grupos_ad": [
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo Administração Escolar"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo Apoio ao Educando"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo Ensino"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo Gestao de Pessoas Semed"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo Recursos Humanos - Educação"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "Grupo_Educacao"
+    },
+    {
+      "entidade": "SEMED",
+      "grupo": "sistema.semecel"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo Ações Programáticas de Saúde"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo Administração e Finanças"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo Atenção à Saúde"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo Gestão do SUS"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo RH em Saúde"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "Grupo Saúde Coletiva"
+    },
+    {
+      "entidade": "SMS",
+      "grupo": "HelpDesk Saúde"
+    },
+    {
+      "entidade": "SEMPRAS",
+      "grupo": "Grupo_Assistencia_Social"
+    }
+  ]
+}

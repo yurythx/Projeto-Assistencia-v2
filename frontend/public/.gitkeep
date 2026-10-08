@@ -1,0 +1,8 @@
+Este diretório existe só para o Dockerfile: `COPY --from=builder /app/public ./public`
+copia ativos verdadeiramente estáticos (não roteados pelo App Router) para a imagem de
+runtime. Ficou vazio depois que os SVGs de scaffold padrão do create-next-app
+(vercel/next/globe/window/file.svg) foram removidos como lixo de template — favicon.ico,
+icon.svg e apple-icon.png hoje vivem em src/app/ (convenção de arquivo do App Router), não
+aqui. Git não versiona diretório vazio, então sem este arquivo o diretório some do
+checkout e o build da imagem Docker quebra (COPY de um caminho inexistente). Se algum dia
+este diretório passar a ter um arquivo de verdade, pode apagar este .gitkeep.

@@ -1,0 +1,58 @@
+# Configurações e Segredos Locais
+.env
+.env.local
+.env.*.local
+secrets/*.pem
+secrets/*.key
+
+# Node / Frontend
+node_modules/
+.next/
+out/
+build/
+dist/
+.env.production
+
+# Go / Backend
+bin/
+*.exe
+*.exe;
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Projeto de referência (port da acessibilidade) — nunca versionar aqui
+Projeto Nexus/
+Projeto-Nexus/
+
+# Binários compilados do backend (nunca versionar artefatos de build)
+backend/api
+backend/worker
+backend/migrate
+backend/seedadmin
+
+# CA interna do HTTPS (gerada no servidor por scripts/enable-https.sh)
+secrets/ca/
+.env.bak-*
+
+# Python (cenários de teste)
+__pycache__/
+
+# Marca do povoamento de teste (scripts/demo-data/cenarios/popular.py)
+.demo-popular
+
+# Export bruto do Active Directory: contém nomes de servidores (LGPD).
+# A estrutura limpa, sem dados pessoais, fica em deploy/estrutura/.
+docs/AD/

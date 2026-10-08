@@ -1,0 +1,14 @@
+# O build compila com `go build` num estágio próprio; binários e
+# artefatos de teste do host não entram no contexto.
+# ATENÇÃO: docs/ é NECESSÁRIO — Dockerfile.api copia docs/openapi.json
+# para o runtime (servido em GET /openapi.json e /docs).
+bin
+*.test
+*.out
+coverage.out
+Dockerfile*
+.dockerignore
+.gitignore
+README.md
+.vscode
+.idea

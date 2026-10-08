@@ -1,0 +1,64 @@
+# Overlay OPCIONAL: IA local (Ollama) — serviço "ia-local" (ADR 020).
+#
+# Ligar: acrescente ao COMPOSE_FILE do .env (com os overlays que já usa)
+#   COMPOSE_FILE=docker-compose.yml:...:docker-compose.ia.yml
+# e rode `make deploy` (ou `make ia-local`). O serviço "ia-local-modelo"
+# baixa o modelo IA_LOCAL_MODELO na primeira subida e termina.
+#
+# Quem usa a IA é configurado na tela Configurações > Inteligência
+# artificial (conexões, chave, modelo, principal e reserva). Sem nada
+# configurado lá, a API usa a IA local (ATLAS_AI_* abaixo). Sem este
+# overlay e sem conexão, o assistente responde com a síntese canônica.
+volumes:
+  ia_local_modelos: null
+
+x-ia-local-imagem: &ia-local-imagem
+  # Versão fixada (builds reproduzíveis); atualize conscientemente.
+  image: ${IA_LOCAL_IMAGE:-ollama/ollama:0.35.1}
+
+services:
+  ia-local:
+    <<: *ia-local-imagem
+    restart: unless-stopped
+    environment:
+      # Um modelo e uma geração por vez: sem GPU, paralelismo só divide a
+      # CPU e estoura a memória.
+      OLLAMA_KEEP_ALIVE: "24h"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_CONTEXT_LENGTH: ${IA_LOCAL_CONTEXTO:-4096}
+    volumes:
+      - ia_local_modelos:/root/.ollama
+    # Sem porta publicada: só a API o alcança, pela rede interna. Limites
+    # para a inferência (CPU) não sufocar o banco e a API.
+    networks:
+      - nexus_internal
+    mem_limit: ${IA_LOCAL_MEMORIA:-2560m}
+    cpus: ${IA_LOCAL_CPUS:-3}
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  # Tarefa de inicialização: baixa (ou atualiza) o modelo e termina.
+  ia-local-modelo:
+    <<: *ia-local-imagem
+    restart: "no"
+    entrypoint: ["ollama", "pull", "${IA_LOCAL_MODELO:-qwen2.5:1.5b}"]
+    environment:
+      OLLAMA_HOST: http://ia-local:11434
+    networks:
+      - nexus_internal
+    depends_on:
+      ia-local:
+        condition: service_healthy
+
+  backend-api:
+    environment:
+      # Conexão padrão enquanto nada for configurado na tela.
+      ATLAS_AI_ENDPOINT: http://ia-local:11434
+      ATLAS_AI_MODEL: ${IA_LOCAL_MODELO:-qwen2.5:1.5b}
+      # Sem GPU, a geração leva dezenas de segundos.
+      ATLAS_AI_TIMEOUT: ${IA_LOCAL_TIMEOUT:-120s}

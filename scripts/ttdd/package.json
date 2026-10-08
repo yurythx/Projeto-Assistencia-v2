@@ -1,0 +1,13 @@
+{
+  "name": "nexus-ttdd",
+  "private": true,
+  "description": "Extração da TTDD oficial (docs/ttdd.pdf) para deploy/ttdd — ver README.md",
+  "type": "module",
+  "scripts": {
+    "extrair": "node extrair.mjs ../../docs/ttdd.pdf dados/itens.json",
+    "analisar": "node analisar.mjs dados/itens.json dados/extraida.json",
+    "consolidar": "node consolidar.mjs",
+    "tudo": "npm run extrair && npm run analisar && npm run consolidar"
+  },
+  "dependencies": { "pdfjs-dist": "4.10.38" }
+}

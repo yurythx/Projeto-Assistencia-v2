@@ -1,0 +1,266 @@
+name: projeto-nexus
+networks:
+  nexus_internal:
+    driver: bridge
+volumes:
+  postgres_data: null
+  rabbitmq_data: null
+  minio_data: null
+  redis_data: null
+services:
+  postgres:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-nexus}
+      POSTGRES_USER: ${DB_USER:-nexus}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    networks:
+    - nexus_internal
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U ${DB_USER:-nexus} -d ${DB_NAME:-nexus}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-nexus}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS must be
+        set}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST:-nexus}
+    volumes:
+    - rabbitmq_data:/var/lib/rabbitmq
+    - ./deploy/rabbitmq.conf:/etc/rabbitmq/conf.d/consumer_timeout.conf:ro
+    networks:
+    - nexus_internal
+    healthcheck:
+      test:
+      - CMD
+      - rabbitmq-diagnostics
+      - -q
+      - check_port_connectivity
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  minio:
+    # minio/minio saiu do Docker Hub e a MinIO parou de publicar imagens da
+    # edição comunitária. pgsty/minio é um fork mantido e compatível (mesmo
+    # entrypoint, inclui curl/mc). Versão fixada para builds reproduzíveis.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${HOST_BIND:-0.0.0.0}:${HOST_MINIO_PORT:-9002}:9000"
+      - "${HOST_BIND:-0.0.0.0}:${HOST_MINIO_CONSOLE_PORT:-9003}:9001"
+    networks:
+      - nexus_internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  redis:
+    # Cache do resolvedor de permissões (IAM), rate limiting, lockout
+    # progressivo de login e idempotência — REDIS_URL é obrigatório no
+    # backend (config.Load recusa subir sem ele).
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command:
+    - sh
+    - -c
+    - exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    volumes:
+    - redis_data:/data
+    networks:
+    - nexus_internal
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  migrate:
+    # One-shot: aplica as migrations (goose) antes da API e do worker, que
+    # não sobem com schema desatualizado (o Kernel lê system_modules no boot).
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.api
+    entrypoint:
+    - ./migrate
+    - up
+    restart: "no"
+    env_file:
+    - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+    networks:
+    - nexus_internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file:
+    - .env
+    environment:
+      # APP_ENV é obrigatório (config.Load recusa subir sem ele). Este
+      # arquivo sozinho é o deploy de produção; o docker-compose.dev.yml
+      # sobrescreve para development.
+      APP_ENV: ${APP_ENV:-production}
+      HTTP_PORT: ${HTTP_PORT:-8002}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3002}
+      DB_PORT: 5432
+      DB_HOST: postgres
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-nexus}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/${RABBITMQ_DEFAULT_VHOST:-nexus}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9002}
+      MINIO_BUCKET: ${MINIO_BUCKET:-nexus}
+      MINIO_USE_SSL: "false"
+    volumes:
+    - ./secrets:/run/secrets:ro
+    networks:
+    - nexus_internal
+    ports:
+    - ${HOST_BIND:-0.0.0.0}:${HTTP_PORT:-8002}:${HTTP_PORT:-8002}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://127.0.0.1:${HTTP_PORT:-8002}/health
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    extra_hosts:
+    - host.docker.internal:host-gateway
+  backend-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+    - .env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      WORKER_METRICS_PORT: ${WORKER_METRICS_PORT:-9102}
+      DB_PORT: 5432
+      DB_HOST: postgres
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-nexus}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/${RABBITMQ_DEFAULT_VHOST:-nexus}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
+      MINIO_BUCKET: ${MINIO_BUCKET:-nexus}
+      MINIO_USE_SSL: "false"
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9002}
+    volumes:
+    - ./secrets:/run/secrets:ro
+    networks:
+    - nexus_internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://127.0.0.1:${WORKER_METRICS_PORT:-9102}/health
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    extra_hosts:
+    - host.docker.internal:host-gateway
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:8002}
+        NEXT_PUBLIC_WS_URL: ${WEBSOCKET_PUBLIC_URL:-ws://localhost:8002/ws}
+        NEXT_PUBLIC_MINIO_URL: ${MINIO_PUBLIC_URL:-http://localhost:9002}
+    restart: unless-stopped
+    env_file:
+    - .env
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:-http://localhost:8002}
+      NEXT_PUBLIC_WS_URL: ${WEBSOCKET_PUBLIC_URL:-ws://localhost:8002/ws}
+      NEXT_PUBLIC_MINIO_URL: ${MINIO_PUBLIC_URL:-http://localhost:9002}
+      BACKEND_INTERNAL_URL: http://backend-api:${HTTP_PORT:-8002}
+      # Sem isto, o NextAuth infere a origem sozinho e (achado de
+      # auditoria) acerta a porta INTERNA do container (3000) em vez da
+      # porta publicada (${FRONTEND_PORT:-3002}) — todo redirecionamento
+      # absoluto que o NextAuth monta (o pós-login, e o pós-logout via
+      # /api/auth/keycloak-logout-url) mandava o navegador pra
+      # http://0.0.0.0:3000 ou http://localhost:3000, inalcançável de
+      # fora do container → "página não encontrada" no lugar da home.
+      # Reaproveita FRONTEND_URL, a mesma variável que o backend-api já
+      # usa pro CORS (única fonte da verdade pra "qual é a URL pública do
+      # frontend").
+      NEXTAUTH_URL: ${FRONTEND_URL:-http://localhost:3002}
+    networks:
+    - nexus_internal
+    ports:
+    - ${HOST_BIND:-0.0.0.0}:${FRONTEND_PORT:-3002}:3000
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --spider
+      - -q
+      - http://127.0.0.1:3000
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    extra_hosts:
+    - host.docker.internal:host-gateway

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# nx <usuario> <METODO> <rota v1 sem /api/v1> [json]
+# Sessões em ~/.cache/nexus-nx (apague para forçar novo login).
+# Loga pelo Keycloak (fluxo NextAuth do navegador) uma vez por usuário e
+# chama o BFF (/api/backend/v1/...). Imprime "HTTP <code>" + corpo.
+set -uo pipefail
+cd "$(dirname "$(readlink -f "$0")")/../../.."
+FE=$(grep ^FRONTEND_URL= .env | cut -d= -f2-)
+# HTTPS com a CA interna (scripts/enable-https.sh): curl confia nela.
+[ -f secrets/ca/nexus-ca.crt ] && export CURL_CA_BUNDLE="$PWD/secrets/ca/nexus-ca.crt"
+PW=$(grep ^DEMO_USER_PASSWORD= .env | cut -d= -f2-)
+user="$1"; method="$2"; path="${3#/}"; body="${4:-}"
+SESS=${NX_SESSIONS:-$HOME/.cache/nexus-nx}; mkdir -p "$SESS"; J=$SESS/$user.jar
+
+login() {
+  rm -f $J
+  local csrf url page action cb
+  csrf=$(curl -s -c $J -b $J "$FE/api/auth/csrf" | sed -E 's/.*"csrfToken":"([^"]+)".*/\1/')
+  url=$(curl -s -c $J -b $J -X POST "$FE/api/auth/signin/keycloak" -H 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode "csrfToken=$csrf" --data-urlencode "callbackUrl=$FE/dashboard" --data-urlencode "json=true" | sed -E 's/.*"url":"([^"]+)".*/\1/')
+  page=$(curl -s -c $J -b $J "$url")
+  action=$(printf '%s' "$page" | grep -o 'action="[^"]*login-actions/authenticate[^"]*"' | head -1 | sed -E 's/action="([^"]*)"/\1/; s/&amp;/\&/g')
+  cb=$(curl -s -c $J -b $J -o /dev/null -w '%{redirect_url}' -X POST "$action" --data-urlencode "username=$user" --data-urlencode "password=$PW")
+  case "$cb" in *"/api/auth/callback/keycloak"*) curl -s -c $J -b $J -o /dev/null "$cb" ;; *) echo "LOGIN FALHOU: $user" >&2; exit 2 ;; esac
+}
+[ -s $J ] || login
+call() {
+  local args=(-s -c $J -b $J -X "$method" -w '\nHTTP %{http_code}' -H 'Content-Type: application/json' -H "X-Idempotency-Key: nx-$(openssl rand -hex 12)")
+  [ -n "$body" ] && args+=(--data "$body")
+  curl "${args[@]}" "$FE/api/backend/v1/$path"
+}
+out=$(call)
+if [[ "$out" == *"HTTP 401" ]]; then login; out=$(call); fi
+code=${out##*HTTP }; resp=${out%$'\n'HTTP *}
+echo "HTTP $code"; printf '%s\n' "$resp"

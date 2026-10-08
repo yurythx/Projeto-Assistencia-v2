@@ -1,0 +1,20 @@
+services:
+  postgres:
+    ports:
+    - ${HOST_DB_PORT:-5433}:5432
+  rabbitmq:
+    ports:
+    - ${HOST_RABBITMQ_PORT:-5673}:5672
+    - ${HOST_RABBITMQ_MGMT_PORT:-15673}:15672
+  # minio: as portas já vêm do docker-compose.yml (com HOST_BIND) — repetir
+  # aqui publicaria a mesma porta duas vezes.
+  backend-api:
+    environment:
+      APP_ENV: development
+      APP_LOG_LEVEL: debug
+      LOG_FORMAT: text
+  backend-worker:
+    environment:
+      APP_ENV: development
+      APP_LOG_LEVEL: debug
+      LOG_FORMAT: text

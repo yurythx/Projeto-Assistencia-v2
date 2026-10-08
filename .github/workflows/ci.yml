@@ -1,0 +1,327 @@
+name: CI/CD Pipeline — Projeto Nexus Base Governamental
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  backend-ci:
+    name: ⚙️ Backend (Go 1.26 + Security + Tests)
+    runs-on: ubuntu-latest
+    # Postgres real: os testes de integração (Kernel, todos os plugins pela
+    # API, auditoria encadeada, outbox, idempotência) pulam sem
+    # TEST_DATABASE_URL — sem este serviço eles nunca rodariam no CI.
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus_ci_password
+          POSTGRES_DB: nexus_test
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexus_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      # RabbitMQ real: mensageria (confirms, retry, DLQ, reconexão) e o
+      # Relay do outbox contra o broker de verdade (TEST_RABBITMQ_URL).
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: nexus
+          RABBITMQ_DEFAULT_PASS: nexus_ci_password
+          RABBITMQ_DEFAULT_VHOST: nexus
+        ports: [ "5672:5672" ]
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s --health-timeout 10s --health-retries 20
+    env:
+      TEST_DATABASE_URL: "postgres://nexus:nexus_ci_password@localhost:5432/nexus_test?sslmode=disable"
+      TEST_RABBITMQ_URL: "amqp://nexus:nexus_ci_password@localhost:5672/nexus"
+      TEST_MINIO_ENDPOINT: "localhost:9000"
+      TEST_MINIO_ACCESS_KEY: nexus
+      TEST_MINIO_SECRET_KEY: nexus_ci_password
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          # Versão vem do go.mod (diretiva toolchain): CI, Docker e máquinas
+          # locais compilam com o mesmo patch — o govulncheck acusa CVEs da
+          # stdlib de patches antigos.
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Install SAST tooling (govulncheck + staticcheck + gosec)
+        # Versões fixadas: uma release nova de linter não pode quebrar o CI
+        # sem mudança no código. Atualize de propósito, num PR próprio.
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+          go install honnef.co/go/tools/cmd/staticcheck@2026.1
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
+
+      - name: Vulnerability audit (govulncheck)
+        run: cd backend && govulncheck ./...
+
+      - name: Static analysis (staticcheck) — bloqueante
+        run: cd backend && staticcheck ./...
+
+      - name: Security lint (gosec) — bloqueante
+        # G104 (erros não checados) é ruído nos helpers de resposta HTTP,
+        # onde a escrita no ResponseWriter é deliberadamente best-effort.
+        # Baseline zerado: os poucos falsos-positivos restantes têm
+        # #nosec com justificativa no código (config int32Val validado,
+        # os.ReadFile de <KEY>_FILE, replay do corpo no idempotency mw).
+        run: cd backend && gosec -quiet -exclude=G104 ./...
+
+      - name: go vet
+        run: cd backend && go vet ./...
+
+      - name: Start MinIO (armazenamento de objetos, object-lock/WORM)
+        # Serviço do job não aceita o comando "server /data" da imagem, por
+        # isso sobe aqui. Mesma imagem do docker-compose.
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER="$TEST_MINIO_ACCESS_KEY" -e MINIO_ROOT_PASSWORD="$TEST_MINIO_SECRET_KEY" \
+            pgsty/minio:RELEASE.2026-08-04T00-00-00Z server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/ready && exit 0
+            sleep 1
+          done
+          docker logs minio; exit 1
+
+      - name: Apply migrations (banco de teste)
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: nexus_test
+          DB_USER: nexus
+          DB_PASSWORD: nexus_ci_password
+        run: |
+          cd backend && go run ./cmd/migrate up
+          # Os testes de falha (matriz de falhas, transação envenenada)
+          # geram milhares de ERROR esperados no log do Postgres, que o
+          # runner despeja no fim do job e escondem a saída do go test.
+          psql "$TEST_DATABASE_URL" -qc "ALTER SYSTEM SET log_min_messages = 'fatal'" \
+            -c "ALTER SYSTEM SET log_min_error_statement = 'panic'" -c "SELECT pg_reload_conf()"
+
+      - name: Run Backend Tests (unit + integração com Postgres)
+        # -p 1: os testes de integração tocam o mesmo TEST_DATABASE_URL e
+        # não podem rodar em paralelo. -coverpkg conta também a cobertura
+        # que os testes de sistema (internal/app, internal/integration)
+        # produzem nos módulos.
+        run: |
+          cd backend
+          go test -race -p 1 -coverpkg=./internal/...,./pkg/... -coverprofile=coverage.out ./... 2>&1 | tee test.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Resumo das falhas"
+            grep -E '^(--- FAIL|FAIL|panic:)|_test\.go:[0-9]+:|WARNING: DATA RACE' test.log | head -100
+            echo "::endgroup::"
+            exit "$status"
+          fi
+          go tool cover -func=coverage.out | tail -1
+
+      - name: Coverage gate — 100% por pacote (plugins, plataforma, app, pkg)
+        # Cada plugin, cada pacote de internal/platform, a composição
+        # (internal/app) e pkg/ mantêm 100% de cobertura de instruções
+        # (regras de negócio, falhas de banco/broker/armazenamento e
+        # handlers). Falha listando as linhas descobertas.
+        run: ./scripts/coverage-gate.sh backend/coverage.out 100
+
+      - name: Verify Go Build (API & Worker)
+        run: |
+          cd backend
+          go build -o /dev/null ./cmd/api
+          go build -o /dev/null ./cmd/worker
+
+  migrations-reversibility:
+    name: 🗄️ Migrations (goose up → down → up)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus
+          POSTGRES_DB: nexus_ci
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexus_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - name: Install goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@v3.28.0
+
+      - name: up → down-to-zero → up (toda migration precisa de Down válido)
+        env:
+          DB_DSN: "postgres://nexus:nexus@localhost:5432/nexus_ci?sslmode=disable"
+        run: |
+          cd backend/migrations
+          goose postgres "$DB_DSN" up
+          goose postgres "$DB_DSN" down-to 0
+          goose postgres "$DB_DSN" up
+          goose postgres "$DB_DSN" status
+
+  frontend-ci:
+    name: 🎨 Frontend (Next.js 16 + e-MAG Accessibility + Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: cd frontend && npm ci
+
+      # Equivalente ao govulncheck do backend: dependência com CVE alta ou
+      # crítica quebra o build (ex.: RCE do Next 16.3.2, GHSA-2xp9-vwfh-vxw4).
+      - name: Vulnerability audit (npm audit) — bloqueante
+        run: cd frontend && npm audit --audit-level=high
+
+      - name: ESLint & e-MAG Accessibility Check (jsx-a11y via eslint-config-next)
+        run: cd frontend && npm run lint
+
+      # Os tipos do contrato (src/types/openapi.gen.ts) saem do OpenAPI do
+      # backend; src/lib/nexus/contract.types.ts faz o tsc provar que cada
+      # tipo da tela aceita o que o backend envia (ADR 010 §10.5).
+      - name: Contrato frontend × backend (tipos gerados do OpenAPI em dia)
+        run: cd frontend && npm run gen:api && git diff --exit-code -- src/types/openapi.gen.ts
+
+      - name: TypeScript Type Check
+        run: cd frontend && npx tsc --noEmit
+
+      - name: Frontend Unit Tests + meta de cobertura (vitest.config.ts)
+        # Telas testadas contra um backend falso no fetch com os providers
+        # reais (src/test/backend.tsx); falha abaixo dos pisos de cobertura.
+        run: cd frontend && npm run test:coverage
+
+      - name: Build Next.js Production Bundle
+        run: cd frontend && npm run build
+
+  docker-build-healthcheck:
+    name: 🐳 Docker (build + healthcheck + E2E Playwright)
+    runs-on: ubuntu-latest
+    # Roda além de (não em vez de) backend-ci/frontend-ci: `go test`/`npm
+    # test` nunca constroem as imagens de runtime nem batem no
+    # HEALTHCHECK do docker-compose.yml — foi exatamente por isso que um
+    # `wget` ausente na imagem runtime (node:22-bookworm-slim/
+    # debian:bookworm-slim não vêm com wget, ao contrário da Alpine
+    # anterior) deixou frontend/backend-api/backend-worker permanentemente
+    # "unhealthy" sem que nenhum CI verde acusasse (achado de auditoria).
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Prepare local env (.env + chave RSA do login local)
+        run: |
+          cp .env.example .env
+          mkdir -p secrets
+          openssl genrsa -out secrets/local_auth_private_key.pem 2048
+          # O container roda como usuário não-root (nix), com outro uid:
+          # sem leitura para "outros" a API/worker falham com
+          # "permission denied" (mesmo passo do README).
+          chmod 644 secrets/local_auth_private_key.pem
+
+      - name: Build all images
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml build
+
+      - name: Start the stack
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+      - name: Wait for every service to report healthy
+        run: |
+          services="postgres rabbitmq redis minio backend-api backend-worker frontend"
+          deadline=$((SECONDS + 180))
+          for svc in $services; do
+            while true; do
+              # Recalcula o cid a cada volta (não só antes do loop): logo
+              # após `up -d`, "ps -q" pode devolver vazio um instante antes
+              # do container existir — se isso caísse direto no fallback
+              # "no-healthcheck" do inspect, o loop passava sem esperar
+              # nada de verdade.
+              cid=$(docker compose -f docker-compose.yml -f docker-compose.dev.yml ps -q "$svc")
+              status="starting"
+              if [ -n "$cid" ]; then
+                status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "no-healthcheck")
+              fi
+              if [ "$status" = "healthy" ] || [ "$status" = "no-healthcheck" ]; then
+                echo "$svc: $status"
+                break
+              fi
+              if [ "$SECONDS" -ge "$deadline" ]; then
+                echo "$svc nunca ficou healthy (último status: $status)"
+                docker compose -f docker-compose.yml -f docker-compose.dev.yml logs "$svc"
+                exit 1
+              fi
+              sleep 3
+            done
+          done
+
+      # ---- E2E (Playwright) contra a stack que acabou de subir ----
+      - name: Set up Go (seed do administrador)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Set up Node.js (Playwright)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Seed do administrador local (senha aleatória)
+        run: |
+          set -a; . ./.env; set +a
+          out=$(cd backend && DB_HOST=localhost DB_PORT=5433 go run ./cmd/seedadmin)
+          pass=$(printf '%s\n' "$out" | sed -n 's/^Senha: //p')
+          echo "::add-mask::$pass"
+          echo "E2E_ADMIN_PASSWORD=$pass" >> "$GITHUB_ENV"
+
+      - name: E2E — fluxos críticos no navegador (Playwright)
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3002
+          E2E_ADMIN_USERNAME: admin
+        run: |
+          cd frontend
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - name: Relatório do Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
+
+      - name: Dump logs (sempre, ajuda a depurar falhas intermitentes)
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v

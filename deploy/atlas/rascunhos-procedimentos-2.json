@@ -1,0 +1,4055 @@
+{
+  "procedimentos": [
+    {
+      "codigo_processual": "ADM.CEM.010",
+      "titulo": "Concessão de jazigo em cemitério municipal",
+      "objetivo": "Conceder o direito de uso de jazigo em cemitério municipal, com o pagamento das taxas.",
+      "publico_alvo": "Cidadãos",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.01.03.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAD/CEMITERIOS",
+          "nome_setor": "Administração dos cemitérios",
+          "atribuicoes_setor": "Receber o pedido e verificar a disponibilidade de jazigo.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de concessão de jazigo",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certidão de óbito (quando houver)",
+              "obrigatorio": false,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Jazigo disponível"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/ARRECADACAO",
+          "nome_setor": "Arrecadação",
+          "atribuicoes_setor": "Emitir a guia das taxas.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Guia de pagamento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Taxa paga"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMAD/CEMITERIOS",
+          "nome_setor": "Administração dos cemitérios",
+          "atribuicoes_setor": "Lavrar o termo de concessão e registrar no livro do cemitério.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Termo de concessão de uso",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "ADM.PRO.011",
+      "titulo": "Requerimento geral ao protocolo",
+      "objetivo": "Receber e encaminhar requerimento que não tem procedimento próprio, até a unidade competente responder.",
+      "publico_alvo": "Cidadãos e servidores",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.03.00.46",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAD/PROTOCOLO",
+          "nome_setor": "Protocolo geral",
+          "atribuicoes_setor": "Registrar o requerimento, autuar e encaminhar à unidade competente.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Documentos anexos",
+              "obrigatorio": false,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Processo autuado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade competente",
+          "atribuicoes_setor": "Analisar e decidir o pedido.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Despacho decisório",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Pedido decidido"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Unidade não competente",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Devolver ao protocolo para novo encaminhamento"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMAD/PROTOCOLO",
+          "nome_setor": "Protocolo geral",
+          "atribuicoes_setor": "Dar ciência ao requerente e arquivar.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Comunicação ao requerente",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "ADM.DOC.012",
+      "titulo": "Eliminação de documentos",
+      "objetivo": "Eliminar documentos com prazo de guarda cumprido e destinação \"eliminação\" na TTDD, com aprovação da CCPAD e publicação do edital de ciência.",
+      "publico_alvo": "Unidades administrativas",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.03.01.05",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade produtora",
+          "atribuicoes_setor": "Levantar os documentos com prazo cumprido e preencher a listagem de eliminação.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Listagem de eliminação de documentos",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Listagem pronta"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAD/CCPAD",
+          "nome_setor": "Comissão Permanente de Avaliação de Documentos",
+          "atribuicoes_setor": "Conferir a listagem contra a TTDD e aprovar.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Parecer da CCPAD",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Listagem aprovada"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Divergência com a TTDD",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Corrigir a listagem"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMAD/CCPAD",
+          "nome_setor": "Comissão Permanente de Avaliação de Documentos",
+          "atribuicoes_setor": "Publicar o edital de ciência de eliminação e aguardar o prazo.",
+          "prazo_sla_em_dias": 45,
+          "documentos": [
+            {
+              "nome_documento": "Edital de ciência de eliminação",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 4,
+              "condicao_transicao": "Prazo do edital cumprido"
+            }
+          ]
+        },
+        {
+          "ordem": 4,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade produtora",
+          "atribuicoes_setor": "Eliminar os documentos e lavrar o termo de eliminação.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Termo de eliminação de documentos",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "TI.ACE.001",
+      "titulo": "Acesso a sistemas, rede e e-mail corporativo",
+      "objetivo": "Criar, alterar ou revogar o acesso do servidor aos sistemas municipais, à rede e ao e-mail corporativo.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.04.01.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Chefia imediata",
+          "atribuicoes_setor": "Solicitar o acesso e indicar o perfil necessário à função.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de acesso",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Termo de responsabilidade de uso",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Chefia de acordo"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAD/TI",
+          "nome_setor": "Tecnologia da Informação",
+          "atribuicoes_setor": "Criar a conta com o perfil mínimo necessário e registrar.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Registro de concessão de acesso",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Perfil incompatível com a função",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Rever o perfil solicitado"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "TI.SUP.002",
+      "titulo": "Suporte técnico e manutenção de equipamento",
+      "objetivo": "Atender chamado de suporte ou manutenção de equipamento de informática.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.04.01.09",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade solicitante",
+          "atribuicoes_setor": "Abrir o chamado descrevendo o problema e o patrimônio do equipamento.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Ordem de serviço / chamado",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Chamado aberto"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAD/TI",
+          "nome_setor": "Suporte técnico",
+          "atribuicoes_setor": "Diagnosticar e resolver ou encaminhar à manutenção externa.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Laudo técnico",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Atendimento concluído"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade solicitante",
+          "atribuicoes_setor": "Confirmar a solução e encerrar o chamado.",
+          "prazo_sla_em_dias": 2
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.CAP.008",
+      "titulo": "Inscrição em curso de capacitação",
+      "objetivo": "Inscrever o servidor em curso promovido pela Prefeitura ou por outro órgão, com autorização da chefia.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.05.01.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Chefia imediata",
+          "atribuicoes_setor": "Autorizar a participação e a dispensa do expediente.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Ficha de inscrição",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Chefia de acordo"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/CAPACITACAO",
+          "nome_setor": "Capacitação",
+          "atribuicoes_setor": "Confirmar a vaga, registrar a frequência e emitir o certificado.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Lista de presença",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certificado",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.FOL.009",
+      "titulo": "Folha de pagamento complementar",
+      "objetivo": "Pagar valores devidos fora da folha normal (diferenças, verbas atrasadas).",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.06.00.06",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Apurar os valores devidos e montar o demonstrativo.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Demonstrativo de cálculo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Valores apurados"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEFIN/CONTABILIDADE",
+          "nome_setor": "Contabilidade",
+          "atribuicoes_setor": "Verificar a dotação e empenhar.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Nota de empenho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Despesa empenhada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/FOLHA",
+          "nome_setor": "Folha de pagamento",
+          "atribuicoes_setor": "Processar a folha complementar e o pagamento.",
+          "prazo_sla_em_dias": 30
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.RES.010",
+      "titulo": "Rescisão e verbas rescisórias",
+      "objetivo": "Calcular e pagar as verbas devidas na saída do servidor (exoneração, término de contrato, falecimento).",
+      "publico_alvo": "Ex-servidores e dependentes",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "2.0.06.00.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber o ato de desligamento e apurar férias, 13º e demais verbas.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Ato de desligamento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Termo de rescisão",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Verbas apuradas"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEFIN/CONTABILIDADE",
+          "nome_setor": "Contabilidade",
+          "atribuicoes_setor": "Empenhar e pagar as verbas rescisórias.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Nota de empenho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Ordem de pagamento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.VTR.011",
+      "titulo": "Vale-transporte (adesão e desistência)",
+      "objetivo": "Conceder ou cancelar o vale-transporte, com desconto na folha conforme a lei.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.06.01.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber a declaração com o itinerário e os meios de transporte.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de vale-transporte",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Declaração de itinerário",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requerimento instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/FOLHA",
+          "nome_setor": "Folha de pagamento",
+          "atribuicoes_setor": "Lançar o benefício e o desconto correspondente.",
+          "prazo_sla_em_dias": 30
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.CNS.012",
+      "titulo": "Empréstimo consignado",
+      "objetivo": "Averbar o empréstimo consignado do servidor dentro da margem legal, com banco credenciado.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "2.0.06.01.16",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Emitir a declaração de margem consignável.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de adesão ao consignado",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Declaração de margem consignável",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Margem disponível"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/FOLHA",
+          "nome_setor": "Folha de pagamento",
+          "atribuicoes_setor": "Averbar o contrato e lançar o desconto em folha.",
+          "prazo_sla_em_dias": 30
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.PAL.013",
+      "titulo": "Desconto de pensão alimentícia",
+      "objetivo": "Cumprir a determinação judicial de desconto de pensão alimentícia na folha do servidor.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 e segredo de justiça (CPC, art. 189)",
+      "codigo_ttdd": "2.0.06.01.11",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Receber o ofício judicial e orientar o cumprimento.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Ofício judicial",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Ordem conferida"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/FOLHA",
+          "nome_setor": "Folha de pagamento",
+          "atribuicoes_setor": "Lançar o desconto e repassar ao beneficiário conforme a decisão.",
+          "prazo_sla_em_dias": 30
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.REE.014",
+      "titulo": "Reembolso de despesas e indenização ao servidor",
+      "objetivo": "Ressarcir o servidor por despesa feita a serviço ou por indenização prevista no estatuto.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.06.01.14",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Chefia imediata",
+          "atribuicoes_setor": "Confirmar que a despesa foi feita a serviço.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de reembolso",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Comprovantes de despesa",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Chefia de acordo"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Conferir a previsão legal e o valor.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Informação do RH",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Reembolso devido"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/FOLHA",
+          "nome_setor": "Folha de pagamento",
+          "atribuicoes_setor": "Pagar o reembolso na folha ou por ordem de pagamento.",
+          "prazo_sla_em_dias": 30
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.INS.015",
+      "titulo": "Declaração de tempo de contribuição ao INSS",
+      "objetivo": "Emitir a declaração do tempo de contribuição ao Regime Geral (servidor celetista, contratado ou comissionado).",
+      "publico_alvo": "Servidores e ex-servidores",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.06.04.05",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber o pedido e levantar as contribuições do período.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de tempo de contribuição",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Período levantado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Emitir a declaração.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Declaração de tempo de contribuição",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.LMA.016",
+      "titulo": "Licença-maternidade",
+      "objetivo": "Conceder a licença à gestante ou adotante, com a prorrogação prevista na legislação municipal.",
+      "publico_alvo": "Servidoras municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "2.0.07.00.16",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber o atestado ou a certidão de nascimento ou o termo de adoção.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de licença-maternidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certidão de nascimento ou termo de guarda",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requerimento instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Saúde ocupacional (DESOPEM)",
+          "atribuicoes_setor": "Homologar a licença e, se pedida, a prorrogação.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de prorrogação",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Licença homologada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Portaria de licença-maternidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.LPA.017",
+      "titulo": "Licença-paternidade",
+      "objetivo": "Conceder a licença-paternidade ao servidor pelo nascimento ou adoção.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.07.00.17",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber a certidão de nascimento ou o termo de adoção.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de licença-paternidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certidão de nascimento ou termo de guarda",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requerimento instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Registro da licença-paternidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.LNO.018",
+      "titulo": "Licença por falecimento (nojo)",
+      "objetivo": "Conceder a licença pelo falecimento de familiar previsto no estatuto.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.07.00.18",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber a certidão de óbito e o vínculo de parentesco.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de licença",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certidão de óbito",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requerimento instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Registro da licença",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.PER.019",
+      "titulo": "Perícia médica para licença de saúde",
+      "objetivo": "Avaliar o servidor em perícia médica e conceder a licença para tratamento de saúde.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "2.0.07.02.30",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Saúde ocupacional (DESOPEM)",
+          "atribuicoes_setor": "Agendar a perícia (no local, domiciliar ou hospitalar) a partir do atestado.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de perícia médica",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Atestado médico",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Perícia agendada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Junta médica",
+          "atribuicoes_setor": "Realizar a perícia e emitir o laudo com o prazo da licença.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Laudo pericial",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Laudo emitido"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Portaria de licença para tratamento de saúde",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.CAT.020",
+      "titulo": "Comunicação de Acidente de Trabalho (CAT)",
+      "objetivo": "Registrar o acidente de trabalho do servidor e encaminhar a avaliação e os benefícios.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "2.0.07.02.10",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Chefia imediata",
+          "atribuicoes_setor": "Comunicar o acidente em até 1 dia útil, com testemunhas.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Relato do acidente",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Acidente comunicado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Saúde ocupacional (DESOPEM)",
+          "atribuicoes_setor": "Emitir a CAT e avaliar o afastamento.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "CAT – Comunicação de Acidente de Trabalho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Laudo médico",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.REA.021",
+      "titulo": "Readaptação de função",
+      "objetivo": "Readaptar o servidor com limitação de saúde a atribuições compatíveis, após avaliação da junta médica.",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "2.0.07.02.28",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Junta médica",
+          "atribuicoes_setor": "Avaliar a limitação e indicar as restrições.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Laudo de readaptação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Restrições definidas"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Indicar a função compatível com a secretaria de lotação.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Proposta de readaptação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Função definida"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Portaria de readaptação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.RCH.022",
+      "titulo": "Redução de carga horária para cuidar de pessoa com deficiência",
+      "objetivo": "Reduzir a jornada do servidor responsável por pessoa com deficiência, sem redução de vencimento (Lei 8.563/2015).",
+      "publico_alvo": "Servidores municipais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "2.0.07.02.32",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Receber o pedido com o laudo da pessoa com deficiência e a comprovação da dependência.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de redução de carga horária",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Laudo médico da pessoa com deficiência",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requerimento instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/DESOPEM",
+          "nome_setor": "Junta médica",
+          "atribuicoes_setor": "Avaliar o laudo e opinar.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Parecer da junta médica",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Parecer favorável"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Publicar o ato e registrar na pasta funcional.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Portaria de redução de carga horária",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.COM.023",
+      "titulo": "Nomeação e exoneração de cargo em comissão",
+      "objetivo": "Nomear ou exonerar servidor de cargo em comissão, com verificação de vedações (nepotismo, ficha limpa).",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.08.02.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Secretário",
+          "atribuicoes_setor": "Indicar o nome para o cargo vago.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de nomeação/exoneração",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Indicação feita"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Conferir a vaga, os documentos e as declarações de vedação.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Declaração de não parentesco",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Certidões negativas",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Requisitos atendidos"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "GAB",
+          "nome_setor": "Prefeito",
+          "atribuicoes_setor": "Assinar e publicar o decreto ou a portaria.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Ato de nomeação/exoneração",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.TMP.024",
+      "titulo": "Contratação temporária por excepcional interesse público",
+      "objetivo": "Contratar pessoal por tempo determinado, nos casos previstos em lei, a partir de processo seletivo ou justificativa.",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.08.02.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Secretaria solicitante",
+          "atribuicoes_setor": "Justificar a necessidade temporária e indicar o cadastro de reserva.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de contratação temporária",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Justificativa de excepcional interesse público",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Necessidade justificada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Conferir a dotação, a ordem de classificação e os documentos do contratado.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Documentos do contratado",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Contratação viável"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Recursos Humanos",
+          "atribuicoes_setor": "Formalizar o contrato e cadastrar na folha.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Contrato temporário",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.ETG.025",
+      "titulo": "Contratação de estagiário",
+      "objetivo": "Contratar estagiário por meio de agente de integração e termo de compromisso com a instituição de ensino.",
+      "publico_alvo": "Secretarias e estudantes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.08.02.05",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade concedente",
+          "atribuicoes_setor": "Solicitar a vaga e indicar o supervisor.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de contratação de estagiário",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Vaga solicitada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/CAPACITACAO",
+          "nome_setor": "Gestão de estágios",
+          "atribuicoes_setor": "Selecionar com o agente de integração e firmar o termo de compromisso.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Termo de compromisso de estágio",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Plano de atividades",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "RH.SEL.026",
+      "titulo": "Processo seletivo simplificado",
+      "objetivo": "Planejar e realizar processo seletivo para contratação temporária, com edital, recursos e homologação.",
+      "publico_alvo": "Candidatos e secretarias",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "2.0.08.03.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Comissão do processo seletivo",
+          "atribuicoes_setor": "Planejar, publicar o edital e receber as inscrições.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Edital do processo seletivo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Lista de inscritos",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Inscrições encerradas"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEGEP/RH",
+          "nome_setor": "Comissão do processo seletivo",
+          "atribuicoes_setor": "Avaliar, publicar o resultado e julgar os recursos.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Resultado parcial",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Decisão dos recursos",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Recursos julgados"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "GAB",
+          "nome_setor": "Prefeito",
+          "atribuicoes_setor": "Homologar o resultado final.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Homologação do resultado",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.FIS.007",
+      "titulo": "Ação fiscal tributária",
+      "objetivo": "Fiscalizar o contribuinte, lavrar o auto de infração quando houver débito e encerrar a ação fiscal.",
+      "publico_alvo": "Contribuintes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.03.01.23",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/FISCALIZACAO",
+          "nome_setor": "Fiscalização",
+          "atribuicoes_setor": "Emitir a ordem de serviço e o termo de início de fiscalização.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Ordem de serviço",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Termo de início de fiscalização",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Fiscalização iniciada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/FISCALIZACAO",
+          "nome_setor": "Auditor fiscal",
+          "atribuicoes_setor": "Levantar os documentos e apurar o débito.",
+          "prazo_sla_em_dias": 60,
+          "documentos": [
+            {
+              "nome_documento": "Levantamento fiscal",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Auto de infração e multa",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Apuração concluída"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEREC/FISCALIZACAO",
+          "nome_setor": "Fiscalização",
+          "atribuicoes_setor": "Notificar o contribuinte e lavrar o termo de conclusão.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Termo de conclusão de fiscalização",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.ISS.008",
+      "titulo": "Recurso contra lançamento de ISSQN",
+      "objetivo": "Julgar a impugnação ou o recurso do contribuinte contra lançamento ou auto de infração de ISSQN.",
+      "publico_alvo": "Contribuintes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.03.01.13",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/ATENDIMENTO",
+          "nome_setor": "Atendimento ao contribuinte",
+          "atribuicoes_setor": "Receber o recurso no prazo e juntar o lançamento.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Recurso do contribuinte",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Recurso tempestivo"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/FISCALIZACAO",
+          "nome_setor": "Auditor autuante",
+          "atribuicoes_setor": "Contestar ou rever o lançamento.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Informação fiscal",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Informação prestada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEREC/TRIBUTARIO",
+          "nome_setor": "Julgamento tributário",
+          "atribuicoes_setor": "Julgar e notificar o contribuinte.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Decisão de primeira instância",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.JUL.009",
+      "titulo": "Consulta tributária",
+      "objetivo": "Responder formalmente à consulta do contribuinte sobre a aplicação da legislação tributária municipal.",
+      "publico_alvo": "Contribuintes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.03.02.05",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/ATENDIMENTO",
+          "nome_setor": "Atendimento ao contribuinte",
+          "atribuicoes_setor": "Receber a consulta com a descrição do fato.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Petição de consulta",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Consulta recebida"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/TRIBUTARIO",
+          "nome_setor": "Julgamento tributário",
+          "atribuicoes_setor": "Analisar e emitir a resposta à consulta.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Resposta à consulta",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.FPM.010",
+      "titulo": "Recurso sobre o índice do FPM",
+      "objetivo": "Solicitar à Procuradoria a interposição de recurso contra o índice ou a distribuição do Fundo de Participação dos Municípios.",
+      "publico_alvo": "Gestão fazendária",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.03.03.01",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/RECEITA",
+          "nome_setor": "Receita",
+          "atribuicoes_setor": "Analisar o índice publicado e levantar os dados divergentes.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Nota técnica do índice",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Divergência confirmada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Interpor o recurso no órgão competente.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Recurso administrativo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.CAD.011",
+      "titulo": "Atualização do cadastro imobiliário (proprietário e endereço)",
+      "objetivo": "Atualizar o nome do proprietário ou o endereço de correspondência no cadastro imobiliário.",
+      "publico_alvo": "Contribuintes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.04.00.05",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/ATENDIMENTO",
+          "nome_setor": "Atendimento ao contribuinte",
+          "atribuicoes_setor": "Receber o pedido com o documento de propriedade.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de atualização cadastral",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Matrícula ou escritura",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/CADASTRO",
+          "nome_setor": "Cadastro imobiliário",
+          "atribuicoes_setor": "Conferir e atualizar o cadastro.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Boletim de cadastro imobiliário",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.VVE.012",
+      "titulo": "Certidão de valor venal",
+      "objetivo": "Emitir certidão do valor venal do imóvel para fins de ITBI, financiamento ou inventário.",
+      "publico_alvo": "Contribuintes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.04.00.07",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/ATENDIMENTO",
+          "nome_setor": "Atendimento ao contribuinte",
+          "atribuicoes_setor": "Receber o pedido.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de certidão",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido recebido"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/CADASTRO",
+          "nome_setor": "Cadastro imobiliário",
+          "atribuicoes_setor": "Emitir a certidão.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Certidão de valor venal",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.CUS.013",
+      "titulo": "Certidão de uso do solo (controle urbano)",
+      "objetivo": "Emitir certidão de uso do solo do imóvel conforme o zoneamento.",
+      "publico_alvo": "Proprietários e empresas",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.04.01.06",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEREC/ATENDIMENTO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Receber o pedido com a localização do imóvel e a atividade.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de certidão de uso do solo",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido recebido"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/CONTROLE_URBANO",
+          "nome_setor": "Controle urbano",
+          "atribuicoes_setor": "Verificar o zoneamento e emitir a certidão.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Certidão de uso do solo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "FAZ.ORC.014",
+      "titulo": "Suplementação orçamentária",
+      "objetivo": "Abrir crédito suplementar ou especial para despesa sem dotação suficiente.",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.05.00.08",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Secretaria solicitante",
+          "atribuicoes_setor": "Justificar a necessidade e indicar a fonte de recurso.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de suplementação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido justificado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEPLAN/ORCAMENTO",
+          "nome_setor": "Orçamento",
+          "atribuicoes_setor": "Verificar a disponibilidade e minutar o decreto.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Minuta de decreto de crédito",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Crédito viável"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Fonte insuficiente",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Indicar outra fonte de recurso"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "GAB",
+          "nome_setor": "Prefeito",
+          "atribuicoes_setor": "Assinar e publicar o decreto.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Decreto de abertura de crédito",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "PAT.BAI.001",
+      "titulo": "Baixa de bem patrimonial",
+      "objetivo": "Dar baixa de bem móvel inservível, extraviado ou alienado, com laudo e autorização.",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.05.01.01",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade detentora",
+          "atribuicoes_setor": "Solicitar a baixa com o número de patrimônio e o motivo.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de baixa",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Boletim de ocorrência (extravio)",
+              "obrigatorio": false,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEFIN/PATRIMONIO",
+          "nome_setor": "Comissão de patrimônio",
+          "atribuicoes_setor": "Vistoriar e emitir o laudo de inservibilidade.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Laudo de avaliação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Baixa recomendada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEFIN/PATRIMONIO",
+          "nome_setor": "Patrimônio",
+          "atribuicoes_setor": "Registrar a baixa e destinar o bem.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Termo de baixa",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "PAT.TRA.002",
+      "titulo": "Transferência de bem patrimonial",
+      "objetivo": "Transferir a carga de bem móvel entre unidades, atualizando o responsável.",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.05.01.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade cedente",
+          "atribuicoes_setor": "Solicitar a transferência indicando a unidade recebedora.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de transferência",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido feito"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEFIN/PATRIMONIO",
+          "nome_setor": "Patrimônio",
+          "atribuicoes_setor": "Emitir o termo de transferência de responsabilidade.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Termo de transferência",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "PAT.INC.003",
+      "titulo": "Incorporação de bem permanente",
+      "objetivo": "Incorporar ao patrimônio o bem adquirido, doado ou cedido, com plaqueta e termo de responsabilidade.",
+      "publico_alvo": "Secretarias municipais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "3.0.05.01.15",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEFIN/PATRIMONIO",
+          "nome_setor": "Patrimônio",
+          "atribuicoes_setor": "Conferir a nota fiscal ou o termo de doação e emplaquetar.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Nota fiscal ou termo de doação",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Ficha de cadastro do bem",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Bem cadastrado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade recebedora",
+          "atribuicoes_setor": "Assinar o termo de responsabilidade.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Termo de responsabilidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "CTR.AUD.002",
+      "titulo": "Auditoria interna",
+      "objetivo": "Planejar e executar auditoria em unidade ou processo, com relatório e plano de providências.",
+      "publico_alvo": "Unidades administrativas",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 7º, §3º (documento preparatório até a conclusão)",
+      "codigo_ttdd": "4.0.01.01.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "UCCI",
+          "nome_setor": "Controladoria",
+          "atribuicoes_setor": "Planejar a auditoria e comunicar a unidade auditada.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Plano de auditoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Ofício de comunicação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Auditoria iniciada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "UCCI",
+          "nome_setor": "Equipe de auditoria",
+          "atribuicoes_setor": "Executar os testes e emitir o relatório preliminar.",
+          "prazo_sla_em_dias": 45,
+          "documentos": [
+            {
+              "nome_documento": "Relatório preliminar",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Relatório emitido"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SECRETARIA",
+          "nome_setor": "Unidade auditada",
+          "atribuicoes_setor": "Manifestar-se sobre os achados.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Manifestação da unidade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 4,
+              "condicao_transicao": "Manifestação recebida"
+            }
+          ]
+        },
+        {
+          "ordem": 4,
+          "unidade_administrativa": "UCCI",
+          "nome_setor": "Controladoria",
+          "atribuicoes_setor": "Emitir o relatório final e o plano de providências.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Relatório final de auditoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "HAB.ITB.004",
+      "titulo": "Isenção de ITBI em programa habitacional",
+      "objetivo": "Reconhecer a isenção de ITBI para beneficiário de programa habitacional de interesse social.",
+      "publico_alvo": "Beneficiários de programas habitacionais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "6.0.01.00.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEHAB/PROGRAMAS",
+          "nome_setor": "Programas habitacionais",
+          "atribuicoes_setor": "Confirmar o enquadramento do beneficiário no programa.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de isenção de ITBI",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Declaração de enquadramento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Beneficiário enquadrado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEREC/TRIBUTARIO",
+          "nome_setor": "Julgamento tributário",
+          "atribuicoes_setor": "Reconhecer a isenção e emitir a guia zerada.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Decisão de isenção",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "HAB.MCM.005",
+      "titulo": "Titulação de beneficiário de programa habitacional",
+      "objetivo": "Emitir o título de propriedade ao beneficiário de programa habitacional (ex.: Minha Casa Minha Vida).",
+      "publico_alvo": "Beneficiários de programas habitacionais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "6.0.01.00.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEHAB/PROGRAMAS",
+          "nome_setor": "Programas habitacionais",
+          "atribuicoes_setor": "Conferir a ocupação e os requisitos do beneficiário.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Cadastro do beneficiário",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Documentos pessoais",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Requisitos atendidos"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Emitir parecer jurídico.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Parecer jurídico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Parecer favorável"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEHAB/PROGRAMAS",
+          "nome_setor": "Programas habitacionais",
+          "atribuicoes_setor": "Emitir o título e encaminhar ao cartório.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Título de propriedade",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "HAB.RRU.006",
+      "titulo": "Regularização fundiária rural",
+      "objetivo": "Regularizar a ocupação rural individual de interesse social (REURB-S) ou específico (REURB-E).",
+      "publico_alvo": "Ocupantes de áreas rurais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LAI, art. 31 (informação pessoal)",
+      "codigo_ttdd": "6.0.01.02.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEHAB/REURB",
+          "nome_setor": "Regularização fundiária",
+          "atribuicoes_setor": "Cadastrar o ocupante e enquadrar a modalidade.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de regularização",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Cadastro socioeconômico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Modalidade enquadrada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEHAB/TOPOGRAFIA",
+          "nome_setor": "Topografia e cartografia",
+          "atribuicoes_setor": "Levantar a área e elaborar o memorial descritivo.",
+          "prazo_sla_em_dias": 60,
+          "documentos": [
+            {
+              "nome_documento": "Levantamento topográfico",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Memorial descritivo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Levantamento concluído"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEHAB/REURB",
+          "nome_setor": "Regularização fundiária",
+          "atribuicoes_setor": "Emitir a certidão de regularização e encaminhar ao cartório.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Certidão de Regularização Fundiária (CRF)",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "HAB.DES.007",
+      "titulo": "Desmembramento e remembramento de imóvel",
+      "objetivo": "Aprovar a divisão ou a unificação de lotes urbanos conforme a lei de parcelamento do solo.",
+      "publico_alvo": "Proprietários",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "6.0.02.01.10",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEHAB/PROTOCOLO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Receber o pedido com o projeto e as matrículas.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de desmembramento/remembramento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Projeto e memorial descritivo",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Matrículas atualizadas",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEHAB/CARTOGRAFIA",
+          "nome_setor": "Averbação e cartografia",
+          "atribuicoes_setor": "Analisar o projeto e as dimensões mínimas dos lotes.",
+          "prazo_sla_em_dias": 20,
+          "documentos": [
+            {
+              "nome_documento": "Parecer técnico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Projeto aprovado"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Lote abaixo do mínimo",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Corrigir o projeto"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEHAB/CARTOGRAFIA",
+          "nome_setor": "Averbação e cartografia",
+          "atribuicoes_setor": "Emitir a aprovação para registro no cartório.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Certidão de aprovação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "HAB.ALI.008",
+      "titulo": "Alinhamento de lote",
+      "objetivo": "Emitir laudo e nota de alinhamento do lote em relação ao logradouro.",
+      "publico_alvo": "Proprietários e responsáveis técnicos",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "6.0.02.01.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEHAB/PROTOCOLO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Receber o pedido com a localização do lote.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de alinhamento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido recebido"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEHAB/TOPOGRAFIA",
+          "nome_setor": "Topografia",
+          "atribuicoes_setor": "Vistoriar e emitir o laudo e a nota de alinhamento.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Laudo e nota de alinhamento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "MAM.FIS.002",
+      "titulo": "Fiscalização ambiental",
+      "objetivo": "Apurar denúncia ou constatação de infração ambiental, com auto de infração e prazo de defesa.",
+      "publico_alvo": "Infratores e denunciantes",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.01.00.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMMA/FISCALIZACAO",
+          "nome_setor": "Fiscalização ambiental",
+          "atribuicoes_setor": "Vistoriar o local e lavrar o auto de infração ou de notificação.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Relatório de vistoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Auto de infração ambiental",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Auto lavrado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMMA/JULGAMENTO",
+          "nome_setor": "Julgamento ambiental",
+          "atribuicoes_setor": "Receber a defesa e julgar em primeira instância.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Defesa do autuado",
+              "obrigatorio": false,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Decisão de primeira instância",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "MAM.ARV.003",
+      "titulo": "Remoção ou supressão de árvores",
+      "objetivo": "Autorizar a poda, a remoção ou a supressão de vegetação, com compensação ambiental quando exigida.",
+      "publico_alvo": "Cidadãos e empreendedores",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.01.02.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMMA/ATENDIMENTO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Receber o pedido com a localização e o motivo.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de remoção/supressão",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Fotos do local",
+              "obrigatorio": false,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido recebido"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMMA/TECNICO",
+          "nome_setor": "Análise técnica",
+          "atribuicoes_setor": "Vistoriar e emitir o laudo e a compensação.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Laudo técnico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Remoção autorizada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMMA/LICENCIAMENTO",
+          "nome_setor": "Licenciamento ambiental",
+          "atribuicoes_setor": "Emitir a autorização com as condicionantes.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Autorização de remoção/supressão",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Termo de compensação ambiental",
+              "obrigatorio": false,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "MAM.REC.004",
+      "titulo": "Recurso ao Conselho de Meio Ambiente (CONSEMMA)",
+      "objetivo": "Julgar em segunda instância o recurso contra auto de infração ambiental.",
+      "publico_alvo": "Autuados",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.01.03.02",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMMA/CONSEMMA",
+          "nome_setor": "Secretaria executiva do CONSEMMA",
+          "atribuicoes_setor": "Receber o recurso no prazo e distribuir a um relator.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Recurso administrativo",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Recurso distribuído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMMA/CONSEMMA",
+          "nome_setor": "Plenária do CONSEMMA",
+          "atribuicoes_setor": "Julgar o recurso e publicar a decisão.",
+          "prazo_sla_em_dias": 60,
+          "documentos": [
+            {
+              "nome_documento": "Voto do relator",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Decisão do conselho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "AGR.SIM.001",
+      "titulo": "Registro no Serviço de Inspeção Municipal (SIM)",
+      "objetivo": "Registrar estabelecimento produtor de alimentos de origem animal no SIM.",
+      "publico_alvo": "Produtores rurais e agroindústrias",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.02.01.02",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAGRI/SIM",
+          "nome_setor": "Serviço de Inspeção Municipal",
+          "atribuicoes_setor": "Receber o pedido com a planta e o memorial do estabelecimento.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de registro no SIM",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Planta e memorial técnico",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAGRI/SIM",
+          "nome_setor": "Médico veterinário",
+          "atribuicoes_setor": "Vistoriar as instalações e emitir o laudo.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Laudo de vistoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Vistoria favorável"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Instalações inadequadas",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Adequar as instalações"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMAGRI/SIM",
+          "nome_setor": "Serviço de Inspeção Municipal",
+          "atribuicoes_setor": "Emitir o certificado de registro.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Certificado de registro no SIM",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "AGR.TRA.002",
+      "titulo": "Serviço de trator e implementos ao produtor rural",
+      "objetivo": "Agendar e executar serviço de mecanização agrícola para o pequeno produtor.",
+      "publico_alvo": "Pequenos produtores rurais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.02.02.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAGRI/ATENDIMENTO",
+          "nome_setor": "Atendimento ao produtor",
+          "atribuicoes_setor": "Cadastrar o pedido e conferir o enquadramento do produtor.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de serviço de trator",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Produtor enquadrado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAGRI/MECANIZACAO",
+          "nome_setor": "Patrulha mecanizada",
+          "atribuicoes_setor": "Agendar, executar e registrar as horas trabalhadas.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Ordem de serviço",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Termo de recebimento do serviço",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "AGR.POC.003",
+      "titulo": "Perfuração de poço artesiano em área rural",
+      "objetivo": "Avaliar e executar a perfuração de poço para abastecimento de propriedade rural.",
+      "publico_alvo": "Produtores rurais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.02.03.02",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAGRI/ATENDIMENTO",
+          "nome_setor": "Atendimento ao produtor",
+          "atribuicoes_setor": "Receber o pedido e a documentação da propriedade.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de perfuração de poço",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Documento da propriedade",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAGRI/EXTENSAO",
+          "nome_setor": "Extensão rural",
+          "atribuicoes_setor": "Avaliar a viabilidade técnica e a outorga necessária.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Parecer técnico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Perfuração viável"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMAGRI/EXTENSAO",
+          "nome_setor": "Extensão rural",
+          "atribuicoes_setor": "Executar ou contratar a perfuração e registrar a entrega.",
+          "prazo_sla_em_dias": 60,
+          "documentos": [
+            {
+              "nome_documento": "Termo de entrega do poço",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "AGR.EST.004",
+      "titulo": "Manutenção de estrada rural",
+      "objetivo": "Atender pedido de manutenção ou recuperação de estrada vicinal.",
+      "publico_alvo": "Comunidades rurais",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "8.0.02.04.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMAGRI/ATENDIMENTO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Registrar o pedido com a localização do trecho.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de manutenção de estrada",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido registrado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMAGRI/ESTRADAS",
+          "nome_setor": "Manutenção de estradas",
+          "atribuicoes_setor": "Vistoriar, programar e executar o serviço.",
+          "prazo_sla_em_dias": 45,
+          "documentos": [
+            {
+              "nome_documento": "Relatório de vistoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Relatório de execução",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "DEC.INC.002",
+      "titulo": "Incentivo fiscal a empresa",
+      "objetivo": "Conceder incentivo fiscal previsto na lei municipal de incentivo, com contrapartidas e acompanhamento.",
+      "publico_alvo": "Empresas",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "9.0.01.00.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEDEC/ATENDIMENTO",
+          "nome_setor": "Sala do Empreendedor",
+          "atribuicoes_setor": "Receber o pedido com o projeto de investimento.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de incentivo fiscal",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Projeto de investimento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEDEC/CONSELHO",
+          "nome_setor": "Conselho de desenvolvimento",
+          "atribuicoes_setor": "Analisar o projeto e as contrapartidas.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Parecer do conselho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Projeto aprovado"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEREC/TRIBUTARIO",
+          "nome_setor": "Julgamento tributário",
+          "atribuicoes_setor": "Conceder o benefício e registrar as condições.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Termo de concessão de incentivo",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "DEC.IND.003",
+      "titulo": "Concessão de área em distrito industrial",
+      "objetivo": "Conceder área em distrito industrial a empresa, conforme o roteiro do conselho diretor (CODIP), com escritura após a implantação.",
+      "publico_alvo": "Empresas",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "9.0.01.02.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEDEC/INDUSTRIA",
+          "nome_setor": "Indústria",
+          "atribuicoes_setor": "Receber o pedido com o projeto e o cronograma de implantação.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de área industrial",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Projeto de implantação",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEDEC/CODIP",
+          "nome_setor": "Conselho Diretor (CODIP)",
+          "atribuicoes_setor": "Deliberar a concessão e as obrigações.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Resolução do CODIP",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Concessão aprovada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Emitir parecer jurídico.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Parecer jurídico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 4,
+              "condicao_transicao": "Contrato aprovado"
+            }
+          ]
+        },
+        {
+          "ordem": 4,
+          "unidade_administrativa": "SEDEC/INDUSTRIA",
+          "nome_setor": "Indústria",
+          "atribuicoes_setor": "Firmar o contrato e acompanhar a implantação até a escritura.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Contrato de concessão",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAS.CNV.002",
+      "titulo": "Convênio ou parceria na assistência social",
+      "objetivo": "Firmar convênio ou parceria com outro ente ou com organização para executar ação socioassistencial.",
+      "publico_alvo": "Entes e organizações parceiras",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "10.0.01.00.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMPRAS/GESTAO",
+          "nome_setor": "Gestão do SUAS",
+          "atribuicoes_setor": "Elaborar o plano de trabalho e a justificativa.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Plano de trabalho",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Justificativa da parceria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Plano aprovado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Emitir parecer jurídico.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Parecer jurídico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Minuta aprovada"
+            },
+            {
+              "destino_ordem": 1,
+              "condicao_transicao": "Ajustes na minuta",
+              "is_devolucao_diligencia": true,
+              "descricao_diligencia": "Ajustar o plano ou a minuta"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "GAB",
+          "nome_setor": "Prefeito",
+          "atribuicoes_setor": "Assinar o termo e publicar o extrato.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Termo de convênio/parceria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Extrato publicado",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAS.CHA.003",
+      "titulo": "Chamamento público de OSC",
+      "objetivo": "Selecionar organização da sociedade civil por chamamento público (Lei 13.019/2014).",
+      "publico_alvo": "Organizações da sociedade civil",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "10.0.03.00.06",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMPRAS/GESTAO",
+          "nome_setor": "Gestão do SUAS",
+          "atribuicoes_setor": "Elaborar e publicar o edital de chamamento.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Edital de chamamento público",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Edital publicado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMPRAS/COMISSAO",
+          "nome_setor": "Comissão de seleção",
+          "atribuicoes_setor": "Avaliar as propostas e publicar o resultado.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Ata de julgamento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            },
+            {
+              "nome_documento": "Resultado do chamamento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Resultado homologado"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMPRAS/GESTAO",
+          "nome_setor": "Gestão do SUAS",
+          "atribuicoes_setor": "Firmar o termo de colaboração ou fomento.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Termo de colaboração/fomento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAS.BIL.004",
+      "titulo": "Bilhete único especial para pessoa com deficiência",
+      "objetivo": "Conceder a gratuidade no transporte coletivo municipal à pessoa com deficiência e acompanhante, quando indicado.",
+      "publico_alvo": "Pessoas com deficiência",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "10.0.06.00.40",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SEMPRAS/ATENDIMENTO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Receber o pedido com o laudo médico e os documentos.",
+          "prazo_sla_em_dias": 2,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de bilhete único especial",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Laudo médico",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido instruído"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SEMPRAS/AVALIACAO",
+          "nome_setor": "Avaliação social",
+          "atribuicoes_setor": "Avaliar os requisitos e a necessidade de acompanhante.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Parecer social",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Benefício deferido"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SEMPRAS/ATENDIMENTO",
+          "nome_setor": "Atendimento",
+          "atribuicoes_setor": "Solicitar a emissão do cartão e entregar ao beneficiário.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Termo de entrega do cartão",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.EMD.002",
+      "titulo": "Emenda parlamentar para a saúde",
+      "objetivo": "Cadastrar, executar e prestar contas de recurso de emenda parlamentar destinado à saúde.",
+      "publico_alvo": "Secretaria de Saúde",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.01.00.13",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/PLANEJAMENTO",
+          "nome_setor": "Planejamento em saúde",
+          "atribuicoes_setor": "Cadastrar a proposta no sistema do Ministério e acompanhar a aprovação.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Proposta de aplicação",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Recurso creditado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/FUNDO",
+          "nome_setor": "Fundo Municipal de Saúde",
+          "atribuicoes_setor": "Executar a despesa conforme o objeto.",
+          "prazo_sla_em_dias": 180,
+          "documentos": [
+            {
+              "nome_documento": "Processo de execução da despesa",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Objeto executado"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SMS/FUNDO",
+          "nome_setor": "Fundo Municipal de Saúde",
+          "atribuicoes_setor": "Prestar contas no sistema federal.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Prestação de contas",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.CNE.003",
+      "titulo": "Cadastro de estabelecimento no SCNES",
+      "objetivo": "Incluir, alterar ou excluir estabelecimento e profissionais no Cadastro Nacional de Estabelecimentos de Saúde.",
+      "publico_alvo": "Estabelecimentos de saúde",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.01.01.09",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/CNES",
+          "nome_setor": "Cadastro CNES",
+          "atribuicoes_setor": "Receber a ficha cadastral e os documentos do estabelecimento.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Ficha cadastral do CNES",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Licença sanitária",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Ficha conferida"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/CNES",
+          "nome_setor": "Cadastro CNES",
+          "atribuicoes_setor": "Atualizar o SCNES e enviar a competência.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Comprovante de atualização",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.EST.004",
+      "titulo": "Convênio de estágio nas unidades de saúde",
+      "objetivo": "Firmar convênio com instituição de ensino para estágio supervisionado nas unidades de saúde.",
+      "publico_alvo": "Instituições de ensino",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.01.02.00",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/EDUCACAO",
+          "nome_setor": "Educação permanente",
+          "atribuicoes_setor": "Receber a proposta e verificar as vagas nas unidades.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Proposta de convênio de estágio",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Plano de estágio",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Vagas confirmadas"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "PGM",
+          "nome_setor": "Procuradoria",
+          "atribuicoes_setor": "Emitir parecer jurídico.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Parecer jurídico",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Parecer favorável"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SMS/EDUCACAO",
+          "nome_setor": "Educação permanente",
+          "atribuicoes_setor": "Firmar o convênio e distribuir os estagiários.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Convênio de estágio",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.AUD.005",
+      "titulo": "Auditoria de serviço de saúde",
+      "objetivo": "Auditar serviço próprio ou contratado do SUS, com relatório e providências.",
+      "publico_alvo": "Prestadores do SUS",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "12.0.01.05.01",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/AUDITORIA",
+          "nome_setor": "Auditoria (DIACAUD)",
+          "atribuicoes_setor": "Planejar e comunicar a auditoria.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Plano de auditoria",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Auditoria iniciada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/AUDITORIA",
+          "nome_setor": "Equipe de auditoria",
+          "atribuicoes_setor": "Executar e emitir o relatório preliminar.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Relatório preliminar",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Relatório emitido"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SMS/AUDITORIA",
+          "nome_setor": "Auditoria (DIACAUD)",
+          "atribuicoes_setor": "Receber a manifestação do auditado e emitir o relatório final.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Relatório final",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.PCF.006",
+      "titulo": "Prestação de contas do Fundo Municipal de Saúde",
+      "objetivo": "Elaborar e apresentar a prestação de contas quadrimestral do Fundo Municipal de Saúde ao Conselho e ao Legislativo.",
+      "publico_alvo": "Conselho Municipal de Saúde e Câmara",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.01.08.03",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/FUNDO",
+          "nome_setor": "Fundo Municipal de Saúde",
+          "atribuicoes_setor": "Consolidar a execução orçamentária e física do quadrimestre.",
+          "prazo_sla_em_dias": 20,
+          "documentos": [
+            {
+              "nome_documento": "Relatório Detalhado do Quadrimestre Anterior (RDQA)",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Relatório consolidado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/CMS",
+          "nome_setor": "Conselho Municipal de Saúde",
+          "atribuicoes_setor": "Apreciar e deliberar sobre o relatório.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Resolução do Conselho de Saúde",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "CONJUNTA_MULTINIVEL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Relatório apreciado"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SMS/FUNDO",
+          "nome_setor": "Fundo Municipal de Saúde",
+          "atribuicoes_setor": "Apresentar em audiência pública na Câmara.",
+          "prazo_sla_em_dias": 15,
+          "documentos": [
+            {
+              "nome_documento": "Ata da audiência pública",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.DIU.007",
+      "titulo": "Inserção de DIU",
+      "objetivo": "Atender a solicitação de método contraceptivo de longa duração (DIU) na rede municipal.",
+      "publico_alvo": "Usuárias do SUS",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "12.0.02.00.81",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/UBS",
+          "nome_setor": "Unidade Básica de Saúde",
+          "atribuicoes_setor": "Acolher a solicitação, orientar e encaminhar com os exames.",
+          "prazo_sla_em_dias": 7,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de DIU",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Encaminhada"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/SAUDE_MULHER",
+          "nome_setor": "Saúde da mulher",
+          "atribuicoes_setor": "Agendar e realizar o procedimento.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Termo de consentimento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Registro do procedimento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.CNS.008",
+      "titulo": "Cartão Nacional de Saúde",
+      "objetivo": "Cadastrar ou atualizar o usuário no Cartão Nacional de Saúde (CNS).",
+      "publico_alvo": "Usuários do SUS",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "12.0.04.00.01",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/UBS",
+          "nome_setor": "Recepção da unidade",
+          "atribuicoes_setor": "Conferir os documentos e cadastrar ou atualizar no CADSUS.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Documento de identificação",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Comprovante de endereço",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Cadastro feito"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/UBS",
+          "nome_setor": "Recepção da unidade",
+          "atribuicoes_setor": "Entregar o número do CNS ao usuário.",
+          "prazo_sla_em_dias": 1
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.PRO.009",
+      "titulo": "Cópia de prontuário",
+      "objetivo": "Fornecer cópia do prontuário ao paciente ou ao representante legal, preservando o sigilo.",
+      "publico_alvo": "Pacientes e representantes legais",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "12.0.07.02.04",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/ARQUIVO",
+          "nome_setor": "Arquivo médico",
+          "atribuicoes_setor": "Receber o pedido e conferir a legitimidade do solicitante.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Requerimento de cópia de prontuário",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Documento de identificação ou procuração",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Solicitante legítimo"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/ARQUIVO",
+          "nome_setor": "Arquivo médico",
+          "atribuicoes_setor": "Reproduzir o prontuário e entregar mediante recibo.",
+          "prazo_sla_em_dias": 10,
+          "documentos": [
+            {
+              "nome_documento": "Recibo de entrega",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.OPM.010",
+      "titulo": "Órteses, próteses e meios auxiliares (OPM)",
+      "objetivo": "Cadastrar e atender o paciente no programa de órteses, próteses e materiais especiais (auditivo, ortopédico).",
+      "publico_alvo": "Usuários do SUS",
+      "nivel_acesso": "RESTRITO",
+      "hipotese_legal_restricao": "LGPD, art. 11 (dado de saúde) e LAI, art. 31",
+      "codigo_ttdd": "12.0.07.04.16",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/OPM",
+          "nome_setor": "Programa de OPM",
+          "atribuicoes_setor": "Cadastrar o paciente com a prescrição médica.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Prescrição médica",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Ficha de cadastro no programa",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Cadastro feito"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/REGULACAO",
+          "nome_setor": "Complexo regulador",
+          "atribuicoes_setor": "Autorizar e agendar a concessão.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Autorização de procedimento",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 3,
+              "condicao_transicao": "Concessão autorizada"
+            }
+          ]
+        },
+        {
+          "ordem": 3,
+          "unidade_administrativa": "SMS/OPM",
+          "nome_setor": "Programa de OPM",
+          "atribuicoes_setor": "Entregar o equipamento e orientar o uso.",
+          "prazo_sla_em_dias": 30,
+          "documentos": [
+            {
+              "nome_documento": "Termo de recebimento",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.PLA.011",
+      "titulo": "Inclusão ou exclusão de plantão médico",
+      "objetivo": "Ajustar a escala de plantões médicos conforme a demanda das unidades.",
+      "publico_alvo": "Coordenações de unidades de saúde",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.08.05.08",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/UNIDADE",
+          "nome_setor": "Coordenação da unidade",
+          "atribuicoes_setor": "Solicitar a inclusão ou exclusão com a justificativa de demanda.",
+          "prazo_sla_em_dias": 3,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de alteração de plantão",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Pedido justificado"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/RH_MEDICOS",
+          "nome_setor": "RH dos médicos",
+          "atribuicoes_setor": "Ajustar a escala e informar a folha.",
+          "prazo_sla_em_dias": 5,
+          "documentos": [
+            {
+              "nome_documento": "Escala de plantões",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo_processual": "SAU.AGU.012",
+      "titulo": "Análise microbiológica de água",
+      "objetivo": "Receber amostra e emitir laudo de análise microbiológica de água para consumo.",
+      "publico_alvo": "Cidadãos, empresas e vigilância",
+      "nivel_acesso": "PUBLICO",
+      "codigo_ttdd": "12.0.11.03.01",
+      "etapas": [
+        {
+          "ordem": 1,
+          "unidade_administrativa": "SMS/LACEN_AGUA",
+          "nome_setor": "Laboratório de análise de água",
+          "atribuicoes_setor": "Receber a amostra com a ficha de coleta.",
+          "prazo_sla_em_dias": 1,
+          "documentos": [
+            {
+              "nome_documento": "Solicitação de análise",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            },
+            {
+              "nome_documento": "Ficha de coleta",
+              "obrigatorio": true,
+              "formato": "EXTERNO_DIGITALIZADO",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ],
+          "transicoes": [
+            {
+              "destino_ordem": 2,
+              "condicao_transicao": "Amostra aceita"
+            }
+          ]
+        },
+        {
+          "ordem": 2,
+          "unidade_administrativa": "SMS/LACEN_AGUA",
+          "nome_setor": "Laboratório de análise de água",
+          "atribuicoes_setor": "Analisar e emitir o laudo.",
+          "prazo_sla_em_dias": 7,
+          "documentos": [
+            {
+              "nome_documento": "Laudo de análise microbiológica",
+              "obrigatorio": true,
+              "formato": "NATO_DIGITAL",
+              "tipo_assinatura": "INDIVIDUAL"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

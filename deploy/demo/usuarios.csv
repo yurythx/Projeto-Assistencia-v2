@@ -1,0 +1,755 @@
+﻿usuario;nome;email;entidade;unidade;departamento;cargo;matricula;ramal;grupos
+carlos.macedo;Carlos Dias Macedo;carlos.macedo@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Diretor(a) de Recursos Humanos;000001;2000;PREF-SEDE-RH
+jorge.almeida;Jorge Moura Almeida;jorge.almeida@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Diretor(a) de TI;000002;2001;PREF-SEDE-TI
+cristina.ramos;Cristina Coelho Ramos;cristina.ramos@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Contador(a) Geral;000003;2002;PREF-SEDE-CONT
+tatiane.macedo;Tatiane Almeida Macedo;tatiane.macedo@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Diretor(a) de Compras;000004;2003;PREF-SEDE-COMP
+fernanda.gomes;Fernanda Siqueira Gomes;fernanda.gomes@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Diretor(a) Administrativo(a);000005;2004;PREF-SEDE-ADM
+luciana.borges;Luciana Farias Borges;luciana.borges@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Chefe de Gabinete;000006;2005;PREF-SEDE-GOV
+ricardo.andrade;Ricardo Xavier Andrade;ricardo.andrade@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Analista de RH;000007;2006;PREF-SEDE-RH
+alexandre.soares;Alexandre Reis Soares;alexandre.soares@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Analista de Sistemas;000008;2007;PREF-SEDE-TI
+andre.castro;André Pinto Castro;andre.castro@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Contador(a);000009;2008;PREF-SEDE-CONT
+alexandre.moura;Alexandre Alves Moura;alexandre.moura@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Comprador(a);000010;2009;PREF-SEDE-COMP
+antonia.queiroz;Antônia Duarte Queiroz;antonia.queiroz@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Assistente Administrativo(a);000011;2010;PREF-SEDE-ADM
+amanda.santos;Amanda Dias Santos;amanda.santos@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) de Gabinete;000012;2011;PREF-SEDE-GOV
+sergio.castro;Sérgio Castro Castro;sergio.castro@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Assistente de RH;000013;2012;PREF-SEDE-RH
+patricia.pereira;Patrícia Monteiro Pereira;patricia.pereira@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Técnico(a) de Suporte;000014;2013;PREF-SEDE-TI
+natalia.araujo;Natália Brito Araújo;natalia.araujo@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Técnico(a) em Contabilidade;000015;2014;PREF-SEDE-CONT
+anderson.castro;Anderson Oliveira Castro;anderson.castro@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Pregoeiro(a);000016;2015;PREF-SEDE-COMP
+gustavo.macedo;Gustavo Macedo Macedo;gustavo.macedo@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Agente Administrativo(a);000017;2016;PREF-SEDE-ADM
+francisca.moreira;Francisca Moura Moreira;francisca.moreira@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) de Comunicação;000018;2017;PREF-SEDE-GOV
+luiz.andrade;Luiz Ribeiro Andrade;luiz.andrade@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Técnico(a) de Folha de Pagamento;000019;2018;PREF-SEDE-RH
+vera.correia;Vera Mendes Correia;vera.correia@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Administrador(a) de Redes;000020;2019;PREF-SEDE-TI
+francisco.rezende;Francisco Vieira Rezende;francisco.rezende@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Contador(a);000021;2020;PREF-SEDE-CONT
+leandro.carvalho;Leandro Santana Carvalho;leandro.carvalho@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Assistente de Compras;000022;2021;PREF-SEDE-COMP
+lucas.souza;Lucas Marques Souza;lucas.souza@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Assistente Administrativo(a);000023;2022;PREF-SEDE-ADM
+mariana.ramos;Mariana Moreira Ramos;mariana.ramos@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) Jurídico(a);000024;2023;PREF-SEDE-GOV
+eduardo.carvalho;Eduardo Brito Carvalho;eduardo.carvalho@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Analista de RH;000025;2024;PREF-SEDE-RH
+rafael.ramos;Rafael Tavares Ramos;rafael.ramos@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Analista de Sistemas;000026;2025;PREF-SEDE-TI
+francisco.nascimento;Francisco Nunes Nascimento;francisco.nascimento@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Técnico(a) em Contabilidade;000027;2026;PREF-SEDE-CONT
+joao.rocha;João Macedo Rocha;joao.rocha@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Comprador(a);000028;2027;PREF-SEDE-COMP
+leonardo.santana;Leonardo Dias Santana;leonardo.santana@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Agente Administrativo(a);000029;2028;PREF-SEDE-ADM
+antonia.sales;Antônia Campos Sales;antonia.sales@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) de Gabinete;000030;2029;PREF-SEDE-GOV
+sonia.fernandes;Sônia Lima Fernandes;sonia.fernandes@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Assistente de RH;000031;2030;PREF-SEDE-RH
+natalia.souza;Natália Soares Souza;natalia.souza@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Técnico(a) de Suporte;000032;2031;PREF-SEDE-TI
+alexandre.tavares;Alexandre Figueiredo Tavares;alexandre.tavares@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Contador(a);000033;2032;PREF-SEDE-CONT
+larissa.monteiro;Larissa Lopes Monteiro;larissa.monteiro@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Pregoeiro(a);000034;2033;PREF-SEDE-COMP
+marcia.araujo;Márcia Santana Araújo;marcia.araujo@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Assistente Administrativo(a);000035;2034;PREF-SEDE-ADM
+marcelo.macedo;Marcelo Borges Macedo;marcelo.macedo@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) de Comunicação;000036;2035;PREF-SEDE-GOV
+alexandre.rezende;Alexandre Ferreira Rezende;alexandre.rezende@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Técnico(a) de Folha de Pagamento;000037;2036;PREF-SEDE-RH
+fabio.martins;Fábio Fernandes Martins;fabio.martins@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Administrador(a) de Redes;000038;2037;PREF-SEDE-TI
+eliane.machado;Eliane Castro Machado;eliane.machado@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Técnico(a) em Contabilidade;000039;2038;PREF-SEDE-CONT
+alexandre.borges;Alexandre Ferreira Borges;alexandre.borges@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Assistente de Compras;000040;2039;PREF-SEDE-COMP
+gustavo.soares;Gustavo Macedo Soares;gustavo.soares@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Agente Administrativo(a);000041;2040;PREF-SEDE-ADM
+marcia.castro;Márcia Soares Castro;marcia.castro@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) Jurídico(a);000042;2041;PREF-SEDE-GOV
+marcio.oliveira;Márcio Silva Oliveira;marcio.oliveira@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Analista de RH;000043;2042;PREF-SEDE-RH
+lucia.borges;Lúcia Rocha Borges;lucia.borges@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Analista de Sistemas;000044;2043;PREF-SEDE-TI
+rafael.brito;Rafael Santos Brito;rafael.brito@nexus.test;PREF;Sede Administrativa da Prefeitura;Contabilidade;Contador(a);000045;2044;PREF-SEDE-CONT
+lucas.dias;Lucas Soares Dias;lucas.dias@nexus.test;PREF;Sede Administrativa da Prefeitura;Compras;Comprador(a);000046;2045;PREF-SEDE-COMP
+andre.machado;André Costa Machado;andre.machado@nexus.test;PREF;Sede Administrativa da Prefeitura;Administração;Assistente Administrativo(a);000047;2046;PREF-SEDE-ADM
+daniel.coelho;Daniel Borges Coelho;daniel.coelho@nexus.test;PREF;Sede Administrativa da Prefeitura;Governo;Assessor(a) de Gabinete;000048;2047;PREF-SEDE-GOV
+eduardo.brito;Eduardo Correia Brito;eduardo.brito@nexus.test;PREF;Sede Administrativa da Prefeitura;Recursos Humanos;Assistente de RH;000049;2048;PREF-SEDE-RH
+francisca.siqueira;Francisca Costa Siqueira;francisca.siqueira@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Técnico(a) de Suporte;000050;2049;PREF-SEDE-TI
+carla.campos;Carla Gonçalves Campos;carla.campos@nexus.test;SEMSA;PSF Sagrada Família;Direção;Coordenador(a) da Unidade;000051;2050;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+helena.macedo;Helena Moreira Macedo;helena.macedo@nexus.test;SEMSA;PSF Sagrada Família;Administração;Chefe Administrativo(a);000052;2051;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+adriana.pires;Adriana Carvalho Pires;adriana.pires@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Supervisor(a) de Atendimento;000053;2052;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+renata.cardoso;Renata Barbosa Cardoso;renata.cardoso@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Chefe de Recursos Humanos;000054;2053;SEMSA-PSF-SAGRADA-FAMILIA-RH
+roberto.siqueira;Roberto Freitas Siqueira;roberto.siqueira@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Chefe de Almoxarifado;000055;2054;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+carla.ferreira;Carla Fernandes Ferreira;carla.ferreira@nexus.test;SEMSA;PSF Sagrada Família;Direção;Assessor(a) de Direção;000056;2055;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+paulo.pereira;Paulo Farias Pereira;paulo.pereira@nexus.test;SEMSA;PSF Sagrada Família;Administração;Assistente Administrativo(a);000057;2056;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+larissa.gomes;Larissa Siqueira Gomes;larissa.gomes@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Atendente;000058;2057;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+marcelo.pires;Marcelo Soares Pires;marcelo.pires@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Analista de RH;000059;2058;SEMSA-PSF-SAGRADA-FAMILIA-RH
+fernando.soares;Fernando Miranda Soares;fernando.soares@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Almoxarife;000060;2059;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+luis.duarte;Luís Moreira Duarte;luis.duarte@nexus.test;SEMSA;PSF Sagrada Família;Direção;Secretário(a) Executivo(a);000061;2060;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+andre.lima;André Andrade Lima;andre.lima@nexus.test;SEMSA;PSF Sagrada Família;Administração;Agente Administrativo(a);000062;2061;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+cristina.pires;Cristina Cavalcante Pires;cristina.pires@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Recepcionista;000063;2062;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+manoel.cavalcante;Manoel Fernandes Cavalcante;manoel.cavalcante@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Assistente de RH;000064;2063;SEMSA-PSF-SAGRADA-FAMILIA-RH
+antonia.correia;Antônia Machado Correia;antonia.correia@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Auxiliar de Almoxarifado;000065;2064;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+cristina.correia;Cristina Lima Correia;cristina.correia@nexus.test;SEMSA;PSF Sagrada Família;Direção;Assessor(a) de Direção;000066;2065;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+pedro.queiroz;Pedro Campos Queiroz;pedro.queiroz@nexus.test;SEMSA;PSF Sagrada Família;Administração;Auxiliar Administrativo(a);000067;2066;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+antonio.coelho;Antônio Mendes Coelho;antonio.coelho@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Agente de Atendimento;000068;2067;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+helena.moreira;Helena Queiroz Moreira;helena.moreira@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Analista de RH;000069;2068;SEMSA-PSF-SAGRADA-FAMILIA-RH
+wesley.pires;Wesley Marques Pires;wesley.pires@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Almoxarife;000070;2069;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+mariana.miranda;Mariana Araújo Miranda;mariana.miranda@nexus.test;SEMSA;PSF Sagrada Família;Direção;Secretário(a) Executivo(a);000071;2070;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+jorge.dias;Jorge Mendes Dias;jorge.dias@nexus.test;SEMSA;PSF Sagrada Família;Administração;Assistente Administrativo(a);000072;2071;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+jose.miranda;José Moreira Miranda;jose.miranda@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Atendente;000073;2072;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+raquel.araujo;Raquel Soares Araújo;raquel.araujo@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Assistente de RH;000074;2073;SEMSA-PSF-SAGRADA-FAMILIA-RH
+gabriel.sales;Gabriel Santana Sales;gabriel.sales@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Auxiliar de Almoxarifado;000075;2074;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+maria.alves;Maria Alves Alves;maria.alves@nexus.test;SEMSA;PSF Sagrada Família;Direção;Assessor(a) de Direção;000076;2075;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+rosangela.lopes;Rosângela Rodrigues Lopes;rosangela.lopes@nexus.test;SEMSA;PSF Sagrada Família;Administração;Agente Administrativo(a);000077;2076;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+debora.ferreira;Débora Pinto Ferreira;debora.ferreira@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Recepcionista;000078;2077;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+francisca.tavares;Francisca Campos Tavares;francisca.tavares@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Analista de RH;000079;2078;SEMSA-PSF-SAGRADA-FAMILIA-RH
+priscila.campos;Priscila Sales Campos;priscila.campos@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Almoxarife;000080;2079;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+antonia.pires;Antônia Xavier Pires;antonia.pires@nexus.test;SEMSA;PSF Sagrada Família;Direção;Secretário(a) Executivo(a);000081;2080;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+carla.tavares;Carla Borges Tavares;carla.tavares@nexus.test;SEMSA;PSF Sagrada Família;Administração;Auxiliar Administrativo(a);000082;2081;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+wesley.reis;Wesley Borges Reis;wesley.reis@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Agente de Atendimento;000083;2082;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+marcos.costa;Marcos Figueiredo Costa;marcos.costa@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Assistente de RH;000084;2083;SEMSA-PSF-SAGRADA-FAMILIA-RH
+claudia.nunes;Cláudia Santana Nunes;claudia.nunes@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Auxiliar de Almoxarifado;000085;2084;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+gabriel.correia;Gabriel Costa Correia;gabriel.correia@nexus.test;SEMSA;PSF Sagrada Família;Direção;Assessor(a) de Direção;000086;2085;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+vera.pires;Vera Campos Pires;vera.pires@nexus.test;SEMSA;PSF Sagrada Família;Administração;Assistente Administrativo(a);000087;2086;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+lucia.queiroz;Lúcia Batista Queiroz;lucia.queiroz@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Atendente;000088;2087;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+luiz.santos;Luiz Reis Santos;luiz.santos@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Analista de RH;000089;2088;SEMSA-PSF-SAGRADA-FAMILIA-RH
+bruna.moura;Bruna Duarte Moura;bruna.moura@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Almoxarife;000090;2089;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+andre.lima2;André Reis Lima;andre.lima2@nexus.test;SEMSA;PSF Sagrada Família;Direção;Secretário(a) Executivo(a);000091;2090;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+amanda.farias;Amanda Santos Farias;amanda.farias@nexus.test;SEMSA;PSF Sagrada Família;Administração;Agente Administrativo(a);000092;2091;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+sergio.machado;Sérgio Monteiro Machado;sergio.machado@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Recepcionista;000093;2092;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+andre.macedo;André Araújo Macedo;andre.macedo@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Assistente de RH;000094;2093;SEMSA-PSF-SAGRADA-FAMILIA-RH
+sandra.lima;Sandra Pereira Lima;sandra.lima@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Auxiliar de Almoxarifado;000095;2094;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+alexandre.santana;Alexandre Farias Santana;alexandre.santana@nexus.test;SEMSA;PSF Sagrada Família;Direção;Assessor(a) de Direção;000096;2095;SEMSA-PSF-SAGRADA-FAMILIA-DIR
+bruno.araujo;Bruno Gomes Araújo;bruno.araujo@nexus.test;SEMSA;PSF Sagrada Família;Administração;Auxiliar Administrativo(a);000097;2096;SEMSA-PSF-SAGRADA-FAMILIA-ADM
+marcio.santana;Márcio Gonçalves Santana;marcio.santana@nexus.test;SEMSA;PSF Sagrada Família;Atendimento;Agente de Atendimento;000098;2097;SEMSA-PSF-SAGRADA-FAMILIA-ATD
+debora.siqueira;Débora Santana Siqueira;debora.siqueira@nexus.test;SEMSA;PSF Sagrada Família;Recursos Humanos;Analista de RH;000099;2098;SEMSA-PSF-SAGRADA-FAMILIA-RH
+fernanda.duarte;Fernanda Soares Duarte;fernanda.duarte@nexus.test;SEMSA;PSF Sagrada Família;Almoxarifado;Almoxarife;000100;2099;SEMSA-PSF-SAGRADA-FAMILIA-ALM
+juliana.almeida;Juliana Pinto Almeida;juliana.almeida@nexus.test;SEMSA;PSF Conjunto;Direção;Coordenador(a) da Unidade;000101;2100;SEMSA-PSF-CONJUNTO-DIR
+camila.almeida;Camila Mendes Almeida;camila.almeida@nexus.test;SEMSA;PSF Conjunto;Administração;Chefe Administrativo(a);000102;2101;SEMSA-PSF-CONJUNTO-ADM
+jorge.sales;Jorge Cardoso Sales;jorge.sales@nexus.test;SEMSA;PSF Conjunto;Atendimento;Supervisor(a) de Atendimento;000103;2102;SEMSA-PSF-CONJUNTO-ATD
+marcelo.costa;Marcelo Pires Costa;marcelo.costa@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Chefe de Recursos Humanos;000104;2103;SEMSA-PSF-CONJUNTO-RH
+jorge.macedo;Jorge Rodrigues Macedo;jorge.macedo@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Chefe de Almoxarifado;000105;2104;SEMSA-PSF-CONJUNTO-ALM
+priscila.queiroz;Priscila Xavier Queiroz;priscila.queiroz@nexus.test;SEMSA;PSF Conjunto;Direção;Assessor(a) de Direção;000106;2105;SEMSA-PSF-CONJUNTO-DIR
+fernando.pires;Fernando Monteiro Pires;fernando.pires@nexus.test;SEMSA;PSF Conjunto;Administração;Assistente Administrativo(a);000107;2106;SEMSA-PSF-CONJUNTO-ADM
+priscila.almeida;Priscila Miranda Almeida;priscila.almeida@nexus.test;SEMSA;PSF Conjunto;Atendimento;Atendente;000108;2107;SEMSA-PSF-CONJUNTO-ATD
+gustavo.ferreira;Gustavo Queiroz Ferreira;gustavo.ferreira@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Analista de RH;000109;2108;SEMSA-PSF-CONJUNTO-RH
+luis.batista;Luís Borges Batista;luis.batista@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Almoxarife;000110;2109;SEMSA-PSF-CONJUNTO-ALM
+fabio.silva;Fábio Machado Silva;fabio.silva@nexus.test;SEMSA;PSF Conjunto;Direção;Secretário(a) Executivo(a);000111;2110;SEMSA-PSF-CONJUNTO-DIR
+claudia.monteiro;Cláudia Freitas Monteiro;claudia.monteiro@nexus.test;SEMSA;PSF Conjunto;Administração;Agente Administrativo(a);000112;2111;SEMSA-PSF-CONJUNTO-ADM
+simone.rezende;Simone Coelho Rezende;simone.rezende@nexus.test;SEMSA;PSF Conjunto;Atendimento;Recepcionista;000113;2112;SEMSA-PSF-CONJUNTO-ATD
+mateus.ramos;Mateus Carvalho Ramos;mateus.ramos@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Assistente de RH;000114;2113;SEMSA-PSF-CONJUNTO-RH
+bruna.cavalcante;Bruna Almeida Cavalcante;bruna.cavalcante@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000115;2114;SEMSA-PSF-CONJUNTO-ALM
+sergio.brito;Sérgio Mendes Brito;sergio.brito@nexus.test;SEMSA;PSF Conjunto;Direção;Assessor(a) de Direção;000116;2115;SEMSA-PSF-CONJUNTO-DIR
+roberto.teixeira;Roberto Martins Teixeira;roberto.teixeira@nexus.test;SEMSA;PSF Conjunto;Administração;Auxiliar Administrativo(a);000117;2116;SEMSA-PSF-CONJUNTO-ADM
+paulo.ferreira;Paulo Gomes Ferreira;paulo.ferreira@nexus.test;SEMSA;PSF Conjunto;Atendimento;Agente de Atendimento;000118;2117;SEMSA-PSF-CONJUNTO-ATD
+pedro.borges;Pedro Figueiredo Borges;pedro.borges@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Analista de RH;000119;2118;SEMSA-PSF-CONJUNTO-RH
+daniel.ferreira;Daniel Souza Ferreira;daniel.ferreira@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Almoxarife;000120;2119;SEMSA-PSF-CONJUNTO-ALM
+vanessa.campos;Vanessa Nunes Campos;vanessa.campos@nexus.test;SEMSA;PSF Conjunto;Direção;Secretário(a) Executivo(a);000121;2120;SEMSA-PSF-CONJUNTO-DIR
+cristina.moreira;Cristina Rodrigues Moreira;cristina.moreira@nexus.test;SEMSA;PSF Conjunto;Administração;Assistente Administrativo(a);000122;2121;SEMSA-PSF-CONJUNTO-ADM
+helena.nunes;Helena Dias Nunes;helena.nunes@nexus.test;SEMSA;PSF Conjunto;Atendimento;Atendente;000123;2122;SEMSA-PSF-CONJUNTO-ATD
+sandra.campos;Sandra Correia Campos;sandra.campos@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Assistente de RH;000124;2123;SEMSA-PSF-CONJUNTO-RH
+adriana.carvalho;Adriana Pinto Carvalho;adriana.carvalho@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000125;2124;SEMSA-PSF-CONJUNTO-ALM
+lucas.farias;Lucas Brito Farias;lucas.farias@nexus.test;SEMSA;PSF Conjunto;Direção;Assessor(a) de Direção;000126;2125;SEMSA-PSF-CONJUNTO-DIR
+paulo.machado;Paulo Soares Machado;paulo.machado@nexus.test;SEMSA;PSF Conjunto;Administração;Agente Administrativo(a);000127;2126;SEMSA-PSF-CONJUNTO-ADM
+mateus.fernandes;Mateus Batista Fernandes;mateus.fernandes@nexus.test;SEMSA;PSF Conjunto;Atendimento;Recepcionista;000128;2127;SEMSA-PSF-CONJUNTO-ATD
+larissa.soares;Larissa Reis Soares;larissa.soares@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Analista de RH;000129;2128;SEMSA-PSF-CONJUNTO-RH
+rodrigo.rezende;Rodrigo Macedo Rezende;rodrigo.rezende@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Almoxarife;000130;2129;SEMSA-PSF-CONJUNTO-ALM
+joao.ferreira;João Cardoso Ferreira;joao.ferreira@nexus.test;SEMSA;PSF Conjunto;Direção;Secretário(a) Executivo(a);000131;2130;SEMSA-PSF-CONJUNTO-DIR
+fabio.teixeira;Fábio Pires Teixeira;fabio.teixeira@nexus.test;SEMSA;PSF Conjunto;Administração;Auxiliar Administrativo(a);000132;2131;SEMSA-PSF-CONJUNTO-ADM
+renata.xavier;Renata Duarte Xavier;renata.xavier@nexus.test;SEMSA;PSF Conjunto;Atendimento;Agente de Atendimento;000133;2132;SEMSA-PSF-CONJUNTO-ATD
+gabriela.pereira;Gabriela Ferreira Pereira;gabriela.pereira@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Assistente de RH;000134;2133;SEMSA-PSF-CONJUNTO-RH
+larissa.brito;Larissa Coelho Brito;larissa.brito@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000135;2134;SEMSA-PSF-CONJUNTO-ALM
+anderson.lima;Anderson Santana Lima;anderson.lima@nexus.test;SEMSA;PSF Conjunto;Direção;Assessor(a) de Direção;000136;2135;SEMSA-PSF-CONJUNTO-DIR
+ana.marques;Ana Andrade Marques;ana.marques@nexus.test;SEMSA;PSF Conjunto;Administração;Assistente Administrativo(a);000137;2136;SEMSA-PSF-CONJUNTO-ADM
+leticia.dias;Letícia Carvalho Dias;leticia.dias@nexus.test;SEMSA;PSF Conjunto;Atendimento;Atendente;000138;2137;SEMSA-PSF-CONJUNTO-ATD
+raimundo.santana;Raimundo Ramos Santana;raimundo.santana@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Analista de RH;000139;2138;SEMSA-PSF-CONJUNTO-RH
+jessica.macedo;Jéssica Batista Macedo;jessica.macedo@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Almoxarife;000140;2139;SEMSA-PSF-CONJUNTO-ALM
+gabriel.silva;Gabriel Gonçalves Silva;gabriel.silva@nexus.test;SEMSA;PSF Conjunto;Direção;Secretário(a) Executivo(a);000141;2140;SEMSA-PSF-CONJUNTO-DIR
+tiago.queiroz;Tiago Duarte Queiroz;tiago.queiroz@nexus.test;SEMSA;PSF Conjunto;Administração;Agente Administrativo(a);000142;2141;SEMSA-PSF-CONJUNTO-ADM
+priscila.barbosa;Priscila Lima Barbosa;priscila.barbosa@nexus.test;SEMSA;PSF Conjunto;Atendimento;Recepcionista;000143;2142;SEMSA-PSF-CONJUNTO-ATD
+raimundo.lopes;Raimundo Carvalho Lopes;raimundo.lopes@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Assistente de RH;000144;2143;SEMSA-PSF-CONJUNTO-RH
+fernanda.teixeira;Fernanda Martins Teixeira;fernanda.teixeira@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000145;2144;SEMSA-PSF-CONJUNTO-ALM
+leticia.freitas;Letícia Alves Freitas;leticia.freitas@nexus.test;SEMSA;PSF Conjunto;Direção;Assessor(a) de Direção;000146;2145;SEMSA-PSF-CONJUNTO-DIR
+claudia.gomes;Cláudia Araújo Gomes;claudia.gomes@nexus.test;SEMSA;PSF Conjunto;Administração;Auxiliar Administrativo(a);000147;2146;SEMSA-PSF-CONJUNTO-ADM
+luiz.santos2;Luiz Silva Santos;luiz.santos2@nexus.test;SEMSA;PSF Conjunto;Atendimento;Agente de Atendimento;000148;2147;SEMSA-PSF-CONJUNTO-ATD
+vinicius.freitas;Vinícius Alves Freitas;vinicius.freitas@nexus.test;SEMSA;PSF Conjunto;Recursos Humanos;Analista de RH;000149;2148;SEMSA-PSF-CONJUNTO-RH
+marcos.oliveira;Marcos Reis Oliveira;marcos.oliveira@nexus.test;SEMSA;PSF Conjunto;Almoxarifado;Almoxarife;000150;2149;SEMSA-PSF-CONJUNTO-ALM
+eduardo.gomes;Eduardo Andrade Gomes;eduardo.gomes@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Coordenador(a) da Unidade;000151;2150;SEMSA-PSF-MARECHAL-RONDON-DIR
+tatiane.pinto;Tatiane Vieira Pinto;tatiane.pinto@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Chefe Administrativo(a);000152;2151;SEMSA-PSF-MARECHAL-RONDON-ADM
+marcos.borges;Marcos Martins Borges;marcos.borges@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Supervisor(a) de Atendimento;000153;2152;SEMSA-PSF-MARECHAL-RONDON-ATD
+francisco.santana;Francisco Tavares Santana;francisco.santana@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Chefe de Recursos Humanos;000154;2153;SEMSA-PSF-MARECHAL-RONDON-RH
+carla.coelho;Carla Ferreira Coelho;carla.coelho@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Chefe de Almoxarifado;000155;2154;SEMSA-PSF-MARECHAL-RONDON-ALM
+felipe.vieira;Felipe Alves Vieira;felipe.vieira@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Assessor(a) de Direção;000156;2155;SEMSA-PSF-MARECHAL-RONDON-DIR
+ana.xavier;Ana Araújo Xavier;ana.xavier@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Assistente Administrativo(a);000157;2156;SEMSA-PSF-MARECHAL-RONDON-ADM
+luciana.macedo;Luciana Ribeiro Macedo;luciana.macedo@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Atendente;000158;2157;SEMSA-PSF-MARECHAL-RONDON-ATD
+marcio.cardoso;Márcio Vieira Cardoso;marcio.cardoso@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Analista de RH;000159;2158;SEMSA-PSF-MARECHAL-RONDON-RH
+aline.fernandes;Aline Correia Fernandes;aline.fernandes@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Almoxarife;000160;2159;SEMSA-PSF-MARECHAL-RONDON-ALM
+marcelo.ramos;Marcelo Martins Ramos;marcelo.ramos@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Secretário(a) Executivo(a);000161;2160;SEMSA-PSF-MARECHAL-RONDON-DIR
+antonia.rodrigues;Antônia Rezende Rodrigues;antonia.rodrigues@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Agente Administrativo(a);000162;2161;SEMSA-PSF-MARECHAL-RONDON-ADM
+leticia.goncalves;Letícia Alves Gonçalves;leticia.goncalves@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Recepcionista;000163;2162;SEMSA-PSF-MARECHAL-RONDON-ATD
+antonio.rocha;Antônio Cavalcante Rocha;antonio.rocha@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Assistente de RH;000164;2163;SEMSA-PSF-MARECHAL-RONDON-RH
+carlos.souza;Carlos Pinto Souza;carlos.souza@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Auxiliar de Almoxarifado;000165;2164;SEMSA-PSF-MARECHAL-RONDON-ALM
+ana.teixeira;Ana Batista Teixeira;ana.teixeira@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Assessor(a) de Direção;000166;2165;SEMSA-PSF-MARECHAL-RONDON-DIR
+tiago.martins;Tiago Campos Martins;tiago.martins@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Auxiliar Administrativo(a);000167;2166;SEMSA-PSF-MARECHAL-RONDON-ADM
+gustavo.nascimento;Gustavo Oliveira Nascimento;gustavo.nascimento@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Agente de Atendimento;000168;2167;SEMSA-PSF-MARECHAL-RONDON-ATD
+eduardo.sales;Eduardo Pinto Sales;eduardo.sales@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Analista de RH;000169;2168;SEMSA-PSF-MARECHAL-RONDON-RH
+amanda.macedo;Amanda Pereira Macedo;amanda.macedo@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Almoxarife;000170;2169;SEMSA-PSF-MARECHAL-RONDON-ALM
+joao.siqueira;João Carvalho Siqueira;joao.siqueira@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Secretário(a) Executivo(a);000171;2170;SEMSA-PSF-MARECHAL-RONDON-DIR
+amanda.correia;Amanda Costa Correia;amanda.correia@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Assistente Administrativo(a);000172;2171;SEMSA-PSF-MARECHAL-RONDON-ADM
+debora.xavier;Débora Coelho Xavier;debora.xavier@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Atendente;000173;2172;SEMSA-PSF-MARECHAL-RONDON-ATD
+sandra.soares;Sandra Ribeiro Soares;sandra.soares@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Assistente de RH;000174;2173;SEMSA-PSF-MARECHAL-RONDON-RH
+renata.goncalves;Renata Moura Gonçalves;renata.goncalves@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Auxiliar de Almoxarifado;000175;2174;SEMSA-PSF-MARECHAL-RONDON-ALM
+pedro.freitas;Pedro Barbosa Freitas;pedro.freitas@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Assessor(a) de Direção;000176;2175;SEMSA-PSF-MARECHAL-RONDON-DIR
+sonia.soares;Sônia Costa Soares;sonia.soares@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Agente Administrativo(a);000177;2176;SEMSA-PSF-MARECHAL-RONDON-ADM
+patricia.lopes;Patrícia Marques Lopes;patricia.lopes@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Recepcionista;000178;2177;SEMSA-PSF-MARECHAL-RONDON-ATD
+raimundo.miranda;Raimundo Macedo Miranda;raimundo.miranda@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Analista de RH;000179;2178;SEMSA-PSF-MARECHAL-RONDON-RH
+marcia.andrade;Márcia Gonçalves Andrade;marcia.andrade@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Almoxarife;000180;2179;SEMSA-PSF-MARECHAL-RONDON-ALM
+gustavo.mendes;Gustavo Almeida Mendes;gustavo.mendes@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Secretário(a) Executivo(a);000181;2180;SEMSA-PSF-MARECHAL-RONDON-DIR
+marcio.martins;Márcio Moura Martins;marcio.martins@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Auxiliar Administrativo(a);000182;2181;SEMSA-PSF-MARECHAL-RONDON-ADM
+marcio.sales;Márcio Mendes Sales;marcio.sales@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Agente de Atendimento;000183;2182;SEMSA-PSF-MARECHAL-RONDON-ATD
+jorge.coelho;Jorge Correia Coelho;jorge.coelho@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Assistente de RH;000184;2183;SEMSA-PSF-MARECHAL-RONDON-RH
+ricardo.lima;Ricardo Campos Lima;ricardo.lima@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Auxiliar de Almoxarifado;000185;2184;SEMSA-PSF-MARECHAL-RONDON-ALM
+amanda.costa;Amanda Oliveira Costa;amanda.costa@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Assessor(a) de Direção;000186;2185;SEMSA-PSF-MARECHAL-RONDON-DIR
+fabio.reis;Fábio Ferreira Reis;fabio.reis@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Assistente Administrativo(a);000187;2186;SEMSA-PSF-MARECHAL-RONDON-ADM
+felipe.dias;Felipe Oliveira Dias;felipe.dias@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Atendente;000188;2187;SEMSA-PSF-MARECHAL-RONDON-ATD
+antonio.barbosa;Antônio Cardoso Barbosa;antonio.barbosa@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Analista de RH;000189;2188;SEMSA-PSF-MARECHAL-RONDON-RH
+patricia.lima;Patrícia Nascimento Lima;patricia.lima@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Almoxarife;000190;2189;SEMSA-PSF-MARECHAL-RONDON-ALM
+carla.tavares2;Carla Duarte Tavares;carla.tavares2@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Secretário(a) Executivo(a);000191;2190;SEMSA-PSF-MARECHAL-RONDON-DIR
+jorge.pereira;Jorge Moura Pereira;jorge.pereira@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Agente Administrativo(a);000192;2191;SEMSA-PSF-MARECHAL-RONDON-ADM
+rafael.sales;Rafael Ribeiro Sales;rafael.sales@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Recepcionista;000193;2192;SEMSA-PSF-MARECHAL-RONDON-ATD
+andre.nunes;André Teixeira Nunes;andre.nunes@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Assistente de RH;000194;2193;SEMSA-PSF-MARECHAL-RONDON-RH
+mateus.santana;Mateus Cardoso Santana;mateus.santana@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Auxiliar de Almoxarifado;000195;2194;SEMSA-PSF-MARECHAL-RONDON-ALM
+amanda.marques;Amanda Castro Marques;amanda.marques@nexus.test;SEMSA;PSF Marechal Rondon;Direção;Assessor(a) de Direção;000196;2195;SEMSA-PSF-MARECHAL-RONDON-DIR
+tiago.campos;Tiago Xavier Campos;tiago.campos@nexus.test;SEMSA;PSF Marechal Rondon;Administração;Auxiliar Administrativo(a);000197;2196;SEMSA-PSF-MARECHAL-RONDON-ADM
+rafael.reis;Rafael Figueiredo Reis;rafael.reis@nexus.test;SEMSA;PSF Marechal Rondon;Atendimento;Agente de Atendimento;000198;2197;SEMSA-PSF-MARECHAL-RONDON-ATD
+tatiane.duarte;Tatiane Lopes Duarte;tatiane.duarte@nexus.test;SEMSA;PSF Marechal Rondon;Recursos Humanos;Analista de RH;000199;2198;SEMSA-PSF-MARECHAL-RONDON-RH
+paulo.nascimento;Paulo Soares Nascimento;paulo.nascimento@nexus.test;SEMSA;PSF Marechal Rondon;Almoxarifado;Almoxarife;000200;2199;SEMSA-PSF-MARECHAL-RONDON-ALM
+leandro.moura;Leandro Gonçalves Moura;leandro.moura@nexus.test;SEMSA;UPA 24h;Direção;Coordenador(a) da Unidade;000201;2200;SEMSA-UPA-DIR
+natalia.martins;Natália Rodrigues Martins;natalia.martins@nexus.test;SEMSA;UPA 24h;Administração;Chefe Administrativo(a);000202;2201;SEMSA-UPA-ADM
+tiago.lima;Tiago Gomes Lima;tiago.lima@nexus.test;SEMSA;UPA 24h;Atendimento;Supervisor(a) de Atendimento;000203;2202;SEMSA-UPA-ATD
+renata.goncalves2;Renata Silva Gonçalves;renata.goncalves2@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Chefe de Recursos Humanos;000204;2203;SEMSA-UPA-RH
+francisco.ferreira;Francisco Siqueira Ferreira;francisco.ferreira@nexus.test;SEMSA;UPA 24h;Almoxarifado;Chefe de Almoxarifado;000205;2204;SEMSA-UPA-ALM
+priscila.nunes;Priscila Campos Nunes;priscila.nunes@nexus.test;SEMSA;UPA 24h;Direção;Assessor(a) de Direção;000206;2205;SEMSA-UPA-DIR
+fernanda.siqueira;Fernanda Martins Siqueira;fernanda.siqueira@nexus.test;SEMSA;UPA 24h;Administração;Assistente Administrativo(a);000207;2206;SEMSA-UPA-ADM
+rosangela.xavier;Rosângela Pinto Xavier;rosangela.xavier@nexus.test;SEMSA;UPA 24h;Atendimento;Atendente;000208;2207;SEMSA-UPA-ATD
+luis.xavier;Luís Costa Xavier;luis.xavier@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Analista de RH;000209;2208;SEMSA-UPA-RH
+marcio.nunes;Márcio Oliveira Nunes;marcio.nunes@nexus.test;SEMSA;UPA 24h;Almoxarifado;Almoxarife;000210;2209;SEMSA-UPA-ALM
+alexandre.freitas;Alexandre Almeida Freitas;alexandre.freitas@nexus.test;SEMSA;UPA 24h;Direção;Secretário(a) Executivo(a);000211;2210;SEMSA-UPA-DIR
+marcia.mendes;Márcia Sales Mendes;marcia.mendes@nexus.test;SEMSA;UPA 24h;Administração;Agente Administrativo(a);000212;2211;SEMSA-UPA-ADM
+pedro.goncalves;Pedro Pires Gonçalves;pedro.goncalves@nexus.test;SEMSA;UPA 24h;Atendimento;Recepcionista;000213;2212;SEMSA-UPA-ATD
+anderson.rodrigues;Anderson Ribeiro Rodrigues;anderson.rodrigues@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Assistente de RH;000214;2213;SEMSA-UPA-RH
+roberto.gomes;Roberto Borges Gomes;roberto.gomes@nexus.test;SEMSA;UPA 24h;Almoxarifado;Auxiliar de Almoxarifado;000215;2214;SEMSA-UPA-ALM
+bruno.andrade;Bruno Borges Andrade;bruno.andrade@nexus.test;SEMSA;UPA 24h;Direção;Assessor(a) de Direção;000216;2215;SEMSA-UPA-DIR
+cristina.teixeira;Cristina Santana Teixeira;cristina.teixeira@nexus.test;SEMSA;UPA 24h;Administração;Auxiliar Administrativo(a);000217;2216;SEMSA-UPA-ADM
+joao.cavalcante;João Pires Cavalcante;joao.cavalcante@nexus.test;SEMSA;UPA 24h;Atendimento;Agente de Atendimento;000218;2217;SEMSA-UPA-ATD
+beatriz.almeida;Beatriz Santana Almeida;beatriz.almeida@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Analista de RH;000219;2218;SEMSA-UPA-RH
+ricardo.fernandes;Ricardo Souza Fernandes;ricardo.fernandes@nexus.test;SEMSA;UPA 24h;Almoxarifado;Almoxarife;000220;2219;SEMSA-UPA-ALM
+lucas.vieira;Lucas Marques Vieira;lucas.vieira@nexus.test;SEMSA;UPA 24h;Direção;Secretário(a) Executivo(a);000221;2220;SEMSA-UPA-DIR
+cristina.vieira;Cristina Machado Vieira;cristina.vieira@nexus.test;SEMSA;UPA 24h;Administração;Assistente Administrativo(a);000222;2221;SEMSA-UPA-ADM
+andre.borges;André Campos Borges;andre.borges@nexus.test;SEMSA;UPA 24h;Atendimento;Atendente;000223;2222;SEMSA-UPA-ATD
+marcelo.andrade;Marcelo Marques Andrade;marcelo.andrade@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Assistente de RH;000224;2223;SEMSA-UPA-RH
+tatiane.martins;Tatiane Borges Martins;tatiane.martins@nexus.test;SEMSA;UPA 24h;Almoxarifado;Auxiliar de Almoxarifado;000225;2224;SEMSA-UPA-ALM
+luis.pires;Luís Pereira Pires;luis.pires@nexus.test;SEMSA;UPA 24h;Direção;Assessor(a) de Direção;000226;2225;SEMSA-UPA-DIR
+francisca.cardoso;Francisca Almeida Cardoso;francisca.cardoso@nexus.test;SEMSA;UPA 24h;Administração;Agente Administrativo(a);000227;2226;SEMSA-UPA-ADM
+carla.reis;Carla Oliveira Reis;carla.reis@nexus.test;SEMSA;UPA 24h;Atendimento;Recepcionista;000228;2227;SEMSA-UPA-ATD
+rafael.lopes;Rafael Xavier Lopes;rafael.lopes@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Analista de RH;000229;2228;SEMSA-UPA-RH
+raimundo.martins;Raimundo Martins Martins;raimundo.martins@nexus.test;SEMSA;UPA 24h;Almoxarifado;Almoxarife;000230;2229;SEMSA-UPA-ALM
+alexandre.duarte;Alexandre Soares Duarte;alexandre.duarte@nexus.test;SEMSA;UPA 24h;Direção;Secretário(a) Executivo(a);000231;2230;SEMSA-UPA-DIR
+guilherme.siqueira;Guilherme Santos Siqueira;guilherme.siqueira@nexus.test;SEMSA;UPA 24h;Administração;Auxiliar Administrativo(a);000232;2231;SEMSA-UPA-ADM
+daniela.teixeira;Daniela Machado Teixeira;daniela.teixeira@nexus.test;SEMSA;UPA 24h;Atendimento;Agente de Atendimento;000233;2232;SEMSA-UPA-ATD
+bruno.alves;Bruno Ramos Alves;bruno.alves@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Assistente de RH;000234;2233;SEMSA-UPA-RH
+marcio.ribeiro;Márcio Queiroz Ribeiro;marcio.ribeiro@nexus.test;SEMSA;UPA 24h;Almoxarifado;Auxiliar de Almoxarifado;000235;2234;SEMSA-UPA-ALM
+debora.goncalves;Débora Duarte Gonçalves;debora.goncalves@nexus.test;SEMSA;UPA 24h;Direção;Assessor(a) de Direção;000236;2235;SEMSA-UPA-DIR
+ana.tavares;Ana Barbosa Tavares;ana.tavares@nexus.test;SEMSA;UPA 24h;Administração;Assistente Administrativo(a);000237;2236;SEMSA-UPA-ADM
+adriana.andrade;Adriana Siqueira Andrade;adriana.andrade@nexus.test;SEMSA;UPA 24h;Atendimento;Atendente;000238;2237;SEMSA-UPA-ATD
+diego.batista;Diego Ribeiro Batista;diego.batista@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Analista de RH;000239;2238;SEMSA-UPA-RH
+ana.freitas;Ana Dias Freitas;ana.freitas@nexus.test;SEMSA;UPA 24h;Almoxarifado;Almoxarife;000240;2239;SEMSA-UPA-ALM
+lucas.pinto;Lucas Barbosa Pinto;lucas.pinto@nexus.test;SEMSA;UPA 24h;Direção;Secretário(a) Executivo(a);000241;2240;SEMSA-UPA-DIR
+eduardo.queiroz;Eduardo Fernandes Queiroz;eduardo.queiroz@nexus.test;SEMSA;UPA 24h;Administração;Agente Administrativo(a);000242;2241;SEMSA-UPA-ADM
+sandra.campos2;Sandra Andrade Campos;sandra.campos2@nexus.test;SEMSA;UPA 24h;Atendimento;Recepcionista;000243;2242;SEMSA-UPA-ATD
+anderson.souza;Anderson Moura Souza;anderson.souza@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Assistente de RH;000244;2243;SEMSA-UPA-RH
+tatiane.martins2;Tatiane Siqueira Martins;tatiane.martins2@nexus.test;SEMSA;UPA 24h;Almoxarifado;Auxiliar de Almoxarifado;000245;2244;SEMSA-UPA-ALM
+adriana.figueiredo;Adriana Reis Figueiredo;adriana.figueiredo@nexus.test;SEMSA;UPA 24h;Direção;Assessor(a) de Direção;000246;2245;SEMSA-UPA-DIR
+lucia.rocha;Lúcia Dias Rocha;lucia.rocha@nexus.test;SEMSA;UPA 24h;Administração;Auxiliar Administrativo(a);000247;2246;SEMSA-UPA-ADM
+tiago.castro;Tiago Alves Castro;tiago.castro@nexus.test;SEMSA;UPA 24h;Atendimento;Agente de Atendimento;000248;2247;SEMSA-UPA-ATD
+lucia.santana;Lúcia Farias Santana;lucia.santana@nexus.test;SEMSA;UPA 24h;Recursos Humanos;Analista de RH;000249;2248;SEMSA-UPA-RH
+marcelo.lopes;Marcelo Moura Lopes;marcelo.lopes@nexus.test;SEMSA;UPA 24h;Almoxarifado;Almoxarife;000250;2249;SEMSA-UPA-ALM
+ana.gomes;Ana Gonçalves Gomes;ana.gomes@nexus.test;SEMED;Escola Maria Elza;Direção;Coordenador(a) da Unidade;000251;2250;SEMED-ESCOLA-MARIA-ELZA-DIR
+fabio.marques;Fábio Rodrigues Marques;fabio.marques@nexus.test;SEMED;Escola Maria Elza;Administração;Chefe Administrativo(a);000252;2251;SEMED-ESCOLA-MARIA-ELZA-ADM
+mateus.pereira;Mateus Machado Pereira;mateus.pereira@nexus.test;SEMED;Escola Maria Elza;Atendimento;Supervisor(a) de Atendimento;000253;2252;SEMED-ESCOLA-MARIA-ELZA-ATD
+marcio.nascimento;Márcio Rezende Nascimento;marcio.nascimento@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Chefe de Recursos Humanos;000254;2253;SEMED-ESCOLA-MARIA-ELZA-RH
+helena.andrade;Helena Pinto Andrade;helena.andrade@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Chefe de Almoxarifado;000255;2254;SEMED-ESCOLA-MARIA-ELZA-ALM
+tatiane.nascimento;Tatiane Santana Nascimento;tatiane.nascimento@nexus.test;SEMED;Escola Maria Elza;Direção;Assessor(a) de Direção;000256;2255;SEMED-ESCOLA-MARIA-ELZA-DIR
+mateus.miranda;Mateus Fernandes Miranda;mateus.miranda@nexus.test;SEMED;Escola Maria Elza;Administração;Assistente Administrativo(a);000257;2256;SEMED-ESCOLA-MARIA-ELZA-ADM
+jose.pires;José Silva Pires;jose.pires@nexus.test;SEMED;Escola Maria Elza;Atendimento;Atendente;000258;2257;SEMED-ESCOLA-MARIA-ELZA-ATD
+renata.pereira;Renata Teixeira Pereira;renata.pereira@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Analista de RH;000259;2258;SEMED-ESCOLA-MARIA-ELZA-RH
+sandra.moura;Sandra Monteiro Moura;sandra.moura@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Almoxarife;000260;2259;SEMED-ESCOLA-MARIA-ELZA-ALM
+manoel.rodrigues;Manoel Figueiredo Rodrigues;manoel.rodrigues@nexus.test;SEMED;Escola Maria Elza;Direção;Secretário(a) Executivo(a);000261;2260;SEMED-ESCOLA-MARIA-ELZA-DIR
+pedro.nunes;Pedro Gonçalves Nunes;pedro.nunes@nexus.test;SEMED;Escola Maria Elza;Administração;Agente Administrativo(a);000262;2261;SEMED-ESCOLA-MARIA-ELZA-ADM
+marcio.freitas;Márcio Santana Freitas;marcio.freitas@nexus.test;SEMED;Escola Maria Elza;Atendimento;Recepcionista;000263;2262;SEMED-ESCOLA-MARIA-ELZA-ATD
+gustavo.rodrigues;Gustavo Santos Rodrigues;gustavo.rodrigues@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Assistente de RH;000264;2263;SEMED-ESCOLA-MARIA-ELZA-RH
+adriana.pires2;Adriana Lopes Pires;adriana.pires2@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Auxiliar de Almoxarifado;000265;2264;SEMED-ESCOLA-MARIA-ELZA-ALM
+mateus.pereira2;Mateus Rezende Pereira;mateus.pereira2@nexus.test;SEMED;Escola Maria Elza;Direção;Assessor(a) de Direção;000266;2265;SEMED-ESCOLA-MARIA-ELZA-DIR
+marcos.machado;Marcos Freitas Machado;marcos.machado@nexus.test;SEMED;Escola Maria Elza;Administração;Auxiliar Administrativo(a);000267;2266;SEMED-ESCOLA-MARIA-ELZA-ADM
+amanda.reis;Amanda Santos Reis;amanda.reis@nexus.test;SEMED;Escola Maria Elza;Atendimento;Agente de Atendimento;000268;2267;SEMED-ESCOLA-MARIA-ELZA-ATD
+bruno.souza;Bruno Carvalho Souza;bruno.souza@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Analista de RH;000269;2268;SEMED-ESCOLA-MARIA-ELZA-RH
+antonia.correia2;Antônia Pinto Correia;antonia.correia2@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Almoxarife;000270;2269;SEMED-ESCOLA-MARIA-ELZA-ALM
+roberto.barbosa;Roberto Oliveira Barbosa;roberto.barbosa@nexus.test;SEMED;Escola Maria Elza;Direção;Secretário(a) Executivo(a);000271;2270;SEMED-ESCOLA-MARIA-ELZA-DIR
+rafael.pires;Rafael Soares Pires;rafael.pires@nexus.test;SEMED;Escola Maria Elza;Administração;Assistente Administrativo(a);000272;2271;SEMED-ESCOLA-MARIA-ELZA-ADM
+guilherme.oliveira;Guilherme Coelho Oliveira;guilherme.oliveira@nexus.test;SEMED;Escola Maria Elza;Atendimento;Atendente;000273;2272;SEMED-ESCOLA-MARIA-ELZA-ATD
+mateus.monteiro;Mateus Lima Monteiro;mateus.monteiro@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Assistente de RH;000274;2273;SEMED-ESCOLA-MARIA-ELZA-RH
+marcia.ferreira;Márcia Andrade Ferreira;marcia.ferreira@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Auxiliar de Almoxarifado;000275;2274;SEMED-ESCOLA-MARIA-ELZA-ALM
+kelly.tavares;Kelly Teixeira Tavares;kelly.tavares@nexus.test;SEMED;Escola Maria Elza;Direção;Assessor(a) de Direção;000276;2275;SEMED-ESCOLA-MARIA-ELZA-DIR
+larissa.borges;Larissa Pereira Borges;larissa.borges@nexus.test;SEMED;Escola Maria Elza;Administração;Agente Administrativo(a);000277;2276;SEMED-ESCOLA-MARIA-ELZA-ADM
+leandro.mendes;Leandro Santos Mendes;leandro.mendes@nexus.test;SEMED;Escola Maria Elza;Atendimento;Recepcionista;000278;2277;SEMED-ESCOLA-MARIA-ELZA-ATD
+marcos.miranda;Marcos Gomes Miranda;marcos.miranda@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Analista de RH;000279;2278;SEMED-ESCOLA-MARIA-ELZA-RH
+guilherme.cavalcante;Guilherme Xavier Cavalcante;guilherme.cavalcante@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Almoxarife;000280;2279;SEMED-ESCOLA-MARIA-ELZA-ALM
+leandro.coelho;Leandro Araújo Coelho;leandro.coelho@nexus.test;SEMED;Escola Maria Elza;Direção;Secretário(a) Executivo(a);000281;2280;SEMED-ESCOLA-MARIA-ELZA-DIR
+alexandre.borges2;Alexandre Freitas Borges;alexandre.borges2@nexus.test;SEMED;Escola Maria Elza;Administração;Auxiliar Administrativo(a);000282;2281;SEMED-ESCOLA-MARIA-ELZA-ADM
+guilherme.dias;Guilherme Pinto Dias;guilherme.dias@nexus.test;SEMED;Escola Maria Elza;Atendimento;Agente de Atendimento;000283;2282;SEMED-ESCOLA-MARIA-ELZA-ATD
+camila.ramos;Camila Silva Ramos;camila.ramos@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Assistente de RH;000284;2283;SEMED-ESCOLA-MARIA-ELZA-RH
+tatiane.fernandes;Tatiane Carvalho Fernandes;tatiane.fernandes@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Auxiliar de Almoxarifado;000285;2284;SEMED-ESCOLA-MARIA-ELZA-ALM
+jorge.castro;Jorge Souza Castro;jorge.castro@nexus.test;SEMED;Escola Maria Elza;Direção;Assessor(a) de Direção;000286;2285;SEMED-ESCOLA-MARIA-ELZA-DIR
+rosangela.nascimento;Rosângela Siqueira Nascimento;rosangela.nascimento@nexus.test;SEMED;Escola Maria Elza;Administração;Assistente Administrativo(a);000287;2286;SEMED-ESCOLA-MARIA-ELZA-ADM
+wesley.rodrigues;Wesley Campos Rodrigues;wesley.rodrigues@nexus.test;SEMED;Escola Maria Elza;Atendimento;Atendente;000288;2287;SEMED-ESCOLA-MARIA-ELZA-ATD
+felipe.mendes;Felipe Moreira Mendes;felipe.mendes@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Analista de RH;000289;2288;SEMED-ESCOLA-MARIA-ELZA-RH
+vanessa.brito;Vanessa Moura Brito;vanessa.brito@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Almoxarife;000290;2289;SEMED-ESCOLA-MARIA-ELZA-ALM
+bruna.oliveira;Bruna Dias Oliveira;bruna.oliveira@nexus.test;SEMED;Escola Maria Elza;Direção;Secretário(a) Executivo(a);000291;2290;SEMED-ESCOLA-MARIA-ELZA-DIR
+jose.xavier;José Nascimento Xavier;jose.xavier@nexus.test;SEMED;Escola Maria Elza;Administração;Agente Administrativo(a);000292;2291;SEMED-ESCOLA-MARIA-ELZA-ADM
+marcio.nunes2;Márcio Santos Nunes;marcio.nunes2@nexus.test;SEMED;Escola Maria Elza;Atendimento;Recepcionista;000293;2292;SEMED-ESCOLA-MARIA-ELZA-ATD
+fernando.freitas;Fernando Mendes Freitas;fernando.freitas@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Assistente de RH;000294;2293;SEMED-ESCOLA-MARIA-ELZA-RH
+gustavo.tavares;Gustavo Fernandes Tavares;gustavo.tavares@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Auxiliar de Almoxarifado;000295;2294;SEMED-ESCOLA-MARIA-ELZA-ALM
+fernando.marques;Fernando Fernandes Marques;fernando.marques@nexus.test;SEMED;Escola Maria Elza;Direção;Assessor(a) de Direção;000296;2295;SEMED-ESCOLA-MARIA-ELZA-DIR
+roberto.correia;Roberto Andrade Correia;roberto.correia@nexus.test;SEMED;Escola Maria Elza;Administração;Auxiliar Administrativo(a);000297;2296;SEMED-ESCOLA-MARIA-ELZA-ADM
+juliana.reis;Juliana Moreira Reis;juliana.reis@nexus.test;SEMED;Escola Maria Elza;Atendimento;Agente de Atendimento;000298;2297;SEMED-ESCOLA-MARIA-ELZA-ATD
+gabriela.pinto;Gabriela Xavier Pinto;gabriela.pinto@nexus.test;SEMED;Escola Maria Elza;Recursos Humanos;Analista de RH;000299;2298;SEMED-ESCOLA-MARIA-ELZA-RH
+wesley.silva;Wesley Santana Silva;wesley.silva@nexus.test;SEMED;Escola Maria Elza;Almoxarifado;Almoxarife;000300;2299;SEMED-ESCOLA-MARIA-ELZA-ALM
+francisca.rezende;Francisca Lima Rezende;francisca.rezende@nexus.test;SEMED;Escola Marechal Dutra;Direção;Coordenador(a) da Unidade;000301;2300;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+leticia.miranda;Letícia Gomes Miranda;leticia.miranda@nexus.test;SEMED;Escola Marechal Dutra;Administração;Chefe Administrativo(a);000302;2301;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+francisco.fernandes;Francisco Ferreira Fernandes;francisco.fernandes@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Supervisor(a) de Atendimento;000303;2302;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+rafael.andrade;Rafael Santana Andrade;rafael.andrade@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Chefe de Recursos Humanos;000304;2303;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+jorge.fernandes;Jorge Santos Fernandes;jorge.fernandes@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Chefe de Almoxarifado;000305;2304;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+aline.araujo;Aline Rezende Araújo;aline.araujo@nexus.test;SEMED;Escola Marechal Dutra;Direção;Assessor(a) de Direção;000306;2305;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+helena.barbosa;Helena Macedo Barbosa;helena.barbosa@nexus.test;SEMED;Escola Marechal Dutra;Administração;Assistente Administrativo(a);000307;2306;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+marcio.brito;Márcio Marques Brito;marcio.brito@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Atendente;000308;2307;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+raquel.macedo;Raquel Campos Macedo;raquel.macedo@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Analista de RH;000309;2308;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+cristina.duarte;Cristina Martins Duarte;cristina.duarte@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Almoxarife;000310;2309;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+adriana.pires3;Adriana Moreira Pires;adriana.pires3@nexus.test;SEMED;Escola Marechal Dutra;Direção;Secretário(a) Executivo(a);000311;2310;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+rafael.siqueira;Rafael Moreira Siqueira;rafael.siqueira@nexus.test;SEMED;Escola Marechal Dutra;Administração;Agente Administrativo(a);000312;2311;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+kelly.barbosa;Kelly Freitas Barbosa;kelly.barbosa@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Recepcionista;000313;2312;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+jorge.santana;Jorge Costa Santana;jorge.santana@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Assistente de RH;000314;2313;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+eliane.araujo;Eliane Tavares Araújo;eliane.araujo@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Auxiliar de Almoxarifado;000315;2314;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+daniela.soares;Daniela Rodrigues Soares;daniela.soares@nexus.test;SEMED;Escola Marechal Dutra;Direção;Assessor(a) de Direção;000316;2315;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+daniel.ferreira2;Daniel Tavares Ferreira;daniel.ferreira2@nexus.test;SEMED;Escola Marechal Dutra;Administração;Auxiliar Administrativo(a);000317;2316;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+paulo.moreira;Paulo Rocha Moreira;paulo.moreira@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Agente de Atendimento;000318;2317;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+carlos.farias;Carlos Silva Farias;carlos.farias@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Analista de RH;000319;2318;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+tatiane.pires;Tatiane Ramos Pires;tatiane.pires@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Almoxarife;000320;2319;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+luis.vieira;Luís Cavalcante Vieira;luis.vieira@nexus.test;SEMED;Escola Marechal Dutra;Direção;Secretário(a) Executivo(a);000321;2320;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+felipe.soares;Felipe Correia Soares;felipe.soares@nexus.test;SEMED;Escola Marechal Dutra;Administração;Assistente Administrativo(a);000322;2321;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+maria.siqueira;Maria Santos Siqueira;maria.siqueira@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Atendente;000323;2322;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+vanessa.xavier;Vanessa Gonçalves Xavier;vanessa.xavier@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Assistente de RH;000324;2323;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+marcos.sales;Marcos Xavier Sales;marcos.sales@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Auxiliar de Almoxarifado;000325;2324;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+francisco.nunes;Francisco Gomes Nunes;francisco.nunes@nexus.test;SEMED;Escola Marechal Dutra;Direção;Assessor(a) de Direção;000326;2325;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+lucas.freitas;Lucas Souza Freitas;lucas.freitas@nexus.test;SEMED;Escola Marechal Dutra;Administração;Agente Administrativo(a);000327;2326;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+marcia.souza;Márcia Fernandes Souza;marcia.souza@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Recepcionista;000328;2327;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+manoel.pires;Manoel Dias Pires;manoel.pires@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Analista de RH;000329;2328;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+fernanda.alves;Fernanda Marques Alves;fernanda.alves@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Almoxarife;000330;2329;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+fernanda.siqueira2;Fernanda Barbosa Siqueira;fernanda.siqueira2@nexus.test;SEMED;Escola Marechal Dutra;Direção;Secretário(a) Executivo(a);000331;2330;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+sergio.martins;Sérgio Andrade Martins;sergio.martins@nexus.test;SEMED;Escola Marechal Dutra;Administração;Auxiliar Administrativo(a);000332;2331;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+mariana.almeida;Mariana Carvalho Almeida;mariana.almeida@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Agente de Atendimento;000333;2332;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+renata.miranda;Renata Fernandes Miranda;renata.miranda@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Assistente de RH;000334;2333;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+joao.souza;João Macedo Souza;joao.souza@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Auxiliar de Almoxarifado;000335;2334;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+leonardo.miranda;Leonardo Oliveira Miranda;leonardo.miranda@nexus.test;SEMED;Escola Marechal Dutra;Direção;Assessor(a) de Direção;000336;2335;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+sonia.miranda;Sônia Oliveira Miranda;sonia.miranda@nexus.test;SEMED;Escola Marechal Dutra;Administração;Assistente Administrativo(a);000337;2336;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+joao.coelho;João Oliveira Coelho;joao.coelho@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Atendente;000338;2337;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+ana.barbosa;Ana Ferreira Barbosa;ana.barbosa@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Analista de RH;000339;2338;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+sergio.rezende;Sérgio Xavier Rezende;sergio.rezende@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Almoxarife;000340;2339;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+kelly.reis;Kelly Barbosa Reis;kelly.reis@nexus.test;SEMED;Escola Marechal Dutra;Direção;Secretário(a) Executivo(a);000341;2340;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+tatiane.farias;Tatiane Moura Farias;tatiane.farias@nexus.test;SEMED;Escola Marechal Dutra;Administração;Agente Administrativo(a);000342;2341;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+fernanda.ramos;Fernanda Lopes Ramos;fernanda.ramos@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Recepcionista;000343;2342;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+diego.mendes;Diego Nunes Mendes;diego.mendes@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Assistente de RH;000344;2343;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+pedro.duarte;Pedro Moreira Duarte;pedro.duarte@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Auxiliar de Almoxarifado;000345;2344;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+amanda.castro;Amanda Alves Castro;amanda.castro@nexus.test;SEMED;Escola Marechal Dutra;Direção;Assessor(a) de Direção;000346;2345;SEMED-ESCOLA-MARECHAL-DUTRA-DIR
+carlos.rodrigues;Carlos Cardoso Rodrigues;carlos.rodrigues@nexus.test;SEMED;Escola Marechal Dutra;Administração;Auxiliar Administrativo(a);000347;2346;SEMED-ESCOLA-MARECHAL-DUTRA-ADM
+priscila.miranda;Priscila Marques Miranda;priscila.miranda@nexus.test;SEMED;Escola Marechal Dutra;Atendimento;Agente de Atendimento;000348;2347;SEMED-ESCOLA-MARECHAL-DUTRA-ATD
+vera.marques;Vera Gonçalves Marques;vera.marques@nexus.test;SEMED;Escola Marechal Dutra;Recursos Humanos;Analista de RH;000349;2348;SEMED-ESCOLA-MARECHAL-DUTRA-RH
+priscila.campos2;Priscila Cavalcante Campos;priscila.campos2@nexus.test;SEMED;Escola Marechal Dutra;Almoxarifado;Almoxarife;000350;2349;SEMED-ESCOLA-MARECHAL-DUTRA-ALM
+eliane.campos;Eliane Teixeira Campos;eliane.campos@nexus.test;SEMED;Escola Silvestre;Direção;Coordenador(a) da Unidade;000351;2350;SEMED-ESCOLA-SILVESTRE-DIR
+guilherme.ferreira;Guilherme Campos Ferreira;guilherme.ferreira@nexus.test;SEMED;Escola Silvestre;Administração;Chefe Administrativo(a);000352;2351;SEMED-ESCOLA-SILVESTRE-ADM
+sandra.ferreira;Sandra Carvalho Ferreira;sandra.ferreira@nexus.test;SEMED;Escola Silvestre;Atendimento;Supervisor(a) de Atendimento;000353;2352;SEMED-ESCOLA-SILVESTRE-ATD
+gabriel.rezende;Gabriel Lima Rezende;gabriel.rezende@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Chefe de Recursos Humanos;000354;2353;SEMED-ESCOLA-SILVESTRE-RH
+patricia.pires;Patrícia Andrade Pires;patricia.pires@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Chefe de Almoxarifado;000355;2354;SEMED-ESCOLA-SILVESTRE-ALM
+beatriz.vieira;Beatriz Castro Vieira;beatriz.vieira@nexus.test;SEMED;Escola Silvestre;Direção;Assessor(a) de Direção;000356;2355;SEMED-ESCOLA-SILVESTRE-DIR
+debora.oliveira;Débora Siqueira Oliveira;debora.oliveira@nexus.test;SEMED;Escola Silvestre;Administração;Assistente Administrativo(a);000357;2356;SEMED-ESCOLA-SILVESTRE-ADM
+claudia.teixeira;Cláudia Lima Teixeira;claudia.teixeira@nexus.test;SEMED;Escola Silvestre;Atendimento;Atendente;000358;2357;SEMED-ESCOLA-SILVESTRE-ATD
+amanda.cardoso;Amanda Macedo Cardoso;amanda.cardoso@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Analista de RH;000359;2358;SEMED-ESCOLA-SILVESTRE-RH
+simone.sales;Simone Machado Sales;simone.sales@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Almoxarife;000360;2359;SEMED-ESCOLA-SILVESTRE-ALM
+eduardo.andrade;Eduardo Moura Andrade;eduardo.andrade@nexus.test;SEMED;Escola Silvestre;Direção;Secretário(a) Executivo(a);000361;2360;SEMED-ESCOLA-SILVESTRE-DIR
+juliana.fernandes;Juliana Figueiredo Fernandes;juliana.fernandes@nexus.test;SEMED;Escola Silvestre;Administração;Agente Administrativo(a);000362;2361;SEMED-ESCOLA-SILVESTRE-ADM
+jose.costa;José Freitas Costa;jose.costa@nexus.test;SEMED;Escola Silvestre;Atendimento;Recepcionista;000363;2362;SEMED-ESCOLA-SILVESTRE-ATD
+fabio.santana;Fábio Siqueira Santana;fabio.santana@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Assistente de RH;000364;2363;SEMED-ESCOLA-SILVESTRE-RH
+renata.costa;Renata Cavalcante Costa;renata.costa@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Auxiliar de Almoxarifado;000365;2364;SEMED-ESCOLA-SILVESTRE-ALM
+gabriel.costa;Gabriel Rezende Costa;gabriel.costa@nexus.test;SEMED;Escola Silvestre;Direção;Assessor(a) de Direção;000366;2365;SEMED-ESCOLA-SILVESTRE-DIR
+luiz.reis;Luiz Pires Reis;luiz.reis@nexus.test;SEMED;Escola Silvestre;Administração;Auxiliar Administrativo(a);000367;2366;SEMED-ESCOLA-SILVESTRE-ADM
+tiago.martins2;Tiago Almeida Martins;tiago.martins2@nexus.test;SEMED;Escola Silvestre;Atendimento;Agente de Atendimento;000368;2367;SEMED-ESCOLA-SILVESTRE-ATD
+fernanda.pinto;Fernanda Miranda Pinto;fernanda.pinto@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Analista de RH;000369;2368;SEMED-ESCOLA-SILVESTRE-RH
+guilherme.sales;Guilherme Mendes Sales;guilherme.sales@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Almoxarife;000370;2369;SEMED-ESCOLA-SILVESTRE-ALM
+francisco.freitas;Francisco Miranda Freitas;francisco.freitas@nexus.test;SEMED;Escola Silvestre;Direção;Secretário(a) Executivo(a);000371;2370;SEMED-ESCOLA-SILVESTRE-DIR
+marcia.rocha;Márcia Borges Rocha;marcia.rocha@nexus.test;SEMED;Escola Silvestre;Administração;Assistente Administrativo(a);000372;2371;SEMED-ESCOLA-SILVESTRE-ADM
+claudia.queiroz;Cláudia Silva Queiroz;claudia.queiroz@nexus.test;SEMED;Escola Silvestre;Atendimento;Atendente;000373;2372;SEMED-ESCOLA-SILVESTRE-ATD
+patricia.reis;Patrícia Lopes Reis;patricia.reis@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Assistente de RH;000374;2373;SEMED-ESCOLA-SILVESTRE-RH
+paulo.marques;Paulo Coelho Marques;paulo.marques@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Auxiliar de Almoxarifado;000375;2374;SEMED-ESCOLA-SILVESTRE-ALM
+fernanda.souza;Fernanda Castro Souza;fernanda.souza@nexus.test;SEMED;Escola Silvestre;Direção;Assessor(a) de Direção;000376;2375;SEMED-ESCOLA-SILVESTRE-DIR
+sergio.farias;Sérgio Dias Farias;sergio.farias@nexus.test;SEMED;Escola Silvestre;Administração;Agente Administrativo(a);000377;2376;SEMED-ESCOLA-SILVESTRE-ADM
+vanessa.rezende;Vanessa Castro Rezende;vanessa.rezende@nexus.test;SEMED;Escola Silvestre;Atendimento;Recepcionista;000378;2377;SEMED-ESCOLA-SILVESTRE-ATD
+carla.coelho2;Carla Duarte Coelho;carla.coelho2@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Analista de RH;000379;2378;SEMED-ESCOLA-SILVESTRE-RH
+eliane.lima;Eliane Queiroz Lima;eliane.lima@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Almoxarife;000380;2379;SEMED-ESCOLA-SILVESTRE-ALM
+fernando.siqueira;Fernando Rezende Siqueira;fernando.siqueira@nexus.test;SEMED;Escola Silvestre;Direção;Secretário(a) Executivo(a);000381;2380;SEMED-ESCOLA-SILVESTRE-DIR
+sonia.correia;Sônia Freitas Correia;sonia.correia@nexus.test;SEMED;Escola Silvestre;Administração;Auxiliar Administrativo(a);000382;2381;SEMED-ESCOLA-SILVESTRE-ADM
+helena.freitas;Helena Freitas Freitas;helena.freitas@nexus.test;SEMED;Escola Silvestre;Atendimento;Agente de Atendimento;000383;2382;SEMED-ESCOLA-SILVESTRE-ATD
+rodrigo.pereira;Rodrigo Freitas Pereira;rodrigo.pereira@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Assistente de RH;000384;2383;SEMED-ESCOLA-SILVESTRE-RH
+simone.goncalves;Simone Batista Gonçalves;simone.goncalves@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Auxiliar de Almoxarifado;000385;2384;SEMED-ESCOLA-SILVESTRE-ALM
+jessica.silva;Jéssica Ferreira Silva;jessica.silva@nexus.test;SEMED;Escola Silvestre;Direção;Assessor(a) de Direção;000386;2385;SEMED-ESCOLA-SILVESTRE-DIR
+eliane.rodrigues;Eliane Vieira Rodrigues;eliane.rodrigues@nexus.test;SEMED;Escola Silvestre;Administração;Assistente Administrativo(a);000387;2386;SEMED-ESCOLA-SILVESTRE-ADM
+roberto.martins;Roberto Batista Martins;roberto.martins@nexus.test;SEMED;Escola Silvestre;Atendimento;Atendente;000388;2387;SEMED-ESCOLA-SILVESTRE-ATD
+gabriel.castro;Gabriel Vieira Castro;gabriel.castro@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Analista de RH;000389;2388;SEMED-ESCOLA-SILVESTRE-RH
+francisco.monteiro;Francisco Nunes Monteiro;francisco.monteiro@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Almoxarife;000390;2389;SEMED-ESCOLA-SILVESTRE-ALM
+kelly.batista;Kelly Campos Batista;kelly.batista@nexus.test;SEMED;Escola Silvestre;Direção;Secretário(a) Executivo(a);000391;2390;SEMED-ESCOLA-SILVESTRE-DIR
+juliana.pereira;Juliana Teixeira Pereira;juliana.pereira@nexus.test;SEMED;Escola Silvestre;Administração;Agente Administrativo(a);000392;2391;SEMED-ESCOLA-SILVESTRE-ADM
+marcio.rocha;Márcio Mendes Rocha;marcio.rocha@nexus.test;SEMED;Escola Silvestre;Atendimento;Recepcionista;000393;2392;SEMED-ESCOLA-SILVESTRE-ATD
+joao.gomes;João Miranda Gomes;joao.gomes@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Assistente de RH;000394;2393;SEMED-ESCOLA-SILVESTRE-RH
+beatriz.castro;Beatriz Vieira Castro;beatriz.castro@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Auxiliar de Almoxarifado;000395;2394;SEMED-ESCOLA-SILVESTRE-ALM
+claudia.freitas;Cláudia Andrade Freitas;claudia.freitas@nexus.test;SEMED;Escola Silvestre;Direção;Assessor(a) de Direção;000396;2395;SEMED-ESCOLA-SILVESTRE-DIR
+andre.borges2;André Vieira Borges;andre.borges2@nexus.test;SEMED;Escola Silvestre;Administração;Auxiliar Administrativo(a);000397;2396;SEMED-ESCOLA-SILVESTRE-ADM
+luiz.duarte;Luiz Rodrigues Duarte;luiz.duarte@nexus.test;SEMED;Escola Silvestre;Atendimento;Agente de Atendimento;000398;2397;SEMED-ESCOLA-SILVESTRE-ATD
+priscila.rocha;Priscila Marques Rocha;priscila.rocha@nexus.test;SEMED;Escola Silvestre;Recursos Humanos;Analista de RH;000399;2398;SEMED-ESCOLA-SILVESTRE-RH
+paulo.souza;Paulo Fernandes Souza;paulo.souza@nexus.test;SEMED;Escola Silvestre;Almoxarifado;Almoxarife;000400;2399;SEMED-ESCOLA-SILVESTRE-ALM
+lucas.pires;Lucas Souza Pires;lucas.pires@nexus.test;SEMED;Escola Elizabete;Direção;Coordenador(a) da Unidade;000401;2400;SEMED-ESCOLA-ELIZABETE-DIR
+beatriz.ramos;Beatriz Gomes Ramos;beatriz.ramos@nexus.test;SEMED;Escola Elizabete;Administração;Chefe Administrativo(a);000402;2401;SEMED-ESCOLA-ELIZABETE-ADM
+raimundo.duarte;Raimundo Almeida Duarte;raimundo.duarte@nexus.test;SEMED;Escola Elizabete;Atendimento;Supervisor(a) de Atendimento;000403;2402;SEMED-ESCOLA-ELIZABETE-ATD
+roberto.santos;Roberto Fernandes Santos;roberto.santos@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Chefe de Recursos Humanos;000404;2403;SEMED-ESCOLA-ELIZABETE-RH
+vinicius.coelho;Vinícius Borges Coelho;vinicius.coelho@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Chefe de Almoxarifado;000405;2404;SEMED-ESCOLA-ELIZABETE-ALM
+raquel.freitas;Raquel Carvalho Freitas;raquel.freitas@nexus.test;SEMED;Escola Elizabete;Direção;Assessor(a) de Direção;000406;2405;SEMED-ESCOLA-ELIZABETE-DIR
+claudia.rezende;Cláudia Xavier Rezende;claudia.rezende@nexus.test;SEMED;Escola Elizabete;Administração;Assistente Administrativo(a);000407;2406;SEMED-ESCOLA-ELIZABETE-ADM
+helena.coelho;Helena Macedo Coelho;helena.coelho@nexus.test;SEMED;Escola Elizabete;Atendimento;Atendente;000408;2407;SEMED-ESCOLA-ELIZABETE-ATD
+kelly.machado;Kelly Siqueira Machado;kelly.machado@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Analista de RH;000409;2408;SEMED-ESCOLA-ELIZABETE-RH
+eliane.costa;Eliane Campos Costa;eliane.costa@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Almoxarife;000410;2409;SEMED-ESCOLA-ELIZABETE-ALM
+helena.araujo;Helena Pires Araújo;helena.araujo@nexus.test;SEMED;Escola Elizabete;Direção;Secretário(a) Executivo(a);000411;2410;SEMED-ESCOLA-ELIZABETE-DIR
+raimundo.goncalves;Raimundo Freitas Gonçalves;raimundo.goncalves@nexus.test;SEMED;Escola Elizabete;Administração;Agente Administrativo(a);000412;2411;SEMED-ESCOLA-ELIZABETE-ADM
+lucia.campos;Lúcia Dias Campos;lucia.campos@nexus.test;SEMED;Escola Elizabete;Atendimento;Recepcionista;000413;2412;SEMED-ESCOLA-ELIZABETE-ATD
+vera.barbosa;Vera Costa Barbosa;vera.barbosa@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Assistente de RH;000414;2413;SEMED-ESCOLA-ELIZABETE-RH
+daniel.castro;Daniel Ribeiro Castro;daniel.castro@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Auxiliar de Almoxarifado;000415;2414;SEMED-ESCOLA-ELIZABETE-ALM
+tatiane.santana;Tatiane Rezende Santana;tatiane.santana@nexus.test;SEMED;Escola Elizabete;Direção;Assessor(a) de Direção;000416;2415;SEMED-ESCOLA-ELIZABETE-DIR
+ricardo.ferreira;Ricardo Moura Ferreira;ricardo.ferreira@nexus.test;SEMED;Escola Elizabete;Administração;Auxiliar Administrativo(a);000417;2416;SEMED-ESCOLA-ELIZABETE-ADM
+lucas.cardoso;Lucas Gomes Cardoso;lucas.cardoso@nexus.test;SEMED;Escola Elizabete;Atendimento;Agente de Atendimento;000418;2417;SEMED-ESCOLA-ELIZABETE-ATD
+bruno.duarte;Bruno Monteiro Duarte;bruno.duarte@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Analista de RH;000419;2418;SEMED-ESCOLA-ELIZABETE-RH
+lucas.oliveira;Lucas Cavalcante Oliveira;lucas.oliveira@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Almoxarife;000420;2419;SEMED-ESCOLA-ELIZABETE-ALM
+luciana.brito;Luciana Brito Brito;luciana.brito@nexus.test;SEMED;Escola Elizabete;Direção;Secretário(a) Executivo(a);000421;2420;SEMED-ESCOLA-ELIZABETE-DIR
+aline.alves;Aline Pinto Alves;aline.alves@nexus.test;SEMED;Escola Elizabete;Administração;Assistente Administrativo(a);000422;2421;SEMED-ESCOLA-ELIZABETE-ADM
+lucas.martins;Lucas Batista Martins;lucas.martins@nexus.test;SEMED;Escola Elizabete;Atendimento;Atendente;000423;2422;SEMED-ESCOLA-ELIZABETE-ATD
+aline.borges;Aline Borges Borges;aline.borges@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Assistente de RH;000424;2423;SEMED-ESCOLA-ELIZABETE-RH
+cristina.martins;Cristina Gomes Martins;cristina.martins@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Auxiliar de Almoxarifado;000425;2424;SEMED-ESCOLA-ELIZABETE-ALM
+natalia.ferreira;Natália Andrade Ferreira;natalia.ferreira@nexus.test;SEMED;Escola Elizabete;Direção;Assessor(a) de Direção;000426;2425;SEMED-ESCOLA-ELIZABETE-DIR
+cristina.santos;Cristina Ramos Santos;cristina.santos@nexus.test;SEMED;Escola Elizabete;Administração;Agente Administrativo(a);000427;2426;SEMED-ESCOLA-ELIZABETE-ADM
+luiz.figueiredo;Luiz Miranda Figueiredo;luiz.figueiredo@nexus.test;SEMED;Escola Elizabete;Atendimento;Recepcionista;000428;2427;SEMED-ESCOLA-ELIZABETE-ATD
+aline.mendes;Aline Figueiredo Mendes;aline.mendes@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Analista de RH;000429;2428;SEMED-ESCOLA-ELIZABETE-RH
+jorge.ribeiro;Jorge Tavares Ribeiro;jorge.ribeiro@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Almoxarife;000430;2429;SEMED-ESCOLA-ELIZABETE-ALM
+lucia.ferreira;Lúcia Coelho Ferreira;lucia.ferreira@nexus.test;SEMED;Escola Elizabete;Direção;Secretário(a) Executivo(a);000431;2430;SEMED-ESCOLA-ELIZABETE-DIR
+fabio.monteiro;Fábio Gomes Monteiro;fabio.monteiro@nexus.test;SEMED;Escola Elizabete;Administração;Auxiliar Administrativo(a);000432;2431;SEMED-ESCOLA-ELIZABETE-ADM
+sonia.cardoso;Sônia Coelho Cardoso;sonia.cardoso@nexus.test;SEMED;Escola Elizabete;Atendimento;Agente de Atendimento;000433;2432;SEMED-ESCOLA-ELIZABETE-ATD
+antonio.lopes;Antônio Freitas Lopes;antonio.lopes@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Assistente de RH;000434;2433;SEMED-ESCOLA-ELIZABETE-RH
+luciana.santana;Luciana Martins Santana;luciana.santana@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Auxiliar de Almoxarifado;000435;2434;SEMED-ESCOLA-ELIZABETE-ALM
+fernanda.batista;Fernanda Figueiredo Batista;fernanda.batista@nexus.test;SEMED;Escola Elizabete;Direção;Assessor(a) de Direção;000436;2435;SEMED-ESCOLA-ELIZABETE-DIR
+leandro.soares;Leandro Pires Soares;leandro.soares@nexus.test;SEMED;Escola Elizabete;Administração;Assistente Administrativo(a);000437;2436;SEMED-ESCOLA-ELIZABETE-ADM
+adriana.goncalves;Adriana Duarte Gonçalves;adriana.goncalves@nexus.test;SEMED;Escola Elizabete;Atendimento;Atendente;000438;2437;SEMED-ESCOLA-ELIZABETE-ATD
+antonia.barbosa;Antônia Machado Barbosa;antonia.barbosa@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Analista de RH;000439;2438;SEMED-ESCOLA-ELIZABETE-RH
+eduardo.lima;Eduardo Cavalcante Lima;eduardo.lima@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Almoxarife;000440;2439;SEMED-ESCOLA-ELIZABETE-ALM
+gustavo.martins;Gustavo Santana Martins;gustavo.martins@nexus.test;SEMED;Escola Elizabete;Direção;Secretário(a) Executivo(a);000441;2440;SEMED-ESCOLA-ELIZABETE-DIR
+maria.barbosa;Maria Gomes Barbosa;maria.barbosa@nexus.test;SEMED;Escola Elizabete;Administração;Agente Administrativo(a);000442;2441;SEMED-ESCOLA-ELIZABETE-ADM
+vera.pinto;Vera Duarte Pinto;vera.pinto@nexus.test;SEMED;Escola Elizabete;Atendimento;Recepcionista;000443;2442;SEMED-ESCOLA-ELIZABETE-ATD
+paulo.moreira2;Paulo Costa Moreira;paulo.moreira2@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Assistente de RH;000444;2443;SEMED-ESCOLA-ELIZABETE-RH
+fernando.goncalves;Fernando Santos Gonçalves;fernando.goncalves@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Auxiliar de Almoxarifado;000445;2444;SEMED-ESCOLA-ELIZABETE-ALM
+jessica.campos;Jéssica Batista Campos;jessica.campos@nexus.test;SEMED;Escola Elizabete;Direção;Assessor(a) de Direção;000446;2445;SEMED-ESCOLA-ELIZABETE-DIR
+fabio.rodrigues;Fábio Siqueira Rodrigues;fabio.rodrigues@nexus.test;SEMED;Escola Elizabete;Administração;Auxiliar Administrativo(a);000447;2446;SEMED-ESCOLA-ELIZABETE-ADM
+antonia.ribeiro;Antônia Martins Ribeiro;antonia.ribeiro@nexus.test;SEMED;Escola Elizabete;Atendimento;Agente de Atendimento;000448;2447;SEMED-ESCOLA-ELIZABETE-ATD
+sergio.vieira;Sérgio Reis Vieira;sergio.vieira@nexus.test;SEMED;Escola Elizabete;Recursos Humanos;Analista de RH;000449;2448;SEMED-ESCOLA-ELIZABETE-RH
+vanessa.rodrigues;Vanessa Miranda Rodrigues;vanessa.rodrigues@nexus.test;SEMED;Escola Elizabete;Almoxarifado;Almoxarife;000450;2449;SEMED-ESCOLA-ELIZABETE-ALM
+joao.rezende;João Souza Rezende;joao.rezende@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Coordenador(a) da Unidade;000451;2450;SEMPRAS-SEDE-DIR
+daniela.cavalcante;Daniela Moura Cavalcante;daniela.cavalcante@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Chefe Administrativo(a);000452;2451;SEMPRAS-SEDE-ADM
+debora.figueiredo;Débora Miranda Figueiredo;debora.figueiredo@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Supervisor(a) de Atendimento;000453;2452;SEMPRAS-SEDE-ATD
+leticia.ferreira;Letícia Castro Ferreira;leticia.ferreira@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Chefe de Recursos Humanos;000454;2453;SEMPRAS-SEDE-RH
+camila.nascimento;Camila Teixeira Nascimento;camila.nascimento@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Chefe de Almoxarifado;000455;2454;SEMPRAS-SEDE-ALM
+beatriz.batista;Beatriz Silva Batista;beatriz.batista@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Assessor(a) de Direção;000456;2455;SEMPRAS-SEDE-DIR
+simone.cardoso;Simone Ramos Cardoso;simone.cardoso@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Assistente Administrativo(a);000457;2456;SEMPRAS-SEDE-ADM
+marcio.queiroz;Márcio Coelho Queiroz;marcio.queiroz@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Atendente;000458;2457;SEMPRAS-SEDE-ATD
+felipe.queiroz;Felipe Cardoso Queiroz;felipe.queiroz@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Analista de RH;000459;2458;SEMPRAS-SEDE-RH
+ana.santana;Ana Barbosa Santana;ana.santana@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Almoxarife;000460;2459;SEMPRAS-SEDE-ALM
+maria.almeida;Maria Machado Almeida;maria.almeida@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Secretário(a) Executivo(a);000461;2460;SEMPRAS-SEDE-DIR
+bruna.reis;Bruna Lopes Reis;bruna.reis@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Agente Administrativo(a);000462;2461;SEMPRAS-SEDE-ADM
+jessica.nascimento;Jéssica Marques Nascimento;jessica.nascimento@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Recepcionista;000463;2462;SEMPRAS-SEDE-ATD
+lucia.almeida;Lúcia Araújo Almeida;lucia.almeida@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Assistente de RH;000464;2463;SEMPRAS-SEDE-RH
+helena.figueiredo;Helena Carvalho Figueiredo;helena.figueiredo@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Auxiliar de Almoxarifado;000465;2464;SEMPRAS-SEDE-ALM
+vanessa.cavalcante;Vanessa Rezende Cavalcante;vanessa.cavalcante@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Assessor(a) de Direção;000466;2465;SEMPRAS-SEDE-DIR
+beatriz.pinto;Beatriz Moreira Pinto;beatriz.pinto@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Auxiliar Administrativo(a);000467;2466;SEMPRAS-SEDE-ADM
+andre.andrade;André Cardoso Andrade;andre.andrade@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Agente de Atendimento;000468;2467;SEMPRAS-SEDE-ATD
+leticia.campos;Letícia Miranda Campos;leticia.campos@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Analista de RH;000469;2468;SEMPRAS-SEDE-RH
+sandra.queiroz;Sandra Santos Queiroz;sandra.queiroz@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Almoxarife;000470;2469;SEMPRAS-SEDE-ALM
+manoel.correia;Manoel Martins Correia;manoel.correia@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Secretário(a) Executivo(a);000471;2470;SEMPRAS-SEDE-DIR
+bruna.moreira;Bruna Ramos Moreira;bruna.moreira@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Assistente Administrativo(a);000472;2471;SEMPRAS-SEDE-ADM
+gustavo.santana;Gustavo Freitas Santana;gustavo.santana@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Atendente;000473;2472;SEMPRAS-SEDE-ATD
+cristina.rocha;Cristina Rezende Rocha;cristina.rocha@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Assistente de RH;000474;2473;SEMPRAS-SEDE-RH
+fabio.figueiredo;Fábio Dias Figueiredo;fabio.figueiredo@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Auxiliar de Almoxarifado;000475;2474;SEMPRAS-SEDE-ALM
+fabio.nunes;Fábio Correia Nunes;fabio.nunes@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Assessor(a) de Direção;000476;2475;SEMPRAS-SEDE-DIR
+leticia.rodrigues;Letícia Lima Rodrigues;leticia.rodrigues@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Agente Administrativo(a);000477;2476;SEMPRAS-SEDE-ADM
+guilherme.tavares;Guilherme Carvalho Tavares;guilherme.tavares@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Recepcionista;000478;2477;SEMPRAS-SEDE-ATD
+luciana.rezende;Luciana Lopes Rezende;luciana.rezende@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Analista de RH;000479;2478;SEMPRAS-SEDE-RH
+daniela.ferreira;Daniela Nascimento Ferreira;daniela.ferreira@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Almoxarife;000480;2479;SEMPRAS-SEDE-ALM
+lucia.andrade;Lúcia Sales Andrade;lucia.andrade@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Secretário(a) Executivo(a);000481;2480;SEMPRAS-SEDE-DIR
+anderson.batista;Anderson Xavier Batista;anderson.batista@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Auxiliar Administrativo(a);000482;2481;SEMPRAS-SEDE-ADM
+eliane.rezende;Eliane Soares Rezende;eliane.rezende@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Agente de Atendimento;000483;2482;SEMPRAS-SEDE-ATD
+manoel.rocha;Manoel Duarte Rocha;manoel.rocha@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Assistente de RH;000484;2483;SEMPRAS-SEDE-RH
+pedro.sales;Pedro Dias Sales;pedro.sales@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Auxiliar de Almoxarifado;000485;2484;SEMPRAS-SEDE-ALM
+claudia.coelho;Cláudia Monteiro Coelho;claudia.coelho@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Assessor(a) de Direção;000486;2485;SEMPRAS-SEDE-DIR
+antonia.barbosa2;Antônia Lopes Barbosa;antonia.barbosa2@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Assistente Administrativo(a);000487;2486;SEMPRAS-SEDE-ADM
+luciana.farias;Luciana Pires Farias;luciana.farias@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Atendente;000488;2487;SEMPRAS-SEDE-ATD
+vanessa.santana;Vanessa Campos Santana;vanessa.santana@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Analista de RH;000489;2488;SEMPRAS-SEDE-RH
+joao.barbosa;João Sales Barbosa;joao.barbosa@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Almoxarife;000490;2489;SEMPRAS-SEDE-ALM
+guilherme.castro;Guilherme Teixeira Castro;guilherme.castro@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Secretário(a) Executivo(a);000491;2490;SEMPRAS-SEDE-DIR
+alexandre.gomes;Alexandre Carvalho Gomes;alexandre.gomes@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Agente Administrativo(a);000492;2491;SEMPRAS-SEDE-ADM
+ricardo.xavier;Ricardo Marques Xavier;ricardo.xavier@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Recepcionista;000493;2492;SEMPRAS-SEDE-ATD
+debora.alves;Débora Macedo Alves;debora.alves@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Assistente de RH;000494;2493;SEMPRAS-SEDE-RH
+bruna.ribeiro;Bruna Farias Ribeiro;bruna.ribeiro@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Auxiliar de Almoxarifado;000495;2494;SEMPRAS-SEDE-ALM
+tatiane.teixeira;Tatiane Moreira Teixeira;tatiane.teixeira@nexus.test;SEMPRAS;Sede da SEMPRAS;Direção;Assessor(a) de Direção;000496;2495;SEMPRAS-SEDE-DIR
+rodrigo.nascimento;Rodrigo Cardoso Nascimento;rodrigo.nascimento@nexus.test;SEMPRAS;Sede da SEMPRAS;Administração;Auxiliar Administrativo(a);000497;2496;SEMPRAS-SEDE-ADM
+lucia.teixeira;Lúcia Costa Teixeira;lucia.teixeira@nexus.test;SEMPRAS;Sede da SEMPRAS;Atendimento;Agente de Atendimento;000498;2497;SEMPRAS-SEDE-ATD
+gustavo.farias;Gustavo Teixeira Farias;gustavo.farias@nexus.test;SEMPRAS;Sede da SEMPRAS;Recursos Humanos;Analista de RH;000499;2498;SEMPRAS-SEDE-RH
+mariana.brito;Mariana Soares Brito;mariana.brito@nexus.test;SEMPRAS;Sede da SEMPRAS;Almoxarifado;Almoxarife;000500;2499;SEMPRAS-SEDE-ALM
+mateus.tavares;Mateus Silva Tavares;mateus.tavares@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Coordenador(a) da Unidade;000501;2500;SEMPRAS-CRAS-CONJUNTO-DIR
+gabriel.gomes;Gabriel Xavier Gomes;gabriel.gomes@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Chefe Administrativo(a);000502;2501;SEMPRAS-CRAS-CONJUNTO-ADM
+jessica.fernandes;Jéssica Freitas Fernandes;jessica.fernandes@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Supervisor(a) de Atendimento;000503;2502;SEMPRAS-CRAS-CONJUNTO-ATD
+luiz.brito;Luiz Miranda Brito;luiz.brito@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Chefe de Recursos Humanos;000504;2503;SEMPRAS-CRAS-CONJUNTO-RH
+lucia.cardoso;Lúcia Soares Cardoso;lucia.cardoso@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Chefe de Almoxarifado;000505;2504;SEMPRAS-CRAS-CONJUNTO-ALM
+aline.santos;Aline Freitas Santos;aline.santos@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Assessor(a) de Direção;000506;2505;SEMPRAS-CRAS-CONJUNTO-DIR
+sandra.pereira;Sandra Reis Pereira;sandra.pereira@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Assistente Administrativo(a);000507;2506;SEMPRAS-CRAS-CONJUNTO-ADM
+helena.cardoso;Helena Xavier Cardoso;helena.cardoso@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Atendente;000508;2507;SEMPRAS-CRAS-CONJUNTO-ATD
+beatriz.goncalves;Beatriz Carvalho Gonçalves;beatriz.goncalves@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Analista de RH;000509;2508;SEMPRAS-CRAS-CONJUNTO-RH
+helena.costa;Helena Araújo Costa;helena.costa@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Almoxarife;000510;2509;SEMPRAS-CRAS-CONJUNTO-ALM
+helena.lopes;Helena Araújo Lopes;helena.lopes@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Secretário(a) Executivo(a);000511;2510;SEMPRAS-CRAS-CONJUNTO-DIR
+natalia.queiroz;Natália Vieira Queiroz;natalia.queiroz@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Agente Administrativo(a);000512;2511;SEMPRAS-CRAS-CONJUNTO-ADM
+carlos.andrade;Carlos Moreira Andrade;carlos.andrade@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Recepcionista;000513;2512;SEMPRAS-CRAS-CONJUNTO-ATD
+luiz.campos;Luiz Santos Campos;luiz.campos@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Assistente de RH;000514;2513;SEMPRAS-CRAS-CONJUNTO-RH
+rodrigo.lopes;Rodrigo Xavier Lopes;rodrigo.lopes@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000515;2514;SEMPRAS-CRAS-CONJUNTO-ALM
+juliana.machado;Juliana Souza Machado;juliana.machado@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Assessor(a) de Direção;000516;2515;SEMPRAS-CRAS-CONJUNTO-DIR
+aline.miranda;Aline Coelho Miranda;aline.miranda@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Auxiliar Administrativo(a);000517;2516;SEMPRAS-CRAS-CONJUNTO-ADM
+renata.souza;Renata Coelho Souza;renata.souza@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Agente de Atendimento;000518;2517;SEMPRAS-CRAS-CONJUNTO-ATD
+bruno.fernandes;Bruno Moreira Fernandes;bruno.fernandes@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Analista de RH;000519;2518;SEMPRAS-CRAS-CONJUNTO-RH
+fernando.vieira;Fernando Marques Vieira;fernando.vieira@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Almoxarife;000520;2519;SEMPRAS-CRAS-CONJUNTO-ALM
+vinicius.correia;Vinícius Cavalcante Correia;vinicius.correia@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Secretário(a) Executivo(a);000521;2520;SEMPRAS-CRAS-CONJUNTO-DIR
+maria.souza;Maria Batista Souza;maria.souza@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Assistente Administrativo(a);000522;2521;SEMPRAS-CRAS-CONJUNTO-ADM
+carla.nunes;Carla Mendes Nunes;carla.nunes@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Atendente;000523;2522;SEMPRAS-CRAS-CONJUNTO-ATD
+sergio.correia;Sérgio Ribeiro Correia;sergio.correia@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Assistente de RH;000524;2523;SEMPRAS-CRAS-CONJUNTO-RH
+bruno.teixeira;Bruno Sales Teixeira;bruno.teixeira@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000525;2524;SEMPRAS-CRAS-CONJUNTO-ALM
+marcia.batista;Márcia Ribeiro Batista;marcia.batista@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Assessor(a) de Direção;000526;2525;SEMPRAS-CRAS-CONJUNTO-DIR
+vinicius.brito;Vinícius Borges Brito;vinicius.brito@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Agente Administrativo(a);000527;2526;SEMPRAS-CRAS-CONJUNTO-ADM
+raquel.monteiro;Raquel Batista Monteiro;raquel.monteiro@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Recepcionista;000528;2527;SEMPRAS-CRAS-CONJUNTO-ATD
+debora.araujo;Débora Marques Araújo;debora.araujo@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Analista de RH;000529;2528;SEMPRAS-CRAS-CONJUNTO-RH
+gabriel.ferreira;Gabriel Ramos Ferreira;gabriel.ferreira@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Almoxarife;000530;2529;SEMPRAS-CRAS-CONJUNTO-ALM
+larissa.ramos;Larissa Mendes Ramos;larissa.ramos@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Secretário(a) Executivo(a);000531;2530;SEMPRAS-CRAS-CONJUNTO-DIR
+priscila.lima;Priscila Rezende Lima;priscila.lima@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Auxiliar Administrativo(a);000532;2531;SEMPRAS-CRAS-CONJUNTO-ADM
+vanessa.reis;Vanessa Correia Reis;vanessa.reis@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Agente de Atendimento;000533;2532;SEMPRAS-CRAS-CONJUNTO-ATD
+maria.reis;Maria Vieira Reis;maria.reis@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Assistente de RH;000534;2533;SEMPRAS-CRAS-CONJUNTO-RH
+tiago.freitas;Tiago Ferreira Freitas;tiago.freitas@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000535;2534;SEMPRAS-CRAS-CONJUNTO-ALM
+sonia.freitas;Sônia Cavalcante Freitas;sonia.freitas@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Assessor(a) de Direção;000536;2535;SEMPRAS-CRAS-CONJUNTO-DIR
+roberto.alves;Roberto Farias Alves;roberto.alves@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Assistente Administrativo(a);000537;2536;SEMPRAS-CRAS-CONJUNTO-ADM
+sandra.oliveira;Sandra Mendes Oliveira;sandra.oliveira@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Atendente;000538;2537;SEMPRAS-CRAS-CONJUNTO-ATD
+mateus.santana2;Mateus Monteiro Santana;mateus.santana2@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Analista de RH;000539;2538;SEMPRAS-CRAS-CONJUNTO-RH
+leandro.freitas;Leandro Barbosa Freitas;leandro.freitas@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Almoxarife;000540;2539;SEMPRAS-CRAS-CONJUNTO-ALM
+gabriela.brito;Gabriela Mendes Brito;gabriela.brito@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Secretário(a) Executivo(a);000541;2540;SEMPRAS-CRAS-CONJUNTO-DIR
+bruna.campos;Bruna Rodrigues Campos;bruna.campos@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Agente Administrativo(a);000542;2541;SEMPRAS-CRAS-CONJUNTO-ADM
+antonio.ramos;Antônio Souza Ramos;antonio.ramos@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Recepcionista;000543;2542;SEMPRAS-CRAS-CONJUNTO-ATD
+gustavo.andrade;Gustavo Queiroz Andrade;gustavo.andrade@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Assistente de RH;000544;2543;SEMPRAS-CRAS-CONJUNTO-RH
+paulo.barbosa;Paulo Queiroz Barbosa;paulo.barbosa@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Auxiliar de Almoxarifado;000545;2544;SEMPRAS-CRAS-CONJUNTO-ALM
+natalia.carvalho;Natália Monteiro Carvalho;natalia.carvalho@nexus.test;SEMPRAS;CRAS Conjunto;Direção;Assessor(a) de Direção;000546;2545;SEMPRAS-CRAS-CONJUNTO-DIR
+marcelo.moura;Marcelo Ramos Moura;marcelo.moura@nexus.test;SEMPRAS;CRAS Conjunto;Administração;Auxiliar Administrativo(a);000547;2546;SEMPRAS-CRAS-CONJUNTO-ADM
+natalia.cavalcante;Natália Lima Cavalcante;natalia.cavalcante@nexus.test;SEMPRAS;CRAS Conjunto;Atendimento;Agente de Atendimento;000548;2547;SEMPRAS-CRAS-CONJUNTO-ATD
+gabriela.andrade;Gabriela Araújo Andrade;gabriela.andrade@nexus.test;SEMPRAS;CRAS Conjunto;Recursos Humanos;Analista de RH;000549;2548;SEMPRAS-CRAS-CONJUNTO-RH
+beatriz.teixeira;Beatriz Carvalho Teixeira;beatriz.teixeira@nexus.test;SEMPRAS;CRAS Conjunto;Almoxarifado;Almoxarife;000550;2549;SEMPRAS-CRAS-CONJUNTO-ALM
+rosangela.xavier2;Rosângela Ferreira Xavier;rosangela.xavier2@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Coordenador(a) da Unidade;000551;2550;SEMPRAS-CRAS-ANA-CARLA-DIR
+fernando.machado;Fernando Xavier Machado;fernando.machado@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Chefe Administrativo(a);000552;2551;SEMPRAS-CRAS-ANA-CARLA-ADM
+priscila.moreira;Priscila Gonçalves Moreira;priscila.moreira@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Supervisor(a) de Atendimento;000553;2552;SEMPRAS-CRAS-ANA-CARLA-ATD
+diego.tavares;Diego Rezende Tavares;diego.tavares@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Chefe de Recursos Humanos;000554;2553;SEMPRAS-CRAS-ANA-CARLA-RH
+leonardo.freitas;Leonardo Rodrigues Freitas;leonardo.freitas@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Chefe de Almoxarifado;000555;2554;SEMPRAS-CRAS-ANA-CARLA-ALM
+lucas.carvalho;Lucas Castro Carvalho;lucas.carvalho@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Assessor(a) de Direção;000556;2555;SEMPRAS-CRAS-ANA-CARLA-DIR
+marcio.queiroz2;Márcio Rodrigues Queiroz;marcio.queiroz2@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Assistente Administrativo(a);000557;2556;SEMPRAS-CRAS-ANA-CARLA-ADM
+cristina.freitas;Cristina Macedo Freitas;cristina.freitas@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Atendente;000558;2557;SEMPRAS-CRAS-ANA-CARLA-ATD
+marcio.queiroz3;Márcio Borges Queiroz;marcio.queiroz3@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Analista de RH;000559;2558;SEMPRAS-CRAS-ANA-CARLA-RH
+wesley.miranda;Wesley Moura Miranda;wesley.miranda@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Almoxarife;000560;2559;SEMPRAS-CRAS-ANA-CARLA-ALM
+adriana.sales;Adriana Almeida Sales;adriana.sales@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Secretário(a) Executivo(a);000561;2560;SEMPRAS-CRAS-ANA-CARLA-DIR
+debora.rodrigues;Débora Castro Rodrigues;debora.rodrigues@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Agente Administrativo(a);000562;2561;SEMPRAS-CRAS-ANA-CARLA-ADM
+ana.dias;Ana Ferreira Dias;ana.dias@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Recepcionista;000563;2562;SEMPRAS-CRAS-ANA-CARLA-ATD
+alexandre.pinto;Alexandre Oliveira Pinto;alexandre.pinto@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Assistente de RH;000564;2563;SEMPRAS-CRAS-ANA-CARLA-RH
+francisca.batista;Francisca Santana Batista;francisca.batista@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Auxiliar de Almoxarifado;000565;2564;SEMPRAS-CRAS-ANA-CARLA-ALM
+fernanda.mendes;Fernanda Dias Mendes;fernanda.mendes@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Assessor(a) de Direção;000566;2565;SEMPRAS-CRAS-ANA-CARLA-DIR
+juliana.lima;Juliana Nascimento Lima;juliana.lima@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Auxiliar Administrativo(a);000567;2566;SEMPRAS-CRAS-ANA-CARLA-ADM
+guilherme.vieira;Guilherme Lopes Vieira;guilherme.vieira@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Agente de Atendimento;000568;2567;SEMPRAS-CRAS-ANA-CARLA-ATD
+eliane.rodrigues2;Eliane Duarte Rodrigues;eliane.rodrigues2@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Analista de RH;000569;2568;SEMPRAS-CRAS-ANA-CARLA-RH
+roberto.araujo;Roberto Rocha Araújo;roberto.araujo@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Almoxarife;000570;2569;SEMPRAS-CRAS-ANA-CARLA-ALM
+marcos.xavier;Marcos Ramos Xavier;marcos.xavier@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Secretário(a) Executivo(a);000571;2570;SEMPRAS-CRAS-ANA-CARLA-DIR
+gabriela.castro;Gabriela Santana Castro;gabriela.castro@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Assistente Administrativo(a);000572;2571;SEMPRAS-CRAS-ANA-CARLA-ADM
+jose.brito;José Reis Brito;jose.brito@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Atendente;000573;2572;SEMPRAS-CRAS-ANA-CARLA-ATD
+beatriz.lima;Beatriz Moura Lima;beatriz.lima@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Assistente de RH;000574;2573;SEMPRAS-CRAS-ANA-CARLA-RH
+leandro.siqueira;Leandro Tavares Siqueira;leandro.siqueira@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Auxiliar de Almoxarifado;000575;2574;SEMPRAS-CRAS-ANA-CARLA-ALM
+gabriel.ramos;Gabriel Fernandes Ramos;gabriel.ramos@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Assessor(a) de Direção;000576;2575;SEMPRAS-CRAS-ANA-CARLA-DIR
+ricardo.dias;Ricardo Nascimento Dias;ricardo.dias@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Agente Administrativo(a);000577;2576;SEMPRAS-CRAS-ANA-CARLA-ADM
+simone.oliveira;Simone Mendes Oliveira;simone.oliveira@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Recepcionista;000578;2577;SEMPRAS-CRAS-ANA-CARLA-ATD
+sandra.fernandes;Sandra Ribeiro Fernandes;sandra.fernandes@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Analista de RH;000579;2578;SEMPRAS-CRAS-ANA-CARLA-RH
+ana.barbosa2;Ana Lopes Barbosa;ana.barbosa2@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Almoxarife;000580;2579;SEMPRAS-CRAS-ANA-CARLA-ALM
+simone.castro;Simone Batista Castro;simone.castro@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Secretário(a) Executivo(a);000581;2580;SEMPRAS-CRAS-ANA-CARLA-DIR
+guilherme.coelho;Guilherme Siqueira Coelho;guilherme.coelho@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Auxiliar Administrativo(a);000582;2581;SEMPRAS-CRAS-ANA-CARLA-ADM
+alexandre.goncalves;Alexandre Carvalho Gonçalves;alexandre.goncalves@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Agente de Atendimento;000583;2582;SEMPRAS-CRAS-ANA-CARLA-ATD
+lucas.ribeiro;Lucas Rodrigues Ribeiro;lucas.ribeiro@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Assistente de RH;000584;2583;SEMPRAS-CRAS-ANA-CARLA-RH
+aline.farias;Aline Sales Farias;aline.farias@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Auxiliar de Almoxarifado;000585;2584;SEMPRAS-CRAS-ANA-CARLA-ALM
+beatriz.costa;Beatriz Barbosa Costa;beatriz.costa@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Assessor(a) de Direção;000586;2585;SEMPRAS-CRAS-ANA-CARLA-DIR
+sergio.duarte;Sérgio Sales Duarte;sergio.duarte@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Assistente Administrativo(a);000587;2586;SEMPRAS-CRAS-ANA-CARLA-ADM
+larissa.goncalves;Larissa Ferreira Gonçalves;larissa.goncalves@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Atendente;000588;2587;SEMPRAS-CRAS-ANA-CARLA-ATD
+daniela.monteiro;Daniela Ramos Monteiro;daniela.monteiro@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Analista de RH;000589;2588;SEMPRAS-CRAS-ANA-CARLA-RH
+raquel.oliveira;Raquel Borges Oliveira;raquel.oliveira@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Almoxarife;000590;2589;SEMPRAS-CRAS-ANA-CARLA-ALM
+luis.coelho;Luís Ramos Coelho;luis.coelho@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Secretário(a) Executivo(a);000591;2590;SEMPRAS-CRAS-ANA-CARLA-DIR
+luis.tavares;Luís Reis Tavares;luis.tavares@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Agente Administrativo(a);000592;2591;SEMPRAS-CRAS-ANA-CARLA-ADM
+helena.queiroz;Helena Monteiro Queiroz;helena.queiroz@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Recepcionista;000593;2592;SEMPRAS-CRAS-ANA-CARLA-ATD
+marcos.tavares;Marcos Almeida Tavares;marcos.tavares@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Assistente de RH;000594;2593;SEMPRAS-CRAS-ANA-CARLA-RH
+vanessa.pereira;Vanessa Carvalho Pereira;vanessa.pereira@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Auxiliar de Almoxarifado;000595;2594;SEMPRAS-CRAS-ANA-CARLA-ALM
+marcos.marques;Marcos Figueiredo Marques;marcos.marques@nexus.test;SEMPRAS;CRAS Ana Carla;Direção;Assessor(a) de Direção;000596;2595;SEMPRAS-CRAS-ANA-CARLA-DIR
+maria.sales;Maria Miranda Sales;maria.sales@nexus.test;SEMPRAS;CRAS Ana Carla;Administração;Auxiliar Administrativo(a);000597;2596;SEMPRAS-CRAS-ANA-CARLA-ADM
+cristina.rodrigues;Cristina Freitas Rodrigues;cristina.rodrigues@nexus.test;SEMPRAS;CRAS Ana Carla;Atendimento;Agente de Atendimento;000598;2597;SEMPRAS-CRAS-ANA-CARLA-ATD
+daniela.marques;Daniela Queiroz Marques;daniela.marques@nexus.test;SEMPRAS;CRAS Ana Carla;Recursos Humanos;Analista de RH;000599;2598;SEMPRAS-CRAS-ANA-CARLA-RH
+bruno.andrade2;Bruno Figueiredo Andrade;bruno.andrade2@nexus.test;SEMPRAS;CRAS Ana Carla;Almoxarifado;Almoxarife;000600;2599;SEMPRAS-CRAS-ANA-CARLA-ALM
+ana.nascimento;Ana Brito Nascimento;ana.nascimento@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Coordenador(a) da Unidade;000601;2600;SEMPRAS-CRAS-ALFREDO-DIR
+gabriel.lopes;Gabriel Rodrigues Lopes;gabriel.lopes@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Chefe Administrativo(a);000602;2601;SEMPRAS-CRAS-ALFREDO-ADM
+gabriel.goncalves;Gabriel Cardoso Gonçalves;gabriel.goncalves@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Supervisor(a) de Atendimento;000603;2602;SEMPRAS-CRAS-ALFREDO-ATD
+eliane.ferreira;Eliane Souza Ferreira;eliane.ferreira@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Chefe de Recursos Humanos;000604;2603;SEMPRAS-CRAS-ALFREDO-RH
+aline.silva;Aline Alves Silva;aline.silva@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Chefe de Almoxarifado;000605;2604;SEMPRAS-CRAS-ALFREDO-ALM
+paulo.barbosa2;Paulo Xavier Barbosa;paulo.barbosa2@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Assessor(a) de Direção;000606;2605;SEMPRAS-CRAS-ALFREDO-DIR
+manoel.brito;Manoel Soares Brito;manoel.brito@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Assistente Administrativo(a);000607;2606;SEMPRAS-CRAS-ALFREDO-ADM
+jorge.coelho2;Jorge Macedo Coelho;jorge.coelho2@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Atendente;000608;2607;SEMPRAS-CRAS-ALFREDO-ATD
+bruno.rodrigues;Bruno Vieira Rodrigues;bruno.rodrigues@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Analista de RH;000609;2608;SEMPRAS-CRAS-ALFREDO-RH
+vera.xavier;Vera Brito Xavier;vera.xavier@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Almoxarife;000610;2609;SEMPRAS-CRAS-ALFREDO-ALM
+marcelo.borges;Marcelo Rocha Borges;marcelo.borges@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Secretário(a) Executivo(a);000611;2610;SEMPRAS-CRAS-ALFREDO-DIR
+wesley.borges;Wesley Miranda Borges;wesley.borges@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Agente Administrativo(a);000612;2611;SEMPRAS-CRAS-ALFREDO-ADM
+francisca.souza;Francisca Miranda Souza;francisca.souza@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Recepcionista;000613;2612;SEMPRAS-CRAS-ALFREDO-ATD
+juliana.martins;Juliana Teixeira Martins;juliana.martins@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Assistente de RH;000614;2613;SEMPRAS-CRAS-ALFREDO-RH
+felipe.oliveira;Felipe Ribeiro Oliveira;felipe.oliveira@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Auxiliar de Almoxarifado;000615;2614;SEMPRAS-CRAS-ALFREDO-ALM
+ricardo.rocha;Ricardo Mendes Rocha;ricardo.rocha@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Assessor(a) de Direção;000616;2615;SEMPRAS-CRAS-ALFREDO-DIR
+gustavo.martins2;Gustavo Moura Martins;gustavo.martins2@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Auxiliar Administrativo(a);000617;2616;SEMPRAS-CRAS-ALFREDO-ADM
+manoel.barbosa;Manoel Figueiredo Barbosa;manoel.barbosa@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Agente de Atendimento;000618;2617;SEMPRAS-CRAS-ALFREDO-ATD
+juliana.tavares;Juliana Souza Tavares;juliana.tavares@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Analista de RH;000619;2618;SEMPRAS-CRAS-ALFREDO-RH
+simone.rodrigues;Simone Machado Rodrigues;simone.rodrigues@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Almoxarife;000620;2619;SEMPRAS-CRAS-ALFREDO-ALM
+debora.cavalcante;Débora Nascimento Cavalcante;debora.cavalcante@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Secretário(a) Executivo(a);000621;2620;SEMPRAS-CRAS-ALFREDO-DIR
+vanessa.borges;Vanessa Dias Borges;vanessa.borges@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Assistente Administrativo(a);000622;2621;SEMPRAS-CRAS-ALFREDO-ADM
+wesley.tavares;Wesley Campos Tavares;wesley.tavares@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Atendente;000623;2622;SEMPRAS-CRAS-ALFREDO-ATD
+jose.lima;José Araújo Lima;jose.lima@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Assistente de RH;000624;2623;SEMPRAS-CRAS-ALFREDO-RH
+natalia.gomes;Natália Castro Gomes;natalia.gomes@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Auxiliar de Almoxarifado;000625;2624;SEMPRAS-CRAS-ALFREDO-ALM
+vinicius.farias;Vinícius Carvalho Farias;vinicius.farias@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Assessor(a) de Direção;000626;2625;SEMPRAS-CRAS-ALFREDO-DIR
+lucia.barbosa;Lúcia Macedo Barbosa;lucia.barbosa@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Agente Administrativo(a);000627;2626;SEMPRAS-CRAS-ALFREDO-ADM
+gabriela.siqueira;Gabriela Almeida Siqueira;gabriela.siqueira@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Recepcionista;000628;2627;SEMPRAS-CRAS-ALFREDO-ATD
+marcio.castro;Márcio Coelho Castro;marcio.castro@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Analista de RH;000629;2628;SEMPRAS-CRAS-ALFREDO-RH
+joao.ribeiro;João Castro Ribeiro;joao.ribeiro@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Almoxarife;000630;2629;SEMPRAS-CRAS-ALFREDO-ALM
+mariana.marques;Mariana Sales Marques;mariana.marques@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Secretário(a) Executivo(a);000631;2630;SEMPRAS-CRAS-ALFREDO-DIR
+bruno.lopes;Bruno Gonçalves Lopes;bruno.lopes@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Auxiliar Administrativo(a);000632;2631;SEMPRAS-CRAS-ALFREDO-ADM
+luis.goncalves;Luís Batista Gonçalves;luis.goncalves@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Agente de Atendimento;000633;2632;SEMPRAS-CRAS-ALFREDO-ATD
+francisco.rodrigues;Francisco Pinto Rodrigues;francisco.rodrigues@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Assistente de RH;000634;2633;SEMPRAS-CRAS-ALFREDO-RH
+ricardo.macedo;Ricardo Barbosa Macedo;ricardo.macedo@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Auxiliar de Almoxarifado;000635;2634;SEMPRAS-CRAS-ALFREDO-ALM
+carlos.rezende;Carlos Nascimento Rezende;carlos.rezende@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Assessor(a) de Direção;000636;2635;SEMPRAS-CRAS-ALFREDO-DIR
+gabriela.queiroz;Gabriela Pinto Queiroz;gabriela.queiroz@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Assistente Administrativo(a);000637;2636;SEMPRAS-CRAS-ALFREDO-ADM
+marcia.santana;Márcia Moura Santana;marcia.santana@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Atendente;000638;2637;SEMPRAS-CRAS-ALFREDO-ATD
+juliana.carvalho;Juliana Teixeira Carvalho;juliana.carvalho@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Analista de RH;000639;2638;SEMPRAS-CRAS-ALFREDO-RH
+manoel.freitas;Manoel Macedo Freitas;manoel.freitas@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Almoxarife;000640;2639;SEMPRAS-CRAS-ALFREDO-ALM
+gabriel.queiroz;Gabriel Teixeira Queiroz;gabriel.queiroz@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Secretário(a) Executivo(a);000641;2640;SEMPRAS-CRAS-ALFREDO-DIR
+wesley.rodrigues2;Wesley Monteiro Rodrigues;wesley.rodrigues2@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Agente Administrativo(a);000642;2641;SEMPRAS-CRAS-ALFREDO-ADM
+antonia.marques;Antônia Mendes Marques;antonia.marques@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Recepcionista;000643;2642;SEMPRAS-CRAS-ALFREDO-ATD
+guilherme.brito;Guilherme Rocha Brito;guilherme.brito@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Assistente de RH;000644;2643;SEMPRAS-CRAS-ALFREDO-RH
+daniela.nascimento;Daniela Souza Nascimento;daniela.nascimento@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Auxiliar de Almoxarifado;000645;2644;SEMPRAS-CRAS-ALFREDO-ALM
+jorge.andrade;Jorge Araújo Andrade;jorge.andrade@nexus.test;SEMPRAS;CRAS Alfredo;Direção;Assessor(a) de Direção;000646;2645;SEMPRAS-CRAS-ALFREDO-DIR
+marcio.campos;Márcio Alves Campos;marcio.campos@nexus.test;SEMPRAS;CRAS Alfredo;Administração;Auxiliar Administrativo(a);000647;2646;SEMPRAS-CRAS-ALFREDO-ADM
+bruna.almeida;Bruna Vieira Almeida;bruna.almeida@nexus.test;SEMPRAS;CRAS Alfredo;Atendimento;Agente de Atendimento;000648;2647;SEMPRAS-CRAS-ALFREDO-ATD
+raimundo.tavares;Raimundo Teixeira Tavares;raimundo.tavares@nexus.test;SEMPRAS;CRAS Alfredo;Recursos Humanos;Analista de RH;000649;2648;SEMPRAS-CRAS-ALFREDO-RH
+lucia.pereira;Lúcia Araújo Pereira;lucia.pereira@nexus.test;SEMPRAS;CRAS Alfredo;Almoxarifado;Almoxarife;000650;2649;SEMPRAS-CRAS-ALFREDO-ALM
+rafael.macedo;Rafael Vieira Macedo;rafael.macedo@nexus.test;SEMPRAS;CREAS;Direção;Coordenador(a) da Unidade;000651;2650;SEMPRAS-CREAS-DIR
+roberto.duarte;Roberto Silva Duarte;roberto.duarte@nexus.test;SEMPRAS;CREAS;Administração;Chefe Administrativo(a);000652;2651;SEMPRAS-CREAS-ADM
+debora.figueiredo2;Débora Ribeiro Figueiredo;debora.figueiredo2@nexus.test;SEMPRAS;CREAS;Atendimento;Supervisor(a) de Atendimento;000653;2652;SEMPRAS-CREAS-ATD
+jose.almeida;José Nunes Almeida;jose.almeida@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Chefe de Recursos Humanos;000654;2653;SEMPRAS-CREAS-RH
+beatriz.andrade;Beatriz Freitas Andrade;beatriz.andrade@nexus.test;SEMPRAS;CREAS;Almoxarifado;Chefe de Almoxarifado;000655;2654;SEMPRAS-CREAS-ALM
+rosangela.siqueira;Rosângela Gomes Siqueira;rosangela.siqueira@nexus.test;SEMPRAS;CREAS;Direção;Assessor(a) de Direção;000656;2655;SEMPRAS-CREAS-DIR
+manoel.ferreira;Manoel Martins Ferreira;manoel.ferreira@nexus.test;SEMPRAS;CREAS;Administração;Assistente Administrativo(a);000657;2656;SEMPRAS-CREAS-ADM
+bruna.moreira2;Bruna Correia Moreira;bruna.moreira2@nexus.test;SEMPRAS;CREAS;Atendimento;Atendente;000658;2657;SEMPRAS-CREAS-ATD
+lucas.andrade;Lucas Duarte Andrade;lucas.andrade@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Analista de RH;000659;2658;SEMPRAS-CREAS-RH
+luiz.lima;Luiz Figueiredo Lima;luiz.lima@nexus.test;SEMPRAS;CREAS;Almoxarifado;Almoxarife;000660;2659;SEMPRAS-CREAS-ALM
+marcelo.carvalho;Marcelo Oliveira Carvalho;marcelo.carvalho@nexus.test;SEMPRAS;CREAS;Direção;Secretário(a) Executivo(a);000661;2660;SEMPRAS-CREAS-DIR
+roberto.santana;Roberto Rezende Santana;roberto.santana@nexus.test;SEMPRAS;CREAS;Administração;Agente Administrativo(a);000662;2661;SEMPRAS-CREAS-ADM
+sonia.goncalves;Sônia Correia Gonçalves;sonia.goncalves@nexus.test;SEMPRAS;CREAS;Atendimento;Recepcionista;000663;2662;SEMPRAS-CREAS-ATD
+rosangela.ferreira;Rosângela Siqueira Ferreira;rosangela.ferreira@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Assistente de RH;000664;2663;SEMPRAS-CREAS-RH
+vinicius.machado;Vinícius Miranda Machado;vinicius.machado@nexus.test;SEMPRAS;CREAS;Almoxarifado;Auxiliar de Almoxarifado;000665;2664;SEMPRAS-CREAS-ALM
+helena.alves;Helena Macedo Alves;helena.alves@nexus.test;SEMPRAS;CREAS;Direção;Assessor(a) de Direção;000666;2665;SEMPRAS-CREAS-DIR
+priscila.vieira;Priscila Araújo Vieira;priscila.vieira@nexus.test;SEMPRAS;CREAS;Administração;Auxiliar Administrativo(a);000667;2666;SEMPRAS-CREAS-ADM
+jorge.martins;Jorge Sales Martins;jorge.martins@nexus.test;SEMPRAS;CREAS;Atendimento;Agente de Atendimento;000668;2667;SEMPRAS-CREAS-ATD
+vinicius.mendes;Vinícius Cavalcante Mendes;vinicius.mendes@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Analista de RH;000669;2668;SEMPRAS-CREAS-RH
+eduardo.dias;Eduardo Ramos Dias;eduardo.dias@nexus.test;SEMPRAS;CREAS;Almoxarifado;Almoxarife;000670;2669;SEMPRAS-CREAS-ALM
+patricia.ramos;Patrícia Macedo Ramos;patricia.ramos@nexus.test;SEMPRAS;CREAS;Direção;Secretário(a) Executivo(a);000671;2670;SEMPRAS-CREAS-DIR
+debora.sales;Débora Campos Sales;debora.sales@nexus.test;SEMPRAS;CREAS;Administração;Assistente Administrativo(a);000672;2671;SEMPRAS-CREAS-ADM
+aline.borges2;Aline Nascimento Borges;aline.borges2@nexus.test;SEMPRAS;CREAS;Atendimento;Atendente;000673;2672;SEMPRAS-CREAS-ATD
+fernanda.freitas;Fernanda Figueiredo Freitas;fernanda.freitas@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Assistente de RH;000674;2673;SEMPRAS-CREAS-RH
+leandro.araujo;Leandro Lima Araújo;leandro.araujo@nexus.test;SEMPRAS;CREAS;Almoxarifado;Auxiliar de Almoxarifado;000675;2674;SEMPRAS-CREAS-ALM
+rosangela.araujo;Rosângela Almeida Araújo;rosangela.araujo@nexus.test;SEMPRAS;CREAS;Direção;Assessor(a) de Direção;000676;2675;SEMPRAS-CREAS-DIR
+carla.santana;Carla Silva Santana;carla.santana@nexus.test;SEMPRAS;CREAS;Administração;Agente Administrativo(a);000677;2676;SEMPRAS-CREAS-ADM
+sergio.vieira2;Sérgio Sales Vieira;sergio.vieira2@nexus.test;SEMPRAS;CREAS;Atendimento;Recepcionista;000678;2677;SEMPRAS-CREAS-ATD
+wesley.barbosa;Wesley Pires Barbosa;wesley.barbosa@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Analista de RH;000679;2678;SEMPRAS-CREAS-RH
+daniel.santos;Daniel Rodrigues Santos;daniel.santos@nexus.test;SEMPRAS;CREAS;Almoxarifado;Almoxarife;000680;2679;SEMPRAS-CREAS-ALM
+sandra.correia;Sandra Gomes Correia;sandra.correia@nexus.test;SEMPRAS;CREAS;Direção;Secretário(a) Executivo(a);000681;2680;SEMPRAS-CREAS-DIR
+amanda.pinto;Amanda Marques Pinto;amanda.pinto@nexus.test;SEMPRAS;CREAS;Administração;Auxiliar Administrativo(a);000682;2681;SEMPRAS-CREAS-ADM
+rafael.macedo2;Rafael Souza Macedo;rafael.macedo2@nexus.test;SEMPRAS;CREAS;Atendimento;Agente de Atendimento;000683;2682;SEMPRAS-CREAS-ATD
+eduardo.borges;Eduardo Andrade Borges;eduardo.borges@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Assistente de RH;000684;2683;SEMPRAS-CREAS-RH
+sandra.coelho;Sandra Freitas Coelho;sandra.coelho@nexus.test;SEMPRAS;CREAS;Almoxarifado;Auxiliar de Almoxarifado;000685;2684;SEMPRAS-CREAS-ALM
+natalia.cavalcante2;Natália Santana Cavalcante;natalia.cavalcante2@nexus.test;SEMPRAS;CREAS;Direção;Assessor(a) de Direção;000686;2685;SEMPRAS-CREAS-DIR
+daniel.fernandes;Daniel Almeida Fernandes;daniel.fernandes@nexus.test;SEMPRAS;CREAS;Administração;Assistente Administrativo(a);000687;2686;SEMPRAS-CREAS-ADM
+adriana.mendes;Adriana Moura Mendes;adriana.mendes@nexus.test;SEMPRAS;CREAS;Atendimento;Atendente;000688;2687;SEMPRAS-CREAS-ATD
+helena.coelho2;Helena Rodrigues Coelho;helena.coelho2@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Analista de RH;000689;2688;SEMPRAS-CREAS-RH
+rafael.siqueira2;Rafael Oliveira Siqueira;rafael.siqueira2@nexus.test;SEMPRAS;CREAS;Almoxarifado;Almoxarife;000690;2689;SEMPRAS-CREAS-ALM
+pedro.rodrigues;Pedro Dias Rodrigues;pedro.rodrigues@nexus.test;SEMPRAS;CREAS;Direção;Secretário(a) Executivo(a);000691;2690;SEMPRAS-CREAS-DIR
+francisco.pereira;Francisco Mendes Pereira;francisco.pereira@nexus.test;SEMPRAS;CREAS;Administração;Agente Administrativo(a);000692;2691;SEMPRAS-CREAS-ADM
+luciana.teixeira;Luciana Siqueira Teixeira;luciana.teixeira@nexus.test;SEMPRAS;CREAS;Atendimento;Recepcionista;000693;2692;SEMPRAS-CREAS-ATD
+mateus.pires;Mateus Macedo Pires;mateus.pires@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Assistente de RH;000694;2693;SEMPRAS-CREAS-RH
+larissa.rocha;Larissa Sales Rocha;larissa.rocha@nexus.test;SEMPRAS;CREAS;Almoxarifado;Auxiliar de Almoxarifado;000695;2694;SEMPRAS-CREAS-ALM
+aline.figueiredo;Aline Farias Figueiredo;aline.figueiredo@nexus.test;SEMPRAS;CREAS;Direção;Assessor(a) de Direção;000696;2695;SEMPRAS-CREAS-DIR
+carlos.brito;Carlos Xavier Brito;carlos.brito@nexus.test;SEMPRAS;CREAS;Administração;Auxiliar Administrativo(a);000697;2696;SEMPRAS-CREAS-ADM
+juliana.araujo;Juliana Rezende Araújo;juliana.araujo@nexus.test;SEMPRAS;CREAS;Atendimento;Agente de Atendimento;000698;2697;SEMPRAS-CREAS-ATD
+daniel.dias;Daniel Ramos Dias;daniel.dias@nexus.test;SEMPRAS;CREAS;Recursos Humanos;Analista de RH;000699;2698;SEMPRAS-CREAS-RH
+amanda.campos;Amanda Sales Campos;amanda.campos@nexus.test;SEMPRAS;CREAS;Almoxarifado;Almoxarife;000700;2699;SEMPRAS-CREAS-ALM
+leticia.rezende;Letícia Souza Rezende;leticia.rezende@nexus.test;SEMPRAS;Centro POP;Direção;Coordenador(a) da Unidade;000701;2700;SEMPRAS-CENTRO-POP-DIR
+manoel.cardoso;Manoel Pinto Cardoso;manoel.cardoso@nexus.test;SEMPRAS;Centro POP;Administração;Chefe Administrativo(a);000702;2701;SEMPRAS-CENTRO-POP-ADM
+maria.lima;Maria Teixeira Lima;maria.lima@nexus.test;SEMPRAS;Centro POP;Atendimento;Supervisor(a) de Atendimento;000703;2702;SEMPRAS-CENTRO-POP-ATD
+fernando.santos;Fernando Barbosa Santos;fernando.santos@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Chefe de Recursos Humanos;000704;2703;SEMPRAS-CENTRO-POP-RH
+patricia.farias;Patrícia Pereira Farias;patricia.farias@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Chefe de Almoxarifado;000705;2704;SEMPRAS-CENTRO-POP-ALM
+rafael.queiroz;Rafael Pires Queiroz;rafael.queiroz@nexus.test;SEMPRAS;Centro POP;Direção;Assessor(a) de Direção;000706;2705;SEMPRAS-CENTRO-POP-DIR
+marcia.araujo2;Márcia Figueiredo Araújo;marcia.araujo2@nexus.test;SEMPRAS;Centro POP;Administração;Assistente Administrativo(a);000707;2706;SEMPRAS-CENTRO-POP-ADM
+mariana.rocha;Mariana Barbosa Rocha;mariana.rocha@nexus.test;SEMPRAS;Centro POP;Atendimento;Atendente;000708;2707;SEMPRAS-CENTRO-POP-ATD
+sergio.vieira3;Sérgio Dias Vieira;sergio.vieira3@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Analista de RH;000709;2708;SEMPRAS-CENTRO-POP-RH
+camila.sales;Camila Tavares Sales;camila.sales@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Almoxarife;000710;2709;SEMPRAS-CENTRO-POP-ALM
+vera.lopes;Vera Tavares Lopes;vera.lopes@nexus.test;SEMPRAS;Centro POP;Direção;Secretário(a) Executivo(a);000711;2710;SEMPRAS-CENTRO-POP-DIR
+sonia.marques;Sônia Fernandes Marques;sonia.marques@nexus.test;SEMPRAS;Centro POP;Administração;Agente Administrativo(a);000712;2711;SEMPRAS-CENTRO-POP-ADM
+rodrigo.rezende2;Rodrigo Soares Rezende;rodrigo.rezende2@nexus.test;SEMPRAS;Centro POP;Atendimento;Recepcionista;000713;2712;SEMPRAS-CENTRO-POP-ATD
+eduardo.mendes;Eduardo Araújo Mendes;eduardo.mendes@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Assistente de RH;000714;2713;SEMPRAS-CENTRO-POP-RH
+sergio.rezende2;Sérgio Almeida Rezende;sergio.rezende2@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Auxiliar de Almoxarifado;000715;2714;SEMPRAS-CENTRO-POP-ALM
+sonia.rodrigues;Sônia Xavier Rodrigues;sonia.rodrigues@nexus.test;SEMPRAS;Centro POP;Direção;Assessor(a) de Direção;000716;2715;SEMPRAS-CENTRO-POP-DIR
+beatriz.campos;Beatriz Brito Campos;beatriz.campos@nexus.test;SEMPRAS;Centro POP;Administração;Auxiliar Administrativo(a);000717;2716;SEMPRAS-CENTRO-POP-ADM
+daniela.andrade;Daniela Cardoso Andrade;daniela.andrade@nexus.test;SEMPRAS;Centro POP;Atendimento;Agente de Atendimento;000718;2717;SEMPRAS-CENTRO-POP-ATD
+felipe.macedo;Felipe Reis Macedo;felipe.macedo@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Analista de RH;000719;2718;SEMPRAS-CENTRO-POP-RH
+marcos.andrade;Marcos Tavares Andrade;marcos.andrade@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Almoxarife;000720;2719;SEMPRAS-CENTRO-POP-ALM
+fernanda.marques;Fernanda Coelho Marques;fernanda.marques@nexus.test;SEMPRAS;Centro POP;Direção;Secretário(a) Executivo(a);000721;2720;SEMPRAS-CENTRO-POP-DIR
+eduardo.nunes;Eduardo Sales Nunes;eduardo.nunes@nexus.test;SEMPRAS;Centro POP;Administração;Assistente Administrativo(a);000722;2721;SEMPRAS-CENTRO-POP-ADM
+raimundo.brito;Raimundo Siqueira Brito;raimundo.brito@nexus.test;SEMPRAS;Centro POP;Atendimento;Atendente;000723;2722;SEMPRAS-CENTRO-POP-ATD
+guilherme.macedo;Guilherme Andrade Macedo;guilherme.macedo@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Assistente de RH;000724;2723;SEMPRAS-CENTRO-POP-RH
+debora.ribeiro;Débora Ramos Ribeiro;debora.ribeiro@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Auxiliar de Almoxarifado;000725;2724;SEMPRAS-CENTRO-POP-ALM
+cristina.nunes;Cristina Rezende Nunes;cristina.nunes@nexus.test;SEMPRAS;Centro POP;Direção;Assessor(a) de Direção;000726;2725;SEMPRAS-CENTRO-POP-DIR
+adriana.nunes;Adriana Pires Nunes;adriana.nunes@nexus.test;SEMPRAS;Centro POP;Administração;Agente Administrativo(a);000727;2726;SEMPRAS-CENTRO-POP-ADM
+eduardo.brito2;Eduardo Cavalcante Brito;eduardo.brito2@nexus.test;SEMPRAS;Centro POP;Atendimento;Recepcionista;000728;2727;SEMPRAS-CENTRO-POP-ATD
+sandra.coelho2;Sandra Correia Coelho;sandra.coelho2@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Analista de RH;000729;2728;SEMPRAS-CENTRO-POP-RH
+tatiane.correia;Tatiane Ramos Correia;tatiane.correia@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Almoxarife;000730;2729;SEMPRAS-CENTRO-POP-ALM
+leticia.queiroz;Letícia Campos Queiroz;leticia.queiroz@nexus.test;SEMPRAS;Centro POP;Direção;Secretário(a) Executivo(a);000731;2730;SEMPRAS-CENTRO-POP-DIR
+pedro.castro;Pedro Siqueira Castro;pedro.castro@nexus.test;SEMPRAS;Centro POP;Administração;Auxiliar Administrativo(a);000732;2731;SEMPRAS-CENTRO-POP-ADM
+jorge.queiroz;Jorge Pires Queiroz;jorge.queiroz@nexus.test;SEMPRAS;Centro POP;Atendimento;Agente de Atendimento;000733;2732;SEMPRAS-CENTRO-POP-ATD
+joao.castro;João Teixeira Castro;joao.castro@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Assistente de RH;000734;2733;SEMPRAS-CENTRO-POP-RH
+raimundo.castro;Raimundo Pires Castro;raimundo.castro@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Auxiliar de Almoxarifado;000735;2734;SEMPRAS-CENTRO-POP-ALM
+gustavo.correia;Gustavo Miranda Correia;gustavo.correia@nexus.test;SEMPRAS;Centro POP;Direção;Assessor(a) de Direção;000736;2735;SEMPRAS-CENTRO-POP-DIR
+guilherme.campos;Guilherme Souza Campos;guilherme.campos@nexus.test;SEMPRAS;Centro POP;Administração;Assistente Administrativo(a);000737;2736;SEMPRAS-CENTRO-POP-ADM
+carla.nunes2;Carla Soares Nunes;carla.nunes2@nexus.test;SEMPRAS;Centro POP;Atendimento;Atendente;000738;2737;SEMPRAS-CENTRO-POP-ATD
+eliane.reis;Eliane Santos Reis;eliane.reis@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Analista de RH;000739;2738;SEMPRAS-CENTRO-POP-RH
+antonio.moura;Antônio Lima Moura;antonio.moura@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Almoxarife;000740;2739;SEMPRAS-CENTRO-POP-ALM
+andre.rezende;André Fernandes Rezende;andre.rezende@nexus.test;SEMPRAS;Centro POP;Direção;Secretário(a) Executivo(a);000741;2740;SEMPRAS-CENTRO-POP-DIR
+roberto.macedo;Roberto Martins Macedo;roberto.macedo@nexus.test;SEMPRAS;Centro POP;Administração;Agente Administrativo(a);000742;2741;SEMPRAS-CENTRO-POP-ADM
+luiz.barbosa;Luiz Rodrigues Barbosa;luiz.barbosa@nexus.test;SEMPRAS;Centro POP;Atendimento;Recepcionista;000743;2742;SEMPRAS-CENTRO-POP-ATD
+andre.alves;André Miranda Alves;andre.alves@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Assistente de RH;000744;2743;SEMPRAS-CENTRO-POP-RH
+carla.macedo;Carla Monteiro Macedo;carla.macedo@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Auxiliar de Almoxarifado;000745;2744;SEMPRAS-CENTRO-POP-ALM
+amanda.pinto2;Amanda Oliveira Pinto;amanda.pinto2@nexus.test;SEMPRAS;Centro POP;Direção;Assessor(a) de Direção;000746;2745;SEMPRAS-CENTRO-POP-DIR
+camila.silva;Camila Souza Silva;camila.silva@nexus.test;SEMPRAS;Centro POP;Administração;Auxiliar Administrativo(a);000747;2746;SEMPRAS-CENTRO-POP-ADM
+sergio.moreira;Sérgio Dias Moreira;sergio.moreira@nexus.test;SEMPRAS;Centro POP;Atendimento;Agente de Atendimento;000748;2747;SEMPRAS-CENTRO-POP-ATD
+kelly.coelho;Kelly Santana Coelho;kelly.coelho@nexus.test;SEMPRAS;Centro POP;Recursos Humanos;Analista de RH;000749;2748;SEMPRAS-CENTRO-POP-RH
+paulo.andrade;Paulo Farias Andrade;paulo.andrade@nexus.test;SEMPRAS;Centro POP;Almoxarifado;Almoxarife;000750;2749;SEMPRAS-CENTRO-POP-ALM
+teste.admin;Teste Administrador;teste.admin@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Administrador(a) da Plataforma;000751;2750;PREF-SEDE-TI NEXUS-ADMINS
+teste.auditor;Teste Auditor;teste.auditor@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Auditor(a);000752;2751;PREF-SEDE-TI NEXUS-AUDITORES
+teste.iam;Teste Gestor IAM;teste.iam@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Gestor(a) de Identidade;000753;2752;PREF-SEDE-TI NEXUS-GESTORES-IAM
+teste.conteudo;Teste Gestor Conteúdo;teste.conteudo@nexus.test;PREF;Sede Administrativa da Prefeitura;Tecnologia da Informação;Gestor(a) de Conteúdo;000754;2753;PREF-SEDE-TI NEXUS-GESTORES-CONTEUDO

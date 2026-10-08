@@ -1,0 +1,7 @@
+# Scripts e arquivos lidos por containers Linux sempre com LF, mesmo em
+# checkouts no Windows (core.autocrlf=true quebraria o shebang com \r).
+*.sh text eol=lf
+Makefile text eol=lf
+Dockerfile* text eol=lf
+*.yml text eol=lf
+*.conf text eol=lf
