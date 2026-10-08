@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/passwords"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/passwords"
 )
 
 func testPool(t *testing.T) *pgxpool.Pool {

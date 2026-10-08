@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/egress/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/netguard"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/egress/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/netguard"
 )
 
 // Deliverer faz o POST do webhook pelo cliente HTTP anti-SSRF.

@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // Biblioteca de modelos de documento (ADR 024): consulta e download

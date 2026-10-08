@@ -9,7 +9,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
 )
 
 // schemaJSON embute o JSON Schema do envelope de evento no próprio binário

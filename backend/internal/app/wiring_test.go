@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/signum"
-	tramiteDomain "github.com/yurythx/projeto-nexus/internal/modules/tramite/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum"
+	tramiteDomain "github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/domain"
 )
 
 func TestSignaturePortPropagatesSignumErrors(t *testing.T) {

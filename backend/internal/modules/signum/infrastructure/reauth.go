@@ -13,9 +13,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/passwords"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/passwords"
 )
 
 // KeycloakCredentials devolve issuer, client_id e client_secret do client

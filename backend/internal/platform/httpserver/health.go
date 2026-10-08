@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // Check é uma verificação de dependência de readiness (ex.: "postgres",

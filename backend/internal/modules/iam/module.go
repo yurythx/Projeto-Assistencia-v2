@@ -5,11 +5,11 @@
 package iam
 
 import (
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
 )
 
 // Key é a chave do módulo no Kernel.

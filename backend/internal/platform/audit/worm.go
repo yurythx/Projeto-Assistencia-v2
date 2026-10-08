@@ -14,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/storage"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
 )
 
 // wormInterval é de quanto em quanto tempo o worker verifica se há dias

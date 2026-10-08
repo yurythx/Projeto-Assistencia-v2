@@ -9,7 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/secretcrypto"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/secretcrypto"
 )
 
 // Estes testes rodam contra o PostgreSQL real usado no restante da suíte

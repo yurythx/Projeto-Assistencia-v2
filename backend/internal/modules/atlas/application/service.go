@@ -14,15 +14,15 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/domain/pagination"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/audit"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/notificacoes"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
-	"github.com/yurythx/projeto-nexus/internal/platform/storage"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/audit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/notificacoes"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
 )
 
 // Eventos emitidos.

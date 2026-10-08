@@ -12,11 +12,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/passwords"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/passwords"
 )
 
 func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {

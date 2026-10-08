@@ -16,14 +16,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
-	"github.com/yurythx/projeto-nexus/internal/platform/ws"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
 // fakeHub registra publicações e tópicos derrubados.

@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 )
 
 var (

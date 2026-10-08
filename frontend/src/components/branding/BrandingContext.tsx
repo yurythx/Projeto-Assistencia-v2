@@ -68,7 +68,7 @@ export function BrandingProvider({
 
   // Favicon white-label: branding.faviconUrl era um campo declarado desde
   // sempre (tipo + default + persistido no cookie), mas nada o lia — o
-  // <link rel="icon"> ficava sempre no favicon padrão do Projeto Nexus
+  // <link rel="icon"> ficava sempre no favicon padrão do Projeto-Assistencia-v2
   // (achado de auditoria original). safeResourceUrl (S-03) aplica a mesma
   // allowlist de esquema que a logo já usa: só https:// vira href de
   // verdade.

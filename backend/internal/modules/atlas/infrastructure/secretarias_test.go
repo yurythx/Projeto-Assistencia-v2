@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
 )
 
 // O organograma pode falhar na execução ou na linha.

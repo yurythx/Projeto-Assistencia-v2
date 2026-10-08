@@ -35,7 +35,7 @@ import (
 // sem regenerar quebra o CI.
 
 const (
-	modulePath  = "github.com/yurythx/projeto-nexus"
+	modulePath  = "github.com/yurythx/projeto-assistencia-v2"
 	httputilPkg = modulePath + "/pkg/httputil"
 	genMark     = "x-nexus-generated"
 )

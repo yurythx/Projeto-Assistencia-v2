@@ -8,7 +8,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 // discoveryTimeout limita quanto tempo NewVerifier espera pelo documento

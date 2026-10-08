@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/notificacoes"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/notificacoes"
 )
 
 // Avisos do Atlas no Trâmite (ADR 027): quando um procedimento do Atlas é

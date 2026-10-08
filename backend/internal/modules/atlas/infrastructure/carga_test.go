@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
 )
 
 // Cada instrução da carga pode falhar: as tabelas temporárias, os INSERTs,

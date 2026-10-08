@@ -14,15 +14,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki"
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
 )
 
 type env struct {

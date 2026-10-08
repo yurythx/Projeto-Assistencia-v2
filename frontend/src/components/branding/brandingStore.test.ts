@@ -22,10 +22,10 @@ function cookieValue(): Record<string, unknown> {
 describe("brandingStore", () => {
   beforeEach(() => clearCookies());
 
-  it("sem cookie, o snapshot é o DEFAULT (Projeto Nexus)", async () => {
+  it("sem cookie, o snapshot é o DEFAULT (Projeto-Assistencia-v2)", async () => {
     const store = await freshStore();
     expect(store.getBrandingSnapshot()).toEqual(DEFAULT_BRANDING);
-    expect(store.getBrandingSnapshot().appName).toBe("Projeto Nexus");
+    expect(store.getBrandingSnapshot().appName).toBe("Projeto-Assistencia-v2");
   });
 
   it("prime aplica a identidade do servidor mantendo as preferências do cookie", async () => {

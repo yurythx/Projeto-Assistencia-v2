@@ -37,7 +37,7 @@ const geistMono = localFont({
 
 export async function generateMetadata(): Promise<Metadata> {
   const b = await publicGetOr<Branding | null>("branding", null, 60, [BRANDING_TAG]);
-  const name = b?.app_name || "Projeto Nexus";
+  const name = b?.app_name || "Projeto-Assistencia-v2";
   return {
     title: { default: name, template: `%s — ${name}` },
     description: b?.app_description || "Plataforma corporativa modular (Microkernel) em conformidade com e-MAG, DSGov e LGPD.",

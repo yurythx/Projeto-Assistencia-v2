@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 // TestRegisterRoutes_MountsRelativeToAPIV1Group cobre o mesmo achado de

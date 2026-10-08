@@ -1,5 +1,5 @@
 <!--
-Template de PR — Projeto Nexus (base governamental SGD/MGI).
+Template de PR — Projeto-Assistencia-v2 (base governamental SGD/MGI).
 Preencha o checklist de conformidade; um item que não se aplica marque com
 [N/A] e uma frase de justificativa. PRs que tocam contrato de API, RBAC,
 esquema de audit_logs ou a pilha de middleware exigem um ADR em docs/adr/.

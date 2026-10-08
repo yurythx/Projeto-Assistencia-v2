@@ -10,11 +10,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/pagination"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 // fakeRepo entrega procedimentos e séries fixos ao grounding.

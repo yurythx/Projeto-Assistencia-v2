@@ -5,9 +5,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
 )
 
 // BuscaGlobal alimenta a Busca Global do sistema: procedimentos, séries

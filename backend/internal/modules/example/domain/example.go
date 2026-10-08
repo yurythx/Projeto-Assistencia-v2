@@ -20,7 +20,7 @@ const StatusActive = "ACTIVE"
 // TitleMax é o tamanho máximo do título (em caracteres).
 const TitleMax = 200
 
-// Item representa uma entidade de exemplo genérica no Projeto Nexus.
+// Item representa uma entidade de exemplo genérica no Projeto-Assistencia-v2.
 // Serve como modelo para novos módulos a serem criados no sistema.
 type Item struct {
 	ID          uuid.UUID `json:"id"`

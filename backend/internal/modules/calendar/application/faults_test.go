@@ -15,13 +15,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/calendar/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/calendar/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/calendar/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/calendar/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/calendar/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/calendar/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/calendar/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/calendar/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 type env struct {

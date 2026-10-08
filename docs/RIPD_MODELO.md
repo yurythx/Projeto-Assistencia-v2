@@ -1,12 +1,12 @@
 # RIPD — Relatório de Impacto à Proteção de Dados Pessoais
 
 > **Modelo / minuta técnica.** Este documento consolida o que a engenharia
-> sabe sobre os fluxos de dados pessoais do Projeto Nexus. O RIPD
+> sabe sobre os fluxos de dados pessoais do Projeto-Assistencia-v2. O RIPD
 > **oficial** é elaborado e assinado pelo Encarregado de Dados (DPO) do
 > órgão, que valida bases legais, necessidade e proporcionalidade. As
 > seções abaixo são o insumo técnico (art. 5º, XVII e art. 38 da LGPD).
 
-- **Sistema:** Projeto Nexus — base tecnológica dos sistemas municipais
+- **Sistema:** Projeto-Assistencia-v2 — base tecnológica dos sistemas municipais
 - **Controlador:** Prefeitura Municipal de Rondonópolis/MT
 - **Operadores:** provedores de hospedagem contratados; Login Único Gov.br / Keycloak (autenticação)
 - **Versão dos termos vigente:** `v1.0.0-2026`

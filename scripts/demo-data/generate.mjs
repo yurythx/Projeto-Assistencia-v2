@@ -244,7 +244,7 @@ kcGroups.push({
 
 const realm = {
   realm: "nexus",
-  displayName: "Projeto Nexus (teste)",
+  displayName: "Projeto-Assistencia-v2 (teste)",
   enabled: true,
   // Ambiente de TESTE servido por HTTP na rede interna.
   sslRequired: "none",
@@ -268,7 +268,7 @@ const realm = {
   clients: [
     {
       clientId: "nexus-frontend",
-      name: "Projeto Nexus — frontend (NextAuth)",
+      name: "Projeto-Assistencia-v2 — frontend (NextAuth)",
       enabled: true,
       publicClient: false,
       clientAuthenticatorType: "client-secret",
@@ -306,7 +306,7 @@ const realm = {
       // (KEYCLOAK_CLIENT_ID/SECRET) — por isso confidencial, com Direct
       // Access Grants e nenhum outro fluxo.
       clientId: "nexus-backend",
-      name: "Projeto Nexus — API (audience + reautenticação do Signum)",
+      name: "Projeto-Assistencia-v2 — API (audience + reautenticação do Signum)",
       enabled: true,
       publicClient: false,
       clientAuthenticatorType: "client-secret",

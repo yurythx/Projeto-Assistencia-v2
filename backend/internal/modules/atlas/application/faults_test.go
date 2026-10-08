@@ -15,17 +15,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/pagination"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 var (

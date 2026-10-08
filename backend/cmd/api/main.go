@@ -1,4 +1,4 @@
-// Command api roda a API HTTP do Projeto Nexus: endpoints REST, notificações
+// Command api roda a API HTTP do Projeto-Assistencia-v2: endpoints REST, notificações
 // via WebSocket, health/readiness/metrics. O processamento assíncrono de
 // jobs fica em cmd/worker, não aqui — os dois processos são deployados e
 // escalados separadamente (§7/§20).
@@ -18,7 +18,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
-	"github.com/yurythx/projeto-nexus/internal/app"
+	"github.com/yurythx/projeto-assistencia-v2/internal/app"
 )
 
 // shutdownTimeout limita quanto tempo a API espera as requisições em

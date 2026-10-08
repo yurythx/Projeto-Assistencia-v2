@@ -13,12 +13,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/pagination"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/example/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/example/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/example/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/example/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/example/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/example/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 // Testes de integração (Postgres real) — este módulo era o único, entre

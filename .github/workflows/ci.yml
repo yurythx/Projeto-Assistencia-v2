@@ -1,4 +1,4 @@
-name: CI/CD Pipeline — Projeto Nexus Base Governamental
+name: CI/CD Pipeline — Projeto-Assistencia-v2 Base Governamental
 
 on:
   push:

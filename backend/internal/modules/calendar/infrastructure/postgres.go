@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/calendar/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/publico"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/calendar/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/publico"
 )
 
 // tabelaPublico é onde fica o público-alvo dos eventos (ADR 014).

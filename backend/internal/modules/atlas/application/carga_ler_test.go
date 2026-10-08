@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
 )
 
 const cabecalho = "Código;Série documental;Órgão;Função;Subfunção;Fase corrente;Fase intermediária;Destinação final;Observações;Recomendação da subfunção;Fonte\n"

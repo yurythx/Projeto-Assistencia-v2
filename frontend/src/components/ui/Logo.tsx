@@ -1,4 +1,4 @@
-// Marca do Projeto Nexus — um SELO/CARIMBO da marca, não um
+// Marca do Projeto-Assistencia-v2 — um SELO/CARIMBO da marca, não um
 // monograma de app. Anéis concêntricos (o carimbo oficial), o "A" de
 // Nexus recortado em branco no centro (dois traços diagonais + travessão)
 // e um traço em tinta de carimbo (#8a1c1c) na base: o mesmo motivo de
@@ -23,7 +23,7 @@ export function Logo({ size = 32, className = "" }: { size?: number; className?:
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Projeto Nexus"
+      aria-label="Projeto-Assistencia-v2"
       className={`shrink-0 ${className}`}
     >
       <rect x="1" y="1" width="26" height="26" rx="8" fill="#16305a" />

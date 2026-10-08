@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/atlas/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/atlas/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 )
 
 // Carga da TTDD pela tela (ADR 022): as mesmas regras de

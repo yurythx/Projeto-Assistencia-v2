@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/domain"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/domain"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // ----------------------------------------------------------------- usuários

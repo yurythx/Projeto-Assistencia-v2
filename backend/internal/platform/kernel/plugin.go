@@ -20,10 +20,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
-	"github.com/yurythx/projeto-nexus/internal/platform/messaging"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
-	"github.com/yurythx/projeto-nexus/internal/platform/ws"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/messaging"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
 // PermissionInfo documenta uma permissão declarada pelo plugin (exibida

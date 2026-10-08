@@ -11,8 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 )
 
 // ConsumeFunc conecta um handler a uma fila e bloqueia até ctx acabar

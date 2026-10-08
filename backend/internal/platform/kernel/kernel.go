@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/audit"
-	"github.com/yurythx/projeto-nexus/internal/platform/messaging"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/audit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/messaging"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/storage"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
 )
 
 // ErrInjected é o erro devolvido pelas operações marcadas para falhar.

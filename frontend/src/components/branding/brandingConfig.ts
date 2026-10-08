@@ -1,4 +1,4 @@
-// Formato + padrões do branding white-label do Projeto Nexus.
+// Formato + padrões do branding white-label do Projeto-Assistencia-v2.
 //
 // Duas origens se combinam:
 //  - identidade da organização (nome, órgão, contatos, logo e design
@@ -27,7 +27,7 @@ export interface SystemBrandingConfig {
 }
 
 export const DEFAULT_BRANDING: SystemBrandingConfig = {
-  appName: "Projeto Nexus",
+  appName: "Projeto-Assistencia-v2",
   appDescription: "Plataforma corporativa modular",
   orgName: "Organização",
   logoUrl: "",

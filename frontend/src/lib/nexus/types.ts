@@ -1,4 +1,4 @@
-// Tipos da API do Projeto Nexus (espelho dos DTOs do backend Go).
+// Tipos da API do Projeto-Assistencia-v2 (espelho dos DTOs do backend Go).
 
 export type UUID = string;
 

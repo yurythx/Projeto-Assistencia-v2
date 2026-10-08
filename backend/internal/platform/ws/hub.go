@@ -24,8 +24,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/metrics"
-	"github.com/yurythx/projeto-nexus/internal/platform/redisx"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/metrics"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/redisx"
 )
 
 // TopicBroadcast é assinado automaticamente por todo cliente.

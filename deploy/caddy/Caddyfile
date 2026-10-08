@@ -1,4 +1,4 @@
-# Proxy HTTPS do Projeto Nexus (docker-compose.https.yml).
+# Proxy HTTPS do Projeto-Assistencia-v2 (docker-compose.https.yml).
 #
 # Sem domínio público: a CA interna do Caddy emite os certificados para
 # PUBLIC_HOST (IP ou nome da rede interna). Cada máquina de teste instala a
@@ -14,7 +14,7 @@
 	auto_https disable_redirects
 	pki {
 		ca local {
-			name "Projeto Nexus - CA de teste"
+			name "Projeto-Assistencia-v2 - CA de teste"
 		}
 	}
 }

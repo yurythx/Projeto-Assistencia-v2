@@ -208,7 +208,7 @@ export function BrandingSettingsForm() {
                 ) : (
                   <div className="flex items-center gap-2 text-muted">
                     <ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />
-                    <span className="text-xs font-semibold">{form.appName || "Projeto Nexus"}</span>
+                    <span className="text-xs font-semibold">{form.appName || "Projeto-Assistencia-v2"}</span>
                     <span className="text-[10px] text-muted">(fallback vetorial)</span>
                   </div>
                 )}

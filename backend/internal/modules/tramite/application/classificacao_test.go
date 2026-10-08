@@ -12,12 +12,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
 )
 
 // Classificação pelo Atlas (ADR 026): na abertura ou depois, inclusive com

@@ -90,7 +90,7 @@ export function GovFooter() {
           <p>
             © {year} {branding.orgName}
           </p>
-          <p>Plataforma construída sobre o Projeto Nexus · Padrão Digital de Governo (DSGov)</p>
+          <p>Projeto-Assistencia-v2 · construído sobre a plataforma Nexus · Padrão Digital de Governo (DSGov)</p>
         </div>
       </div>
     </footer>

@@ -8,7 +8,7 @@ describe("Seal", () => {
     const { container } = render(<Seal />);
     const svg = container.querySelector("svg")!;
     expect(svg).toHaveAttribute("role", "img");
-    expect(svg).toHaveAttribute("aria-label", "Selo do Projeto Nexus");
+    expect(svg).toHaveAttribute("aria-label", "Selo do Projeto-Assistencia-v2");
   });
 
   it("decorative=true remove da árvore de acessibilidade", () => {

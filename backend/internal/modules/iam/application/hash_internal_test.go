@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
 )
 
 // Falha ao gerar o hash (sem entropia, por exemplo) é erro interno, e

@@ -13,13 +13,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/text/unicode/norm"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
-	"github.com/yurythx/projeto-nexus/internal/platform/httpserver"
-	"github.com/yurythx/projeto-nexus/internal/platform/notificacoes"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
-	"github.com/yurythx/projeto-nexus/internal/platform/secretcrypto"
-	"github.com/yurythx/projeto-nexus/internal/platform/storage"
-	"github.com/yurythx/projeto-nexus/internal/platform/ws"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/httpserver"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/notificacoes"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/secretcrypto"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
 // Deps são os recursos compartilhados disponíveis a todo plugin.

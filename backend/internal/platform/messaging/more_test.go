@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
 )
 
 func brokerURL(t *testing.T) string {

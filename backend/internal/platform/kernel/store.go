@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/audit"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/audit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 )
 
 // Store persiste o estado de ativação dos plugins.

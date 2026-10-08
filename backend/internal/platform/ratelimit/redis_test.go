@@ -9,7 +9,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/redisx"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/redisx"
 )
 
 func newTestRedis(t *testing.T) (*redis.Client, *miniredis.Miniredis) {

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
 )
 
 type fakeProvider struct {

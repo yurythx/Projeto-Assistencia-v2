@@ -16,8 +16,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
-	"github.com/yurythx/projeto-nexus/migrations"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/migrations"
 )
 
 func main() {

@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/wiki/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/wiki/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
 )
 
 // gestor é a gestão global (nexus-admin equivale a "*" em todo lugar).

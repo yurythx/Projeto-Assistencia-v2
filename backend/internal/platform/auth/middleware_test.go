@@ -15,7 +15,7 @@ import (
 	josejwk "github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 // testOIDCProvider sobe um endpoint HTTP real e autocontido de discovery

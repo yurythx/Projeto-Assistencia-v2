@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/directory/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/directory/domain"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/directory/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/directory/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // Handlers da API do Diretório.

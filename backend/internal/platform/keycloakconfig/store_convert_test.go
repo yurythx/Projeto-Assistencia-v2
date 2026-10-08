@@ -3,7 +3,7 @@ package keycloakconfig
 import (
 	"testing"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 func TestSettings_ToKeycloakConfig(t *testing.T) {

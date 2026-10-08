@@ -10,11 +10,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/tramite/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/platform/notificacoes"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/notificacoes"
 )
 
 type hubNulo struct{ n int }

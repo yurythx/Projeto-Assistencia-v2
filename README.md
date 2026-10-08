@@ -1,6 +1,6 @@
-# Projeto Nexus — Plataforma Enterprise Base Governamental
+# Projeto-Assistencia-v2 — Plataforma Enterprise Base Governamental
 
-O **Projeto Nexus** é uma plataforma corporativa modular construída segundo o padrão de **Arquitetura Microkernel (Plug-in Architecture)** em Go (Backend) e Next.js App Router (Frontend), desenvolvida para servir como **base enterprise genérica em estrita conformidade com as normas do Governo Federal Brasileiro** (SGD/MGI, e-MAG 2.0, DSGov, LGPD, Gov.br e OWASP) para o rápido desenvolvimento e desacoplamento de novos módulos de negócio municipais e estaduais.
+O **Projeto-Assistencia-v2** é uma plataforma corporativa modular construída segundo o padrão de **Arquitetura Microkernel (Plug-in Architecture)** em Go (Backend) e Next.js App Router (Frontend), desenvolvida para servir como **base enterprise genérica em estrita conformidade com as normas do Governo Federal Brasileiro** (SGD/MGI, e-MAG 2.0, DSGov, LGPD, Gov.br e OWASP) para o rápido desenvolvimento e desacoplamento de novos módulos de negócio municipais e estaduais.
 
 Ele fornece um **Core System (Kernel)** robusto com infraestrutura pronta de segurança HTTP, mensageria, outbox transacional, autenticação via **Keycloak dedicado com federação do Active Directory** (e fallback local RS256), mascaramento PII, auditoria imutável com cadeia de hash, busca full-text em PostgreSQL e um Design System governamental oficial (DSGov / e-MAG).
 
@@ -8,7 +8,7 @@ Ele fornece um **Core System (Kernel)** robusto com infraestrutura pronta de seg
 
 ## 🏛️ Conformidade Governamental (SGD/MGI) & Recursos Globais
 
-O Projeto Nexus foi construído sobre os 5 eixos de conformidade da Secretaria de Governo Digital (SGD/MGI). O estado de cada requisito, com a evidência (código, teste ou pendência), está no [Dossiê de Conformidade](docs/DOSSIE_CONFORMIDADE.md) e no [Roadmap](docs/ROADMAP_CONFORMIDADE.md); a declaração de acessibilidade, no [VPAT](docs/VPAT.md). Conformidade formal depende de avaliação do órgão contratante.
+O Projeto-Assistencia-v2 foi construído sobre os 5 eixos de conformidade da Secretaria de Governo Digital (SGD/MGI). O estado de cada requisito, com a evidência (código, teste ou pendência), está no [Dossiê de Conformidade](docs/DOSSIE_CONFORMIDADE.md) e no [Roadmap](docs/ROADMAP_CONFORMIDADE.md); a declaração de acessibilidade, no [VPAT](docs/VPAT.md). Conformidade formal depende de avaliação do órgão contratante.
 
 1. **Módulo 1: Segurança HTTP & Headers Defensivos (Go):** Headers OWASP (`HSTS`, `CSP com Nonce`, `X-Frame DENY`, `X-Content-Type nosniff`), rate-limiting e timeouts de servidor anti-DoS.
 2. **Módulo 2: Privacidade & LGPD (Go):** Mascaramento nativo de PII (`slog.LogValuer` em CPF, e-mail, telefone) e rastreabilidade correlacionada (`X-Request-ID`).

@@ -1,12 +1,12 @@
-# 📖 Guia do Desenvolvedor — Plataforma Projeto Nexus
+# 📖 Guia do Desenvolvedor — Plataforma Projeto-Assistencia-v2
 
-Bem-vindo ao guia de desenvolvimento e arquitetura do **Projeto Nexus**. Este documento foi elaborado para capacitar engenheiros de software, arquitetos e equipes de TI municipais a desenvolver, manter e expandir aplicações corporativas sobre a base governamental padronizada.
+Bem-vindo ao guia de desenvolvimento e arquitetura do **Projeto-Assistencia-v2**. Este documento foi elaborado para capacitar engenheiros de software, arquitetos e equipes de TI municipais a desenvolver, manter e expandir aplicações corporativas sobre a base governamental padronizada.
 
 ---
 
 ## 🏛️ 1. Visão Geral e Arquitetura
 
-O **Projeto Nexus** é uma plataforma corporativa modular construída segundo o padrão de **Arquitetura Microkernel (Plug-in Architecture)** combinado a um **Monólito Modular & Clean Architecture**:
+O **Projeto-Assistencia-v2** é uma plataforma corporativa modular construída segundo o padrão de **Arquitetura Microkernel (Plug-in Architecture)** combinado a um **Monólito Modular & Clean Architecture**:
 
 - **Core System / Kernel (`internal/platform/`)**: Infraestrutura central reutilizável que fornece os serviços fundamentais da plataforma:
   - **Kernel de plug-ins** (`internal/platform/kernel`): registro (`RegisterModule`), ciclo de vida em runtime, grafo de dependências, Guard HTTP, supervisão de workers/consumidores e tópicos WebSocket.

@@ -13,11 +13,11 @@ import (
 	"net/http"
 	"strings"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/platform/logging"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/logging"
 )
 
-// Envelope é o formato de resposta padrão de todo endpoint do Projeto Nexus.
+// Envelope é o formato de resposta padrão de todo endpoint do Projeto-Assistencia-v2.
 type Envelope struct {
 	Data  any        `json:"data"`
 	Error *ErrorBody `json:"error"`

@@ -1,12 +1,12 @@
-# Guia de Desenvolvimento de Novos Módulos (Plug-ins) — Projeto Nexus
+# Guia de Desenvolvimento de Novos Módulos (Plug-ins) — Projeto-Assistencia-v2
 
-Este documento é o guia oficial para engenheiros que vão criar novos **módulos de negócio (plug-ins)** sobre o **Core System (Kernel)** da plataforma **Projeto Nexus**. Siga estas convenções para manter o isolamento de domínio, o desacoplamento e a consistência da **Arquitetura Microkernel**.
+Este documento é o guia oficial para engenheiros que vão criar novos **módulos de negócio (plug-ins)** sobre o **Core System (Kernel)** da plataforma **Projeto-Assistencia-v2**. Siga estas convenções para manter o isolamento de domínio, o desacoplamento e a consistência da **Arquitetura Microkernel**.
 
 ---
 
 ## 🏗️ Visão Geral da Arquitetura Microkernel
 
-O Projeto Nexus utiliza o modelo **Microkernel (Plug-in Architecture)** combinado a **Camadas Limpas (Clean Architecture)** e comunicação assíncrona orientada a eventos via **Transactional Outbox**:
+O Projeto-Assistencia-v2 utiliza o modelo **Microkernel (Plug-in Architecture)** combinado a **Camadas Limpas (Clean Architecture)** e comunicação assíncrona orientada a eventos via **Transactional Outbox**:
 
 ```
    Navegador (React / Next.js DSGov Shell)

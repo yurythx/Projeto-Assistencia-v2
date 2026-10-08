@@ -25,13 +25,13 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/events"
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
-	"github.com/yurythx/projeto-nexus/internal/platform/keycloakconfig"
-	"github.com/yurythx/projeto-nexus/internal/platform/messaging"
-	"github.com/yurythx/projeto-nexus/internal/platform/redisx"
-	"github.com/yurythx/projeto-nexus/internal/platform/secretcrypto"
-	"github.com/yurythx/projeto-nexus/internal/platform/ws"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/events"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/keycloakconfig"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/messaging"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/redisx"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/secretcrypto"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
 const testConfigKey = "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="

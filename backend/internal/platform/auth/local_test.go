@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 // testRSAKeyPEM generates a throwaway RSA private key (PKCS1 PEM) of the

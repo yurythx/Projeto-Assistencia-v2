@@ -6,7 +6,7 @@ arquivo de domínio.
 Uso (na raiz do repositório):
   scripts/genfault.py backend/internal/modules/<m>/domain/<arquivo>.go domain \
       backend/internal/modules/<m>/application/faultrepo_test.go application_test \
-      github.com/yurythx/projeto-nexus/internal/modules/<m>/domain
+      github.com/yurythx/projeto-assistencia-v2/internal/modules/<m>/domain
 """
 import re, sys
 src, alias, out, pkg, dompath = sys.argv[1:6]
@@ -124,11 +124,11 @@ third = []
 if 'uuid.' in code: third.append('"github.com/google/uuid"')
 third.append('"github.com/jackc/pgx/v5"')
 own = []
-if 'pagination.' in code: own.append('"github.com/yurythx/projeto-nexus/internal/domain/pagination"')
-if 'auth.' in code: own.append('"github.com/yurythx/projeto-nexus/internal/platform/auth"')
-if 'publico.' in code: own.append('"github.com/yurythx/projeto-nexus/internal/platform/publico"')
+if 'pagination.' in code: own.append('"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"')
+if 'auth.' in code: own.append('"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"')
+if 'publico.' in code: own.append('"github.com/yurythx/projeto-assistencia-v2/internal/platform/publico"')
 own.append('"' + dompath + '"')
-own.append('"github.com/yurythx/projeto-nexus/internal/platform/database"')
+own.append('"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"')
 imp = 'import (\n' + '\n'.join('\t'+x for x in std) + '\n\n' + '\n'.join('\t'+x for x in third) + '\n\n' + '\n'.join('\t'+x for x in sorted(own)) + '\n)\n\ntype innerRepo = ' + alias + '.Repository\n'
 o[IMPORTS_PLACEHOLDER] = imp
 open(out, 'w').write('\n'.join(o))

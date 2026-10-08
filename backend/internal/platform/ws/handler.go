@@ -8,10 +8,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/metrics"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/metrics"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // TicketResponse é o corpo de POST /api/v1/ws/ticket.

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/secretcrypto"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/secretcrypto"
 )
 
 func otherCipher(t *testing.T) *secretcrypto.Cipher {

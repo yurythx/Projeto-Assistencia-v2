@@ -3,11 +3,11 @@
 package contact
 
 import (
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
 )
 
 // Key é a chave do módulo.

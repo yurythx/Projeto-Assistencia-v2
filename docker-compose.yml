@@ -1,4 +1,4 @@
-name: projeto-nexus
+name: projeto-assistencia-v2
 networks:
   nexus_internal:
     driver: bridge

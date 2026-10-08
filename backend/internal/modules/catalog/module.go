@@ -7,14 +7,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/catalog/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/catalog/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/catalog/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/httpserver"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/catalog/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/catalog/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/catalog/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/httpserver"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
 )
 
 // Key é a chave do módulo.

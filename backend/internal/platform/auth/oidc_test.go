@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/config"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/config"
 )
 
 // newFakeOIDCIssuer sobe um servidor HTTP local que responde ao

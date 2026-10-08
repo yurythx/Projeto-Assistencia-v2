@@ -6,7 +6,7 @@ import KeycloakProvider from "next-auth/providers/keycloak";
 import { forwardedFor } from "@/lib/api/clientIp";
 import { BACKEND_INTERNAL_URL } from "@/lib/env";
 
-// Autenticação do Projeto Nexus (skill §2):
+// Autenticação do Projeto-Assistencia-v2 (skill §2):
 //  1. Padrão ouro — Keycloak DEDICADO (OIDC Authorization Code + PKCE),
 //     com usuários federados do Active Directory via LDAP/LDAPS;
 //  2. Fallback local — POST /api/v1/auth/login no backend Go, que emite

@@ -102,7 +102,7 @@ describe("páginas institucionais estáticas", () => {
     }
     api.routes = {}; // branding fora: cai no padrão
     const { container } = render(await AboutPage());
-    expect(container.textContent).toContain("Projeto Nexus");
+    expect(container.textContent).toContain("Projeto-Assistencia-v2");
   });
 
   it("login mostra a marca e o cartão", async () => {

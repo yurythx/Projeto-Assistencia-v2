@@ -29,7 +29,7 @@ O servidor de teste (192.168.1.42) — máquina, endereços, verificação pós-
 ## Ordem recomendada (servidor novo)
 
 ```bash
-git clone https://github.com/yurythx/Projeto-Nexus.git && cd Projeto-Nexus
+git clone https://github.com/yurythx/projeto-assistencia-v2.git && cd projeto-assistencia-v2
 ./scripts/deploy.sh 192.168.1.42        # 1. stack em produção (gera .env e chave)
 make prod-seed-admin                     # 2. admin local (senha impressa UMA vez)
 make demo-keycloak                       # 3. (teste) Keycloak + estrutura e usuários fictícios

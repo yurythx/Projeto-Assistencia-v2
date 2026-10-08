@@ -9,11 +9,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/logging"
-	"github.com/yurythx/projeto-nexus/internal/platform/metrics"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/logging"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/metrics"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // Header é o cabeçalho que ativa a idempotência de uma mutação (A08 —

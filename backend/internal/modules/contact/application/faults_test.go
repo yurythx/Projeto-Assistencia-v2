@@ -13,14 +13,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/yurythx/projeto-nexus/internal/domain/pagination"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/contact/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/domain/pagination"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/contact/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 type env struct {

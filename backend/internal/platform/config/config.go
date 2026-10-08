@@ -1,4 +1,4 @@
-// Package config carrega e valida a configuração do Projeto Nexus a partir
+// Package config carrega e valida a configuração do Projeto-Assistencia-v2 a partir
 // de variáveis de ambiente. Configuração obrigatória ausente faz Load
 // retornar um erro imediatamente (fail fast) em vez de deixar a aplicação
 // subir num estado parcialmente configurado — é preferível o processo nem

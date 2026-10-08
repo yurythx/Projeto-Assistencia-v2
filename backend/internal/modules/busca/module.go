@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/busca/application"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/busca/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // Key é a chave do módulo.

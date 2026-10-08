@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/platform/storage/storagetest"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage/storagetest"
 )
 
 func TestSlugifyAndSnippet(t *testing.T) {

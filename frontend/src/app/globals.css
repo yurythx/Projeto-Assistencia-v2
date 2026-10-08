@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Design tokens do Projeto Nexus — paleta DSGov (Padrão Digital de
+/* Design tokens do Projeto-Assistencia-v2 — paleta DSGov (Padrão Digital de
    Governo) como base, 100% substituível por white-label: cada órgão
    sobrescreve os tokens pela tela Configurações > Identidade visual
    (GET /api/v1/branding -> CSS custom properties no layout raiz).

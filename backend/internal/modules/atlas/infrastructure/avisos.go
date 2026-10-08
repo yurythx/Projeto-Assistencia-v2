@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 )
 
 // Avisos de nova versão (ADR 027): quem segue o procedimento e quem está

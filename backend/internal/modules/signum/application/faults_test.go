@@ -16,15 +16,15 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/domain"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/signum/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/database"
-	"github.com/yurythx/projeto-nexus/internal/platform/database/dbtest"
-	"github.com/yurythx/projeto-nexus/internal/platform/outbox"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/domain"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database/dbtest"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 )
 
 var errBoom = errors.New("falha simulada no repositório")

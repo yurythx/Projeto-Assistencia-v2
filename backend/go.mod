@@ -1,4 +1,4 @@
-module github.com/yurythx/projeto-nexus
+module github.com/yurythx/projeto-assistencia-v2
 
 go 1.26.0
 

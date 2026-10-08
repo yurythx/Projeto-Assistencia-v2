@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/iam/domain"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/domain"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 // ---------------------------------------------------------------- lotações

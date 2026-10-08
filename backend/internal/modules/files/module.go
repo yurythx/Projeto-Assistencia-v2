@@ -5,13 +5,13 @@ package files
 import (
 	"context"
 
-	"github.com/yurythx/projeto-nexus/internal/modules/files/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/files/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/files/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/internal/platform/search"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/files/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/files/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/files/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/search"
 )
 
 // Key é a chave do módulo.

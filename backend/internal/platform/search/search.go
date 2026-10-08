@@ -8,7 +8,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/yurythx/projeto-nexus/internal/platform/auth"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
 )
 
 // Result é um item da busca global.

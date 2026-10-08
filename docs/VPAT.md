@@ -6,7 +6,7 @@
 > humano com tecnologia assistiva (F5.2 do roadmap — pendente). Enquanto
 > isso, "Suporta parcialmente" e "Não avaliado" refletem essa limitação.
 
-- **Produto:** Projeto Nexus — base tecnológica dos sistemas municipais
+- **Produto:** Projeto-Assistencia-v2 — base tecnológica dos sistemas municipais
 - **Versão:** branch `feat/conformidade-roadmap` (2026-09-09)
 - **Padrões avaliados:** WCAG 2.1 níveis A e AA; e-MAG 2.0 (Governo Federal / SGD-MGI)
 - **Método:** `eslint-plugin-jsx-a11y` (regras e-MAG) no CI; revisão manual

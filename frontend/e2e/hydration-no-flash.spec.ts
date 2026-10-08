@@ -40,7 +40,7 @@ test.describe("Sem flash de hidratação (branding + Sidebar)", () => {
 
     // devolve o nome original (a suíte roda contra o mesmo banco)
     await page.goto("/configuracao");
-    await page.getByLabel("Nome da Aplicação / Sistema *").fill(previous || "Projeto Nexus");
+    await page.getByLabel("Nome da Aplicação / Sistema *").fill(previous || "Projeto-Assistencia-v2");
     await page.getByRole("button", { name: /Salvar alterações/ }).click();
     await expect(page.getByText("Configurações salvas")).toBeVisible();
   });

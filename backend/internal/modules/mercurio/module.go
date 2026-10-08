@@ -4,12 +4,12 @@
 package mercurio
 
 import (
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/application"
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/infrastructure"
-	"github.com/yurythx/projeto-nexus/internal/modules/mercurio/transport"
-	"github.com/yurythx/projeto-nexus/internal/platform/kernel"
-	"github.com/yurythx/projeto-nexus/internal/platform/modkit"
-	"github.com/yurythx/projeto-nexus/internal/platform/ws"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/application"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/infrastructure"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio/transport"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/kernel"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
 // Key é a chave do módulo (também o prefixo dos tópicos WebSocket).

@@ -1,4 +1,4 @@
-// Command worker roda os processadores assíncronos do Projeto Nexus:
+// Command worker roda os processadores assíncronos do Projeto-Assistencia-v2:
 // consumers das filas do RabbitMQ, publisher do outbox e rotinas de manutenção.
 package main
 
@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/yurythx/projeto-nexus/internal/app"
+	"github.com/yurythx/projeto-assistencia-v2/internal/app"
 )
 
 func main() {

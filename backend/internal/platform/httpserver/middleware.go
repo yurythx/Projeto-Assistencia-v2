@@ -16,10 +16,10 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 
-	apperrors "github.com/yurythx/projeto-nexus/internal/domain/errors"
-	"github.com/yurythx/projeto-nexus/internal/platform/logging"
-	"github.com/yurythx/projeto-nexus/internal/platform/metrics"
-	"github.com/yurythx/projeto-nexus/pkg/httputil"
+	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/logging"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/metrics"
+	"github.com/yurythx/projeto-assistencia-v2/pkg/httputil"
 )
 
 const RequestIDHeader = "X-Request-ID"
