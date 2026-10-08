@@ -41,7 +41,7 @@ Referência funcional da plataforma. Serve para quem **implanta e administra**
 | Tipo | Módulos | Pode desligar? |
 |---|---|---|
 | Núcleo | IAM & Usuários, Auditoria | Não |
-| Plug-ins | Mercúrio, Egress, Blog, Catálogo, Contato, Diretório, Agenda, Arquivos, Wiki, Busca, Signum, Trâmite, Atlas, Módulo Modelo | Sim, em Configurações → Módulos (`modules:manage`) |
+| Plug-ins | Mercúrio, Egress, Blog, Catálogo, Contato, Diretório, Agenda, Arquivos, Wiki, Busca, Signum, Trâmite, Atlas, SEMPRAS, Módulo Modelo | Sim, em Configurações → Módulos (`modules:manage`) |
 
 - Desligar um módulo tem efeito imediato, sem reiniciar:
   - as rotas dele respondem `404 MODULE_DISABLED`;
@@ -162,6 +162,7 @@ saúde, filial, sede.
 | Agenda / Arquivos / Diretório | `calendar:manage`, `files:manage`, `directory:manage` |
 | Mercúrio / Signum / Egress | `mercurio:manage`, `signum:manage`, `egress:manage` |
 | Atlas | `atlas:read`, `atlas:manage` |
+| SEMPRAS | `sempras:recepcao`, `sempras:atendimento`, `sempras:psicologia`, `sempras:gestao` (todas com escopo) |
 | Módulo Modelo | `example:manage` |
 
 O que **não** exige permissão, só estar autenticado:
@@ -764,6 +765,48 @@ compartilhados, e o administrador vê tudo. Para empresas independentes, use
   arquivo), `atlas.assistente.consulta` (sem o texto) e as alterações de
   IA (`ia.conexao.*`, `ia.uso.alterado` — nunca a chave).
 
+
+### SEMPRAS (atendimento socioassistencial)
+As decisões estão no [ADR 030](adr/030-sempras-atendimento-socioassistencial.md),
+e o plano, em [ROADMAP_SEMPRAS.md](ROADMAP_SEMPRAS.md). O módulo nasce
+**desativado**.
+
+- **Unidades:** são as Unidades da entidade SEMPRAS (estrutura real). Cada
+  pessoa atua só onde foi lotada, por lotação ou grupo do AD
+  `SEMPRAS_<UNIDADE>_<PERFIL>`. O Superintendente, lotado **na entidade**,
+  atua em todas as unidades.
+- **Munícipe:** o cadastro é único na secretaria.
+  - **Identificação:** CPF (dígitos verificadores conferidos), NIS ou data
+    de nascimento + nome da mãe. CPF e NIS não se repetem.
+  - **Busca:** por CPF/NIS exatos ou por trecho do nome, sem acento.
+    Mostra documentos mascarados e o número de atendimentos **só nas
+    unidades de quem busca**.
+- **Fila:** por unidade e por dia.
+  - **Inclusão:** a recepção ou o técnico incluem. A senha é sequencial no
+    dia (`N012`, ou `P003` com prioridade legal; 80+ passa à frente dos
+    demais prioritários). Uma entrada ativa por pessoa, unidade e dia.
+  - **Estados:** `aguardando → chamado → em_atendimento → concluido`. Saídas
+    laterais: `cancelado` (de aguardando ou chamado) e `nao_compareceu`
+    (de chamado).
+  - **Chamar o próximo:** segue a prioridade e depois a chegada. Dois
+    técnicos chamando juntos nunca pegam a mesma pessoa.
+  - **Quem chama:** o atendimento **psicológico** só quem tem
+    `sempras:psicologia` chama e atende.
+- **Prontuário (ficha):** cadastro, atendimentos e evoluções **da área de
+  quem consulta**.
+  - **Somente inclusão:** o banco impede alterar ou apagar uma evolução, e
+    a correção é feita com um novo registro.
+  - **Sigilo psicológico:** o registro psicológico só mostra o texto a quem
+    tem o sigilo da psicologia na unidade. O papel de administrador não
+    basta.
+- **Auditoria:** registra cadastro e edição (só os nomes dos campos
+  alterados, nunca os valores), inclusão e cada mudança de estado da fila,
+  nova evolução (sem o texto) e **toda abertura da ficha**
+  (`sempras.prontuario.visualizado`).
+- **Tempo real:** o tópico `sempras:fila:<unidade>` atualiza a fila na tela.
+  O frame não traz dado pessoal, e a tela relê a fila pela API. Os eventos
+  do outbox levam só identificadores e estado.
+- **Unidade desativada** não recebe fila nem evolução (`422`).
 
 ---
 

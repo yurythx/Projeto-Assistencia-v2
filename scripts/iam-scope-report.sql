@@ -38,7 +38,11 @@ escopo AS (
         'files:manage',
         'iam:manage',
         'users:read',
-        'users:manage'
+        'users:manage',
+        'sempras:recepcao',
+        'sempras:atendimento',
+        'sempras:psicologia',
+        'sempras:gestao'
     ]) AS perm
 )
 SELECT c.origem, c.quem, c.perfil,

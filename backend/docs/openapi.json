@@ -5678,6 +5678,521 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasAtendimento": {
+        "properties": {
+          "chamado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "dia": {
+            "type": "string"
+          },
+          "encerrado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "incluido_por": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "iniciado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "local": {
+            "type": "string"
+          },
+          "prioridade": {
+            "type": "string"
+          },
+          "profissional_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "senha": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chamado_em",
+          "cidadao_id",
+          "created_at",
+          "dia",
+          "encerrado_em",
+          "id",
+          "incluido_por",
+          "iniciado_em",
+          "local",
+          "prioridade",
+          "profissional_id",
+          "senha",
+          "status",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasChamadaRequest": {
+        "properties": {
+          "local": {
+            "maxLength": 60,
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasCidadao": {
+        "properties": {
+          "cpf": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "data_nascimento": {
+            "type": "string"
+          },
+          "endereco": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nis": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "nome_mae": {
+            "type": "string"
+          },
+          "nome_social": {
+            "type": "string"
+          },
+          "telefone": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cpf",
+          "created_at",
+          "data_nascimento",
+          "endereco",
+          "id",
+          "nis",
+          "nome",
+          "nome_mae",
+          "nome_social",
+          "telefone",
+          "updated_at"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasCidadaoRequest": {
+        "properties": {
+          "cpf": {
+            "maxLength": 20,
+            "type": "string"
+          },
+          "data_nascimento": {
+            "maxLength": 10,
+            "type": "string"
+          },
+          "endereco": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "nis": {
+            "maxLength": 20,
+            "type": "string"
+          },
+          "nome": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "nome_mae": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "nome_social": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "telefone": {
+            "maxLength": 30,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasEntradaRequest": {
+        "properties": {
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "prioridade": {
+            "maxLength": 20,
+            "type": "string"
+          },
+          "tipo": {
+            "enum": [
+              "social",
+              "psicologico"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "cidadao_id",
+          "tipo"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasFilaItem": {
+        "properties": {
+          "chamado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "dia": {
+            "type": "string"
+          },
+          "encerrado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "incluido_por": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "iniciado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "local": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "prioridade": {
+            "type": "string"
+          },
+          "profissional_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "senha": {
+            "type": "integer"
+          },
+          "senha_exibida": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chamado_em",
+          "cidadao_id",
+          "created_at",
+          "dia",
+          "encerrado_em",
+          "id",
+          "incluido_por",
+          "iniciado_em",
+          "local",
+          "nome",
+          "prioridade",
+          "profissional_id",
+          "senha",
+          "senha_exibida",
+          "status",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasPainelUnidade": {
+        "properties": {
+          "aguardando": {
+            "type": "integer"
+          },
+          "concluidos": {
+            "type": "integer"
+          },
+          "em_atendimento": {
+            "type": "integer"
+          },
+          "espera_media_min": {
+            "type": "number"
+          },
+          "nao_compareceram": {
+            "type": "integer"
+          },
+          "unidade": {
+            "$ref": "#/components/schemas/SemprasUnidade"
+          }
+        },
+        "required": [
+          "aguardando",
+          "concluidos",
+          "em_atendimento",
+          "espera_media_min",
+          "nao_compareceram",
+          "unidade"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasProntuario": {
+        "properties": {
+          "atendimentos": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasAtendimento"
+            },
+            "type": "array"
+          },
+          "cidadao": {
+            "$ref": "#/components/schemas/SemprasCidadao"
+          },
+          "registros": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasRegistro"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "atendimentos",
+          "cidadao",
+          "registros"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasRegistro": {
+        "properties": {
+          "atendimento_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "autor_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "autor_nome": {
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sigiloso": {
+            "type": "boolean"
+          },
+          "texto": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "atendimento_id",
+          "autor_id",
+          "autor_nome",
+          "cidadao_id",
+          "created_at",
+          "id",
+          "sigiloso",
+          "texto",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasRegistroRequest": {
+        "properties": {
+          "atendimento_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "texto": {
+            "maxLength": 20000,
+            "type": "string"
+          },
+          "tipo": {
+            "enum": [
+              "social",
+              "psicologico"
+            ],
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "texto",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasResumo": {
+        "properties": {
+          "atendimentos_na_area": {
+            "type": "integer"
+          },
+          "cpf": {
+            "type": "string"
+          },
+          "data_nascimento": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nis": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "nome_social": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "atendimentos_na_area",
+          "cpf",
+          "data_nascimento",
+          "id",
+          "nis",
+          "nome",
+          "nome_social"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasUnidade": {
+        "properties": {
+          "ativa": {
+            "type": "boolean"
+          },
+          "entidade_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "sigla": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ativa",
+          "entidade_id",
+          "id",
+          "nome",
+          "sigla"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SignumChallengeResponse": {
         "properties": {
           "challenge_id": {
@@ -18146,6 +18661,1102 @@
         ]
       }
     },
+    "/api/v1/sempras/atendimentos/{id}/ausente": {
+      "post": {
+        "operationId": "postSemprasAtendimentosIdAusente",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAtendimento"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/atendimentos/{id}/ausente",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/atendimentos/{id}/cancelar": {
+      "post": {
+        "operationId": "postSemprasAtendimentosIdCancelar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAtendimento"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/atendimentos/{id}/cancelar",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/atendimentos/{id}/chamar": {
+      "post": {
+        "operationId": "postSemprasAtendimentosIdChamar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAtendimento"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/atendimentos/{id}/chamar",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/atendimentos/{id}/concluir": {
+      "post": {
+        "operationId": "postSemprasAtendimentosIdConcluir",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAtendimento"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/atendimentos/{id}/concluir",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/atendimentos/{id}/iniciar": {
+      "post": {
+        "operationId": "postSemprasAtendimentosIdIniciar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAtendimento"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/atendimentos/{id}/iniciar",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos": {
+      "get": {
+        "operationId": "getSemprasCidadaos",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "x-nexus-generated": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasResumo"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/cidadaos",
+        "tags": [
+          "sempras"
+        ]
+      },
+      "post": {
+        "operationId": "postSemprasCidadaos",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasCidadaoRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCidadao"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Criar /sempras/cidadaos",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}": {
+      "get": {
+        "operationId": "getSemprasCidadaosId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCidadao"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Obter /sempras/cidadaos/{id}",
+        "tags": [
+          "sempras"
+        ]
+      },
+      "put": {
+        "operationId": "putSemprasCidadaosId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasCidadaoRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCidadao"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Salvar /sempras/cidadaos/{id}",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}/prontuario": {
+      "get": {
+        "operationId": "getSemprasCidadaosIdProntuario",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasProntuario"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/cidadaos/{id}/prontuario",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}/registros": {
+      "post": {
+        "operationId": "postSemprasCidadaosIdRegistros",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasRegistroRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasRegistro"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/registros",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/painel": {
+      "get": {
+        "operationId": "getSemprasPainel",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasPainelUnidade"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/painel",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/unidades": {
+      "get": {
+        "operationId": "getSemprasUnidades",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasUnidade"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/unidades",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/unidades/{id}/fila": {
+      "get": {
+        "operationId": "getSemprasUnidadesIdFila",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasFilaItem"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/unidades/{id}/fila",
+        "tags": [
+          "sempras"
+        ]
+      },
+      "post": {
+        "operationId": "postSemprasUnidadesIdFila",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasEntradaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasFilaItem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/unidades/{id}/fila",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/unidades/{id}/fila/proximo": {
+      "post": {
+        "operationId": "postSemprasUnidadesIdFilaProximo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasChamadaRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasFilaItem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/unidades/{id}/fila/proximo",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
     "/api/v1/signum/envelopes": {
       "get": {
         "operationId": "getSignumEnvelopes",
@@ -21659,6 +23270,10 @@
     {
       "description": "Busca Global. Plug-in — Busca unificada sobre os módulos ativos (Blog, Wiki, Arquivos, Catálogo, Diretório, Trâmite).",
       "name": "search"
+    },
+    {
+      "description": "SEMPRAS. Plug-in — Atendimento socioassistencial: busca e cadastro do munícipe, fila por unidade em tempo real e prontuário.",
+      "name": "sempras"
     },
     {
       "description": "Signum. Plug-in — Assinatura eletrônica com cerimônia de reautenticação e hash de integridade SHA-256.",

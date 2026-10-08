@@ -1,5 +1,5 @@
 .PHONY: dev up down logs build test lint format \
-	deploy prod-seed-admin prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar ttdd-impacto ttdd-aplicar \
+	deploy prod-seed-admin prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar sempras-mapeamentos ttdd-impacto ttdd-aplicar \
 	demo-keycloak demo-generate demo-seed demo-test demo-popular \
 	migrate-up migrate-down migrate-status migrate-redo seed-admin \
 	backend-shell frontend-shell rabbitmq-status clean \
@@ -65,6 +65,9 @@ ttdd-aplicar: ## Carrega a TTDD oficial (deploy/ttdd, gerada de docs/ttdd.pdf): 
 
 estrutura-aplicar: ## Aplica (idempotente) a estrutura organizacional real no Postgres
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/estrutura/estrutura.sql
+
+sempras-mapeamentos: ## Cria (idempotente) os 49 mapeamentos de grupos do AD do SEMPRAS (ADR 030)
+	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/sempras/mapeamentos-ad.sql
 
 ## --- Ambiente de teste: Keycloak + dados fictícios (ver docs/DEPLOY.md) ---
 

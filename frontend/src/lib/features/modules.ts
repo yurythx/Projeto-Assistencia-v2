@@ -14,6 +14,7 @@ export const MODULE = {
   search: "search",
   signum: "signum",
   tramite: "tramite",
+  sempras: "sempras",
   example: "example",
 } as const;
 

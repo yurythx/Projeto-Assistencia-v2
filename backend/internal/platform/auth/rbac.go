@@ -54,6 +54,12 @@ const (
 	PermAtlasManage     Permission = "atlas:manage"
 	// PermIAManage: conexões de inteligência artificial (Configurações).
 	PermIAManage Permission = "ia:manage"
+
+	// SEMPRAS (ADR 030) — todas valem com escopo (unidade ou entidade).
+	PermSemprasRecepcao    Permission = "sempras:recepcao"
+	PermSemprasAtendimento Permission = "sempras:atendimento"
+	PermSemprasPsicologia  Permission = "sempras:psicologia"
+	PermSemprasGestao      Permission = "sempras:gestao"
 )
 
 // HasPermission reporta se identity possui permission, considerando os

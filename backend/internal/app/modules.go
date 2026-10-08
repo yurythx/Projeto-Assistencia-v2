@@ -21,6 +21,7 @@ import (
 	"github.com/yurythx/projeto-assistencia-v2/internal/modules/iam"
 	iamTransport "github.com/yurythx/projeto-assistencia-v2/internal/modules/iam/transport"
 	"github.com/yurythx/projeto-assistencia-v2/internal/modules/mercurio"
+	"github.com/yurythx/projeto-assistencia-v2/internal/modules/sempras"
 	"github.com/yurythx/projeto-assistencia-v2/internal/modules/signum"
 	signumApp "github.com/yurythx/projeto-assistencia-v2/internal/modules/signum/application"
 	"github.com/yurythx/projeto-assistencia-v2/internal/modules/tramite"
@@ -71,6 +72,7 @@ func registerPlugins(d *Dependencies) {
 		signumModule,
 		tramite.New(deps, &signaturePort{svc: signumModule.Service(), enabled: func() bool { return d.Kernel.Enabled(signum.Key) }}),
 		atlas.New(deps),
+		sempras.New(deps),
 		example.New(deps),
 	)
 	d.LGPD.SetPersonalDataSource(d.personalData)

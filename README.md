@@ -2,6 +2,10 @@
 
 O **Projeto-Assistencia-v2** é uma plataforma corporativa modular construída segundo o padrão de **Arquitetura Microkernel (Plug-in Architecture)** em Go (Backend) e Next.js App Router (Frontend), desenvolvida para servir como **base enterprise genérica em estrita conformidade com as normas do Governo Federal Brasileiro** (SGD/MGI, e-MAG 2.0, DSGov, LGPD, Gov.br e OWASP) para o rápido desenvolvimento e desacoplamento de novos módulos de negócio municipais e estaduais.
 
+O primeiro módulo de negócio é o **SEMPRAS**: atendimento socioassistencial das 16 unidades da Secretaria Municipal de Promoção e Assistência Social de Rondonópolis. Decisões no [ADR 030](docs/adr/030-sempras-atendimento-socioassistencial.md), plano em [docs/ROADMAP_SEMPRAS.md](docs/ROADMAP_SEMPRAS.md).
+
+> **Nomenclatura:** o produto se chama **Projeto-Assistencia-v2**. Ele é construído sobre a plataforma **Nexus**, e por isso os identificadores técnicos internos mantêm o prefixo `nexus`: o papel `nexus-admin`, as funções SQL `nexus_*`, as filas `nexus.*` e os cookies. O nome exibido nas telas vem do Branding (white-label).
+
 Ele fornece um **Core System (Kernel)** robusto com infraestrutura pronta de segurança HTTP, mensageria, outbox transacional, autenticação via **Keycloak dedicado com federação do Active Directory** (e fallback local RS256), mascaramento PII, auditoria imutável com cadeia de hash, busca full-text em PostgreSQL e um Design System governamental oficial (DSGov / e-MAG).
 
 ---
@@ -89,6 +93,7 @@ O Projeto-Assistencia-v2 foi construído sobre os 5 eixos de conformidade da Sec
 | Signum | Plug-in | `/signum` | `/verificar/{id}` |
 | Trâmite | Plug-in | `/tramite` | — |
 | Atlas | Plug-in | `/atlas` (procedimentos SEI, TTDD oficial com vigência e histórico, assistente sobre fluxos (do início ao fim) e TTDD com `atlas:read`, biblioteca de modelos de documento com versões, gestão — procedimentos, versões, modelos e atualização da TTDD — com `atlas:manage`) | API pública `GET /api/v1/atlas/ttdd` (e `/estrutura`, `/exportar`, `/{codigo}/historico`), `/workflows` e `/modelos` (com `/{id}/arquivo`) |
+| SEMPRAS | Plug-in | `/sempras` (recepção: busca por CPF/NIS/nome e cadastro do munícipe; fila do dia por unidade em tempo real; chamada e atendimento técnico/psicológico; painel da gestão) e `/sempras/cidadaos/{id}` (ficha com leitura auditada e sigilo psicológico) — [ADR 030](docs/adr/030-sempras-atendimento-socioassistencial.md), [roadmap](docs/ROADMAP_SEMPRAS.md) | — |
 
 Os plug-ins são ativados e desativados em runtime em **Configurações → Módulos**: o menu, as páginas públicas e o sitemap acompanham o estado do Kernel. A tela mostra o grafo de dependências (hoje, **Trâmite depende de Signum**): desligar um módulo pede para desligar antes quem depende dele, e ligar pede para ligar antes as dependências.
 
