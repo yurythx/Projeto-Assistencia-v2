@@ -31,8 +31,8 @@ de plataforma que já exista (DRY):
 | **4. Munícipe** | Busca por CPF/NIS/nome com histórico só da área, cadastro simples com CPF validado, edição auditada | Feito |
 | **5. Fila e tempo real** | Inclusão (recepção/técnico), senha do dia, prioridade legal, chamar o próximo sem corrida, estados auditados, tópico `sempras:fila:<unidade>` | Feito |
 | **6. Atendimento e prontuário** | Ficha com leitura auditada, evolução só de inclusão, sigilo psicológico | Feito |
-| **7. Titular e qualidade** | Pedido do munícipe (acesso/correção/anonimização), e2e Playwright da jornada, revisão e-MAG das telas, RIPD do módulo | Próxima |
-| **8. Evolução** | Painel de chamada (TV), encaminhamento entre unidades (CRAS → CREAS), relatório RMA/MDS, integração com o CadÚnico, agendamento | Backlog |
+| **7. Titular e qualidade** | Pedido do munícipe (acesso/correção/anonimização, ADR 030 §8), e2e Playwright da jornada completa, revisão e-MAG (reaproveita componentes já auditados) e [RIPD do módulo](RIPD_SEMPRAS.md) | Feito |
+| **8. Evolução** | Rede de apoio, benefícios eventuais (LOAS art. 22), encaminhamento entre unidades (CRAS → CREAS), vínculo PAIF (CRAS), atendimento do Conselho Tutelar com medida protetiva (Art. 101 do ECA), CREAS (PAEFI, MSE em meio aberto e notificações de entes externos), Casa Abrigo completa (acolhimento institucional, irmãos, diagnósticos, desligamento restrito à equipe técnica, visitantes, termos de advertência/passeio/saída, PIA e documentos PDF do acolhido/responsável sobre o MinIO existente — RN-15), o relatório RMA/MDS (indicadores reais por unidade e competência, em `/sempras/rma`) e o painel de chamada para TV da sala de espera (`/sempras/painel-chamada`, reaproveita a fila em tempo real) — feitos. Integração com o CadÚnico (exige credenciais/especificação oficial da API federal — não é possível implementar sem isso) e agendamento (fora de escopo: o legado tem um sistema genérico por departamento/serviço, não específico de assistência social — decisão sobre um módulo de agendamento da plataforma fica para outra conversa) seguem fora do backlog deste módulo | Feito (ressalvas documentadas) |
 
 ## Matriz de acesso
 

@@ -1,6 +1,6 @@
 # 030 — SEMPRAS: atendimento socioassistencial por unidade
 
-- **Status:** Aceito e implementado (fases 0–6; a 7 — titular e e2e — está no [ROADMAP_SEMPRAS.md](../ROADMAP_SEMPRAS.md))
+- **Status:** Aceito e implementado (fases 0–7: o pedido do titular está no §8; e2e/e-MAG/RIPD seguem no [ROADMAP_SEMPRAS.md](../ROADMAP_SEMPRAS.md))
 - **Data:** 2026-10-08
 - **Relacionado:** [ADR 008](008-kernel-grafo-de-modulos-e-estrategia-de-testes.md) (Kernel e testes), [ADR 012](012-estrutura-desativada-nao-concede.md) (estrutura desativada), [ADR 013](013-permissao-com-escopo-e-heranca.md) (escopo e herança), [ADR 016](016-camada-de-aplicacao-e-transacoes.md) (transações), [ADR 027](027-notificacoes.md) (tempo real depois do commit)
 
@@ -154,9 +154,27 @@ como leitura, para não afogar a trilha.
 
 O `lgpd.PersonalData` da plataforma é indexado por **conta de usuário**, e
 o munícipe não tem conta. O SEMPRAS **não** o implementa. O pedido do
-munícipe (acesso, correção, portabilidade) é atendido pela gestão em fluxo
-próprio (fase 7 do roadmap). A eliminação dá lugar à **anonimização** quando
-há obrigação legal de guarda.
+munícipe (acesso, correção, anonimização) é registrado por quem o atende
+presencialmente, numa tabela própria (`sempras_pedidos_titular`, migração
+000144) — não pelo fluxo de `/api/v1/lgpd/*`.
+
+- **Acesso** e **correção** se resolvem na hora: quem atende exporta o
+  prontuário (mesma área e sigilo psicológico de `Prontuario`) ou edita o
+  cadastro (`PUT /sempras/cidadaos/{id}` — os 4 perfis podem editar, não
+  só a recepção) com o titular presente. O pedido nasce já `concluido`.
+- **Anonimização** nasce `pendente` e só o Superintendente decide — com
+  **cobertura total** (`sempras:gestao` sem recorte de unidade), nunca
+  parcial: o cadastro do titular é intersecretaria, a decisão também
+  precisa ser. Aprovar zera nome, nome social, CPF, NIS, nome da mãe,
+  telefone e endereço (nunca `DELETE`); `data_nascimento` fica, porque a
+  CHECK de identificação da tabela (`cpf IS NOT NULL OR nis IS NOT NULL
+  OR (data_nascimento IS NOT NULL AND nome_mae <> '')`) não permite zerar
+  os três ao mesmo tempo sem quebrar a integridade do próprio cadastro.
+  `sempras_atendimentos`/`sempras_registros` não mudam: são o registro do
+  atendimento prestado, não "dado do titular" neste sentido — mesma
+  distinção que a plataforma já faz entre a conta do usuário e
+  `audit_logs`/tramitações. A decisão é definitiva (trigger de
+  imutabilidade): nem a gestão desfaz uma anonimização aprovada.
 
 ## Consequências
 
@@ -169,5 +187,5 @@ há obrigação legal de guarda.
 - **Dependência externa:** os 49 grupos do AD. Sem eles, as lotações são
   manuais.
 - **Fora do escopo agora:** painel de chamada (TV), encaminhamento entre
-  unidades (CRAS → CREAS), RMA/MDS, integração com o CadÚnico e direitos
-  do titular do munícipe. Todos estão no roadmap.
+  unidades (CRAS → CREAS), RMA/MDS e integração com o CadÚnico. Todos
+  estão no roadmap.
