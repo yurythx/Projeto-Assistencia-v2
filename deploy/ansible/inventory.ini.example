@@ -1,0 +1,11 @@
+# Copie para inventory.ini (ignorado pelo git) e ajuste se mudar os valores
+# do terraform.tfvars.
+[app]
+192.168.1.20
+
+[app:vars]
+ansible_user=deploy
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+app_public_host=192.168.1.20
+app_repo_url=https://github.com/yurythx/projeto-assistencia-v2.git
+app_repo_dest=/opt/projeto-assistencia-v2

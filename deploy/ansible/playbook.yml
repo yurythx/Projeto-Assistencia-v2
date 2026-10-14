@@ -1,0 +1,109 @@
+---
+# Prepara a VM (criada pelo Terraform em deploy/terraform) e sobe a stack
+# chamando os próprios scripts do projeto (scripts/deploy.sh,
+# make prod-seed-admin) — ver docs/DEPLOY.md para o que eles fazem e para
+# os passos manuais que ainda faltam depois (HTTPS, backup agendado etc.).
+#
+#   ansible-playbook playbook.yml
+#   ansible-playbook playbook.yml --tags seed-admin   # só recria o admin local
+- name: Preparar o servidor e subir o Projeto-Assistencia-v2
+  hosts: app
+  become: true
+
+  tasks:
+    - name: Esperar a VM aceitar conexão SSH (cloud-init pode demorar no 1º boot)
+      ansible.builtin.wait_for_connection:
+        timeout: 180
+
+    - name: Atualizar cache de pacotes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Instalar dependências do sistema
+      ansible.builtin.apt:
+        name:
+          - git
+          - make
+          - openssl
+          - jq
+          - python3
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Verificar se o Docker já está instalado
+      ansible.builtin.command: docker --version
+      register: docker_check
+      failed_when: false
+      changed_when: false
+
+    - name: Baixar a chave GPG oficial do Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+      when: docker_check.rc != 0
+
+    - name: Adicionar o repositório apt do Docker
+      vars:
+        docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ docker_arch }}
+          signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        filename: docker
+        state: present
+      when: docker_check.rc != 0
+
+    - name: Instalar Docker Engine e o plugin do Compose
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      when: docker_check.rc != 0
+
+    - name: Garantir que o Docker está ligado e habilitado
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Clonar ou atualizar o repositório
+      ansible.builtin.git:
+        repo: "{{ app_repo_url }}"
+        dest: "{{ app_repo_dest }}"
+        version: main
+        force: false
+      register: repo_state
+
+    - name: Rodar scripts/deploy.sh (gera .env na 1ª vez, builda e sobe a stack)
+      ansible.builtin.command: ./scripts/deploy.sh --no-pull {{ app_public_host }}
+      args:
+        chdir: "{{ app_repo_dest }}"
+      register: deploy_result
+      changed_when: true
+
+    - name: Mostrar a saída do deploy.sh
+      ansible.builtin.debug:
+        msg: "{{ deploy_result.stdout_lines }}"
+
+    - name: Criar/resetar o admin local (senha aparece no stdout, uma vez)
+      ansible.builtin.command: make prod-seed-admin
+      args:
+        chdir: "{{ app_repo_dest }}"
+      register: seed_admin_result
+      changed_when: true
+      tags: [seed-admin]
+
+    - name: Mostrar a saída do prod-seed-admin
+      ansible.builtin.debug:
+        msg: "{{ seed_admin_result.stdout_lines }}"
+      tags: [seed-admin]
