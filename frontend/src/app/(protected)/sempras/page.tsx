@@ -5,8 +5,8 @@ import { useSWRConfig } from "swr";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
+import { EncaminhamentosRecebidos } from "@/components/sempras/EncaminhamentosRecebidos";
 import { Fila } from "@/components/sempras/Fila";
-import { Painel } from "@/components/sempras/Painel";
 import { Recepcao } from "@/components/sempras/Recepcao";
 import { Select } from "@/components/ui/Select";
 import { useApiQuery } from "@/lib/api/swr";
@@ -15,9 +15,8 @@ import { P, type Unidade } from "@/lib/sempras/types";
 
 /**
  * SEMPRAS (ADR 030): a jornada do munícipe na unidade — recepção (busca,
- * cadastro e inclusão na fila), fila do dia em tempo real e, para a
- * gestão, o painel das unidades. Cada pessoa só vê as unidades onde foi
- * lotada (ou todas, na concessão da secretaria).
+ * cadastro e inclusão na fila) e fila do dia em tempo real. O painel das
+ * unidades, para a gestão, tem rota própria (/sempras/painel).
  */
 export default function SemprasPage() {
   const { can } = useNexus();
@@ -43,14 +42,19 @@ export default function SemprasPage() {
             options={lista.map((u) => ({ value: u.id, label: u.nome }))} />
         </div>
         {unidadeId && (
-          <div className="mt-6 grid gap-6 xl:grid-cols-2">
-            {can(P.recepcao) && <Recepcao unidadeId={unidadeId} onIncluido={() => void mutate(`v1/sempras/unidades/${unidadeId}/fila`)} />}
-            <Fila unidadeId={unidadeId} />
-          </div>
+          <>
+            <div className="mt-6 grid gap-6 xl:grid-cols-2">
+              {can(P.recepcao) && <Recepcao unidadeId={unidadeId} onIncluido={() => void mutate(`v1/sempras/unidades/${unidadeId}/fila`)} />}
+              <Fila unidadeId={unidadeId} />
+            </div>
+            {can(P.atendimento) && (
+              <div className="mt-6">
+                <EncaminhamentosRecebidos unidadeId={unidadeId} />
+              </div>
+            )}
+          </>
         )}
       </DataState>
-
-      {can(P.gestao) && <Painel />}
     </div>
   );
 }

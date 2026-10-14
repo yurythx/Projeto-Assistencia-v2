@@ -2,21 +2,59 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Lock, NotebookPen } from "lucide-react";
+import { ArrowLeft, Download, Lock, NotebookPen, Pencil, ShieldAlert, Trash2, UserPlus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
 import { fmtDateTime, useAction } from "@/components/nexus/useAction";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { apiClient } from "@/lib/api/client";
 import { useApiQuery } from "@/lib/api/swr";
 import { useNexus } from "@/lib/nexus/NexusProvider";
-import { P, STATUS, TIPOS, rotuloPrioridade, type Prontuario, type Unidade } from "@/lib/sempras/types";
+import { AcolhimentoItem } from "@/components/sempras/AcolhimentoItem";
+import {
+  CAMPOS_CIDADAO,
+  MEDIDAS_PROTETIVAS,
+  MOTIVOS_ACOLHIMENTO,
+  MOTIVOS_ENCERRAMENTO_PAEFI,
+  MOTIVOS_VIOLACAO,
+  ORIGENS_DEMANDA,
+  ORIGENS_NOTIFICACAO_CREAS,
+  P,
+  STATUS,
+  STATUS_BENEFICIO,
+  STATUS_CONSELHO,
+  STATUS_ENCAMINHAMENTO,
+  STATUS_MSE,
+  STATUS_NOTIFICACAO_CREAS,
+  STATUS_PAEFI,
+  STATUS_PAIF,
+  TIPOS,
+  TIPOS_BENEFICIO,
+  TIPOS_MSE,
+  VIOLACOES_PAEFI,
+  rotuloPrioridade,
+  type Cidadao,
+  type MedidaProtetiva,
+  type MotivoAcolhimento,
+  type MotivoEncerramentoPaefi,
+  type MotivoViolacaoConselho,
+  type OrigemDemandaConselho,
+  type OrigemNotificacaoCreas,
+  type Prontuario,
+  type SexoAcolhido,
+  type TipoBeneficio,
+  type TipoMse,
+  type Unidade,
+  type ViolacaoPaefi,
+} from "@/lib/sempras/types";
 
 /**
  * Ficha do munícipe (prontuário): cadastro, atendimentos e evoluções da
@@ -49,6 +87,413 @@ export default function FichaPage() {
     }
   }
 
+  // Direitos do titular (ADR 030 §8): acesso e correção se resolvem na
+  // hora, com o titular presente; anonimização fica pendente até a gestão decidir.
+  const [editando, setEditando] = useState(false);
+  const [pedidoCorrecao, setPedidoCorrecao] = useState(false);
+  const [justificativaCorrecao, setJustificativaCorrecao] = useState("");
+  const { run: runEditar, pending: pendingEditar } = useAction();
+
+  const [exportando, setExportando] = useState(false);
+  const [justificativaAcesso, setJustificativaAcesso] = useState("");
+
+  const [anonimizando, setAnonimizando] = useState(false);
+  const [justificativaAnonimizacao, setJustificativaAnonimizacao] = useState("");
+  const { run: runAnonimizar, pending: pendingAnonimizar } = useAction();
+
+  async function salvarEdicao(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const body = Object.fromEntries(CAMPOS_CIDADAO.map((campo) => [campo.name, String(fd.get(campo.name) ?? "").trim()]));
+    const ok = await runEditar(() => apiClient.put<Cidadao>(`v1/sempras/cidadaos/${id}`, body), "Cadastro atualizado");
+    if (!ok) return;
+    if (pedidoCorrecao) {
+      await runEditar(
+        () => apiClient.post(`v1/sempras/cidadaos/${id}/pedidos`, { tipo: "correcao", justificativa: justificativaCorrecao.trim() }),
+      );
+    }
+    setEditando(false);
+    setPedidoCorrecao(false);
+    setJustificativaCorrecao("");
+    void ficha.mutate();
+  }
+
+  async function solicitarAnonimizacao(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runAnonimizar(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/pedidos`, { tipo: "anonimizacao", justificativa: justificativaAnonimizacao.trim() }),
+      "Pedido registrado — aguardando decisão da gestão",
+    );
+    if (ok) {
+      setAnonimizando(false);
+      setJustificativaAnonimizacao("");
+    }
+  }
+
+  // Rede de apoio: família, vizinhos ou referências do munícipe.
+  const { run: runRedeApoio, pending: pendingRedeApoio } = useAction();
+  const { run: runRemoverContato } = useAction();
+
+  async function adicionarContato(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget; // capturado antes do await — o SyntheticEvent é reciclado depois
+    const fd = new FormData(form);
+    const body = {
+      nome: String(fd.get("nome") ?? "").trim(),
+      parentesco: String(fd.get("parentesco") ?? "").trim(),
+      telefone: String(fd.get("telefone") ?? "").trim(),
+    };
+    const ok = await runRedeApoio(() => apiClient.post(`v1/sempras/cidadaos/${id}/rede-apoio`, body), "Contato adicionado");
+    if (ok) {
+      form.reset();
+      void ficha.mutate();
+    }
+  }
+
+  async function removerContato(contatoId: string) {
+    const ok = await runRemoverContato(() => apiClient.delete(`v1/sempras/rede-apoio/${contatoId}`), "Contato removido");
+    if (ok) void ficha.mutate();
+  }
+
+  // Benefícios eventuais (LOAS art. 22): solicitado → concedido/negado;
+  // concedido → suspenso. Negar e suspender exigem motivo; conceder não.
+  const [tipoBeneficio, setTipoBeneficio] = useState<TipoBeneficio>("cesta_basica");
+  const [quantidadeBeneficio, setQuantidadeBeneficio] = useState("1");
+  const [observacaoBeneficio, setObservacaoBeneficio] = useState("");
+  const { run: runBeneficio, pending: pendingBeneficio } = useAction();
+  const { run: runDecidirBeneficio, pending: pendingDecisaoBeneficio } = useAction();
+  const [decisaoBeneficio, setDecisaoBeneficio] = useState<{ id: string; acao: "negar" | "suspender" } | null>(null);
+  const [motivoBeneficio, setMotivoBeneficio] = useState("");
+
+  async function solicitarBeneficio(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runBeneficio(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/beneficios`, {
+        unidade_id: unidadeId, tipo: tipoBeneficio, quantidade: Number(quantidadeBeneficio) || 1, observacao: observacaoBeneficio.trim(),
+      }),
+      "Benefício solicitado",
+    );
+    if (ok) {
+      setObservacaoBeneficio("");
+      setQuantidadeBeneficio("1");
+      void ficha.mutate();
+    }
+  }
+
+  async function conceder(beneficioId: string) {
+    const ok = await runDecidirBeneficio(
+      () => apiClient.post(`v1/sempras/beneficios/${beneficioId}/decidir`, { acao: "conceder", motivo: "" }),
+      "Benefício concedido",
+    );
+    if (ok) void ficha.mutate();
+  }
+
+  async function confirmarDecisaoBeneficio(e: FormEvent) {
+    e.preventDefault();
+    if (!decisaoBeneficio) return;
+    const ok = await runDecidirBeneficio(
+      () => apiClient.post(`v1/sempras/beneficios/${decisaoBeneficio.id}/decidir`, { acao: decisaoBeneficio.acao, motivo: motivoBeneficio.trim() }),
+      decisaoBeneficio.acao === "negar" ? "Benefício negado" : "Benefício suspenso",
+    );
+    if (ok) {
+      setDecisaoBeneficio(null);
+      setMotivoBeneficio("");
+      void ficha.mutate();
+    }
+  }
+
+  // Encaminhamentos entre unidades (ex.: CRAS → CREAS): quem recebe decide.
+  const [unidadeDestino, setUnidadeDestino] = useState("");
+  const [motivoEncaminhamento, setMotivoEncaminhamento] = useState("");
+  const { run: runEncaminhar, pending: pendingEncaminhar } = useAction();
+  const outrasUnidades = (unidades.data ?? []).filter((u) => u.id !== unidadeId);
+
+  async function encaminhar(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runEncaminhar(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/encaminhamentos`, {
+        unidade_origem_id: unidadeId, unidade_destino_id: unidadeDestino, motivo: motivoEncaminhamento.trim(),
+      }),
+      "Encaminhamento registrado",
+    );
+    if (ok) {
+      setMotivoEncaminhamento("");
+      void ficha.mutate();
+    }
+  }
+
+  // PAIF (CRAS): vínculo da família ao serviço, com status real (não
+  // inferido pela ausência de data de exclusão).
+  const [extremaPobreza, setExtremaPobreza] = useState(false);
+  const [bolsaFamilia, setBolsaFamilia] = useState(false);
+  const [bpc, setBpc] = useState(false);
+  const [scfv, setScfv] = useState("0");
+  const { run: runPaif, pending: pendingPaif } = useAction();
+  const { run: runExcluirPaif, pending: pendingExcluirPaif } = useAction();
+  const [excluindoPaif, setExcluindoPaif] = useState<string | null>(null);
+  const [motivoExclusaoPaif, setMotivoExclusaoPaif] = useState("");
+
+  async function incluirPaif(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runPaif(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/paif`, {
+        unidade_id: unidadeId, extrema_pobreza: extremaPobreza, bolsa_familia: bolsaFamilia, bpc, scfv_participantes: Number(scfv) || 0,
+      }),
+      "Família incluída no PAIF",
+    );
+    if (ok) {
+      setExtremaPobreza(false);
+      setBolsaFamilia(false);
+      setBpc(false);
+      setScfv("0");
+      void ficha.mutate();
+    }
+  }
+
+  async function confirmarExclusaoPaif(e: FormEvent) {
+    e.preventDefault();
+    if (!excluindoPaif) return;
+    const ok = await runExcluirPaif(
+      () => apiClient.post(`v1/sempras/paif/${excluindoPaif}/excluir`, { motivo: motivoExclusaoPaif.trim() }),
+      "Vínculo PAIF excluído",
+    );
+    if (ok) {
+      setExcluindoPaif(null);
+      setMotivoExclusaoPaif("");
+      void ficha.mutate();
+    }
+  }
+
+  // Conselho Tutelar (Art. 101 do ECA): medida/encaminhamento ao MP/arquivamento.
+  const [respNome, setRespNome] = useState("");
+  const [respCPF, setRespCPF] = useState("");
+  const [respTelefone, setRespTelefone] = useState("");
+  const [origemDemanda, setOrigemDemanda] = useState<OrigemDemandaConselho>("escola");
+  const [motivoViolacao, setMotivoViolacao] = useState<MotivoViolacaoConselho>("negligencia_abandono");
+  const [observacoesConselho, setObservacoesConselho] = useState("");
+  const { run: runConselho, pending: pendingConselho } = useAction();
+  const { run: runTransitarConselho, pending: pendingTransitarConselho } = useAction();
+  const [aplicandoMedida, setAplicandoMedida] = useState<string | null>(null);
+  const [medidaEscolhida, setMedidaEscolhida] = useState<Exclude<MedidaProtetiva, "">>("termo_responsabilidade");
+
+  async function registrarConselho(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runConselho(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/conselho-tutelar`, {
+        unidade_id: unidadeId, responsavel_nome: respNome.trim(), responsavel_cpf: respCPF.trim(),
+        responsavel_telefone: respTelefone.trim(), origem_demanda: origemDemanda, motivo_violacao: motivoViolacao,
+        observacoes: observacoesConselho.trim(),
+      }),
+      "Atendimento do Conselho Tutelar registrado",
+    );
+    if (ok) {
+      setRespNome("");
+      setRespCPF("");
+      setRespTelefone("");
+      setObservacoesConselho("");
+      void ficha.mutate();
+    }
+  }
+
+  async function transitarConselho(atendimentoId: string, acao: "encaminhar_mp" | "arquivar") {
+    const ok = await runTransitarConselho(
+      () => apiClient.post(`v1/sempras/conselho-tutelar/${atendimentoId}/transitar`, { acao }),
+      acao === "encaminhar_mp" ? "Encaminhado ao Ministério Público" : "Atendimento arquivado",
+    );
+    if (ok) void ficha.mutate();
+  }
+
+  async function confirmarMedida(e: FormEvent) {
+    e.preventDefault();
+    if (!aplicandoMedida) return;
+    const ok = await runTransitarConselho(
+      () => apiClient.post(`v1/sempras/conselho-tutelar/${aplicandoMedida}/transitar`, { acao: "aplicar_medida", medida: medidaEscolhida }),
+      "Medida protetiva aplicada",
+    );
+    if (ok) {
+      setAplicandoMedida(null);
+      void ficha.mutate();
+    }
+  }
+
+  // PAEFI (CREAS): acompanhamento de violação de direitos (Resolução CNAS
+  // nº 109/2009).
+  const [violacoesPaefi, setViolacoesPaefi] = useState<ViolacaoPaefi[]>([]);
+  const [membrosVulneraveis, setMembrosVulneraveis] = useState("");
+  const [observacoesPaefi, setObservacoesPaefi] = useState("");
+  const { run: runPaefi, pending: pendingPaefi } = useAction();
+  const { run: runPiaElaborado, pending: pendingPiaElaborado } = useAction();
+  const { run: runEncerrarPaefi, pending: pendingEncerrarPaefi } = useAction();
+  const [encerrandoPaefi, setEncerrandoPaefi] = useState<string | null>(null);
+  const [motivoEncerramentoPaefi, setMotivoEncerramentoPaefi] = useState<Exclude<MotivoEncerramentoPaefi, "">>("objetivos_alcancados");
+
+  function toggleViolacaoPaefi(v: ViolacaoPaefi) {
+    setViolacoesPaefi((atual) => (atual.includes(v) ? atual.filter((x) => x !== v) : [...atual, v]));
+  }
+
+  async function registrarPaefi(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runPaefi(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/paefi`, {
+        unidade_id: unidadeId, violacoes: violacoesPaefi, membros_vulneraveis: membrosVulneraveis.trim(), observacoes: observacoesPaefi.trim(),
+      }),
+      "Caso do PAEFI aberto",
+    );
+    if (ok) {
+      setViolacoesPaefi([]);
+      setMembrosVulneraveis("");
+      setObservacoesPaefi("");
+      void ficha.mutate();
+    }
+  }
+
+  async function marcarPiaElaborado(casoId: string) {
+    const ok = await runPiaElaborado(() => apiClient.post(`v1/sempras/paefi/${casoId}/pia`, {}), "PIA elaborado registrado");
+    if (ok) void ficha.mutate();
+  }
+
+  async function confirmarEncerramentoPaefi(e: FormEvent) {
+    e.preventDefault();
+    if (!encerrandoPaefi) return;
+    const ok = await runEncerrarPaefi(
+      () => apiClient.post(`v1/sempras/paefi/${encerrandoPaefi}/encerrar`, { motivo: motivoEncerramentoPaefi }),
+      "Caso do PAEFI encerrado",
+    );
+    if (ok) {
+      setEncerrandoPaefi(null);
+      void ficha.mutate();
+    }
+  }
+
+  // MSE: medida socioeducativa em meio aberto (ECA art. 112, III e VI).
+  const [numeroProcesso, setNumeroProcesso] = useState("");
+  const [varaOrigem, setVaraOrigem] = useState("");
+  const [atoInfracional, setAtoInfracional] = useState("");
+  const [tipoMedida, setTipoMedida] = useState<TipoMse>("liberdade_assistida");
+  const [instituicaoParceira, setInstituicaoParceira] = useState("");
+  const { run: runMse, pending: pendingMse } = useAction();
+  const { run: runConcluirMse, pending: pendingConcluirMse } = useAction();
+  const [concluindoMse, setConcluindoMse] = useState<string | null>(null);
+  const [resultadoMse, setResultadoMse] = useState<"cumprida" | "descumprida" | "extinta">("cumprida");
+
+  async function registrarMse(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runMse(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/mse`, {
+        unidade_id: unidadeId, numero_processo: numeroProcesso.trim(), vara_origem: varaOrigem.trim(),
+        ato_infracional: atoInfracional.trim(), tipo_medida: tipoMedida, instituicao_parceira: instituicaoParceira.trim(),
+      }),
+      "Medida socioeducativa registrada",
+    );
+    if (ok) {
+      setNumeroProcesso("");
+      setVaraOrigem("");
+      setAtoInfracional("");
+      setInstituicaoParceira("");
+      void ficha.mutate();
+    }
+  }
+
+  async function confirmarConclusaoMse(e: FormEvent) {
+    e.preventDefault();
+    if (!concluindoMse) return;
+    const ok = await runConcluirMse(
+      () => apiClient.post(`v1/sempras/mse/${concluindoMse}/concluir`, { resultado: resultadoMse }),
+      "Medida socioeducativa concluída",
+    );
+    if (ok) {
+      setConcluindoMse(null);
+      void ficha.mutate();
+    }
+  }
+
+  // Notificações do CREAS: ofícios/requisições de um ente externo (MP,
+  // Judiciário, Conselho Tutelar, Disque 100/180, Delegacia).
+  const [origemNotificacao, setOrigemNotificacao] = useState<OrigemNotificacaoCreas>("ministerio_publico");
+  const [assuntoNotificacao, setAssuntoNotificacao] = useState("");
+  const { run: runNotificacao, pending: pendingNotificacao } = useAction();
+  const { run: runTransitarNotificacao, pending: pendingTransitarNotificacao } = useAction();
+  const [respondendoNotificacao, setRespondendoNotificacao] = useState<string | null>(null);
+  const [respostaNotificacao, setRespostaNotificacao] = useState("");
+
+  async function registrarNotificacao(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runNotificacao(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/creas-notificacoes`, {
+        unidade_id: unidadeId, origem_entidade: origemNotificacao, assunto: assuntoNotificacao.trim(),
+      }),
+      "Notificação do CREAS registrada",
+    );
+    if (ok) {
+      setAssuntoNotificacao("");
+      void ficha.mutate();
+    }
+  }
+
+  async function iniciarDiligencia(notifId: string) {
+    const ok = await runTransitarNotificacao(
+      () => apiClient.post(`v1/sempras/creas-notificacoes/${notifId}/transitar`, { acao: "iniciar_diligencia" }),
+      "Diligência iniciada",
+    );
+    if (ok) void ficha.mutate();
+  }
+
+  async function arquivarNotificacao(notifId: string) {
+    const ok = await runTransitarNotificacao(
+      () => apiClient.post(`v1/sempras/creas-notificacoes/${notifId}/transitar`, { acao: "arquivar" }),
+      "Notificação arquivada",
+    );
+    if (ok) void ficha.mutate();
+  }
+
+  async function confirmarRespostaNotificacao(e: FormEvent) {
+    e.preventDefault();
+    if (!respondendoNotificacao) return;
+    const ok = await runTransitarNotificacao(
+      () => apiClient.post(`v1/sempras/creas-notificacoes/${respondendoNotificacao}/transitar`, { acao: "responder", resposta: respostaNotificacao.trim() }),
+      "Notificação respondida",
+    );
+    if (ok) {
+      setRespondendoNotificacao(null);
+      setRespostaNotificacao("");
+      void ficha.mutate();
+    }
+  }
+
+  // Casa Abrigo: acolhimento institucional de criança/adolescente sob
+  // medida protetiva.
+  const [sexoAcolhido, setSexoAcolhido] = useState<SexoAcolhido>("masculino");
+  const [motivosAcolhimento, setMotivosAcolhimento] = useState<MotivoAcolhimento[]>([]);
+  const [respNomeAcolhimento, setRespNomeAcolhimento] = useState("");
+  const [respVinculoAcolhimento, setRespVinculoAcolhimento] = useState("");
+  const [processoJudicial, setProcessoJudicial] = useState("");
+  const [conselheiroNomeAcolhimento, setConselheiroNomeAcolhimento] = useState("");
+  const { run: runAcolhimento, pending: pendingAcolhimento } = useAction();
+
+  function toggleMotivoAcolhimento(m: MotivoAcolhimento) {
+    setMotivosAcolhimento((atual) => (atual.includes(m) ? atual.filter((x) => x !== m) : [...atual, m]));
+  }
+
+  async function registrarAcolhimento(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runAcolhimento(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/casa-abrigo`, {
+        unidade_id: unidadeId, sexo: sexoAcolhido, motivos: motivosAcolhimento, responsavel_nome: respNomeAcolhimento.trim(),
+        responsavel_vinculo: respVinculoAcolhimento.trim(), processo_judicial: processoJudicial.trim(),
+        conselheiro_nome: conselheiroNomeAcolhimento.trim(),
+      }),
+      "Acolhimento registrado",
+    );
+    if (ok) {
+      setMotivosAcolhimento([]);
+      setRespNomeAcolhimento("");
+      setRespVinculoAcolhimento("");
+      setProcessoJudicial("");
+      setConselheiroNomeAcolhimento("");
+      void ficha.mutate();
+    }
+  }
+
   const c = ficha.data?.cidadao;
   return (
     <div className="flex flex-col gap-6">
@@ -61,8 +506,19 @@ export default function FichaPage() {
             <PageHeader eyebrow="Ficha do munícipe" title={c.nome_social || c.nome}
               description="Acesso registrado na trilha de auditoria (LGPD). Mostra só o histórico das unidades onde você atua." />
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle as="h2">Cadastro</CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setEditando(true)}>
+                    <Pencil size={14} aria-hidden="true" className="mr-1" /> Editar
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setExportando(true)}>
+                    <Download size={14} aria-hidden="true" className="mr-1" /> Exportar dados
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setAnonimizando(true)}>
+                    <ShieldAlert size={14} aria-hidden="true" className="mr-1" /> Solicitar anonimização
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="pb-5">
                 <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
@@ -141,6 +597,617 @@ export default function FichaPage() {
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Rede de apoio</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={adicionarContato} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+                  <Input id="rede-nome" name="nome" label="Nome *" maxLength={200} required autoComplete="off" />
+                  <Input id="rede-parentesco" name="parentesco" label="Parentesco" maxLength={100} autoComplete="off" />
+                  <Input id="rede-telefone" name="telefone" label="Telefone" maxLength={30} autoComplete="off" />
+                  <Button type="submit" loading={pendingRedeApoio}>
+                    <UserPlus size={16} aria-hidden="true" className="mr-1" /> Adicionar
+                  </Button>
+                </form>
+                {ficha.data!.rede_apoio.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum contato da rede de apoio cadastrado.</p>
+                ) : (
+                  <ul aria-label="Rede de apoio" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.rede_apoio.map((contato) => (
+                      <li key={contato.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">{contato.nome}</p>
+                          <p className="text-xs text-muted">
+                            {[contato.parentesco, contato.telefone].filter(Boolean).join(" · ") || "—"}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" aria-label={`Remover ${contato.nome} da rede de apoio`} onClick={() => void removerContato(contato.id)}>
+                          <Trash2 size={14} aria-hidden="true" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Benefícios eventuais</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={solicitarBeneficio} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto] sm:items-end">
+                  <Select id="beneficio-tipo" label="Tipo de benefício" value={tipoBeneficio} onChange={(e) => setTipoBeneficio(e.target.value as TipoBeneficio)}
+                    options={Object.entries(TIPOS_BENEFICIO).map(([value, label]) => ({ value, label }))} />
+                  <Input id="beneficio-quantidade" label="Qtd." type="number" min={1} max={100} value={quantidadeBeneficio}
+                    onChange={(e) => setQuantidadeBeneficio(e.target.value)} className="w-20" />
+                  <Input id="beneficio-observacao" label="Observação" maxLength={2000} value={observacaoBeneficio}
+                    onChange={(e) => setObservacaoBeneficio(e.target.value)} autoComplete="off" />
+                  <Button type="submit" loading={pendingBeneficio} disabled={!unidadeId}>
+                    Solicitar
+                  </Button>
+                </form>
+                {ficha.data!.beneficios.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum benefício eventual nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Benefícios eventuais" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.beneficios.map((b) => (
+                      <li key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {TIPOS_BENEFICIO[b.tipo]} {b.quantidade > 1 ? `(${b.quantidade}x)` : ""}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {nomes.get(b.unidade_id) ?? ""} · {fmtDateTime(b.data_solicitacao)}
+                            {b.motivo_decisao && ` · ${b.motivo_decisao}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_BENEFICIO[b.status].tone}>{STATUS_BENEFICIO[b.status].label}</Badge>
+                          {b.status === "solicitado" && (
+                            <>
+                              <Button size="sm" loading={pendingDecisaoBeneficio} onClick={() => void conceder(b.id)}>
+                                Conceder
+                              </Button>
+                              <Button size="sm" variant="danger" onClick={() => setDecisaoBeneficio({ id: b.id, acao: "negar" })}>
+                                Negar
+                              </Button>
+                            </>
+                          )}
+                          {b.status === "concedido" && (
+                            <Button size="sm" variant="danger" onClick={() => setDecisaoBeneficio({ id: b.id, acao: "suspender" })}>
+                              Suspender
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Encaminhamentos entre unidades</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={encaminhar} className="mt-3 grid gap-3 sm:grid-cols-[1fr_2fr_auto] sm:items-end">
+                  <Select id="encaminhamento-destino" label="Encaminhar para" value={unidadeDestino} onChange={(e) => setUnidadeDestino(e.target.value)}
+                    options={[{ value: "", label: "Selecione a unidade" }, ...outrasUnidades.map((u) => ({ value: u.id, label: u.nome }))]} required />
+                  <Input id="encaminhamento-motivo" label="Motivo do encaminhamento *" maxLength={2000} value={motivoEncaminhamento}
+                    onChange={(e) => setMotivoEncaminhamento(e.target.value)} autoComplete="off" required />
+                  <Button type="submit" loading={pendingEncaminhar} disabled={!unidadeId || !unidadeDestino}>
+                    Encaminhar
+                  </Button>
+                </form>
+                {ficha.data!.encaminhamentos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum encaminhamento nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Encaminhamentos" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.encaminhamentos.map((enc) => (
+                      <li key={enc.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {nomes.get(enc.unidade_origem_id) ?? ""} → {nomes.get(enc.unidade_destino_id) ?? ""}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {enc.motivo} · {fmtDateTime(enc.created_at)}
+                            {enc.observacao_decisao && ` · ${enc.observacao_decisao}`}
+                          </p>
+                        </div>
+                        <Badge tone={STATUS_ENCAMINHAMENTO[enc.status].tone}>{STATUS_ENCAMINHAMENTO[enc.status].label}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">PAIF (CRAS)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={incluirPaif} className="mt-3 flex flex-col gap-3">
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={extremaPobreza} onChange={(e) => setExtremaPobreza(e.target.checked)} /> Extrema pobreza
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={bolsaFamilia} onChange={(e) => setBolsaFamilia(e.target.checked)} /> Bolsa Família
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={bpc} onChange={(e) => setBpc(e.target.checked)} /> BPC
+                    </label>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <Input id="paif-scfv" label="Participantes no SCFV" type="number" min={0} max={50} value={scfv}
+                      onChange={(e) => setScfv(e.target.value)} />
+                    <Button type="submit" loading={pendingPaif} disabled={!unidadeId} className="self-end">
+                      Incluir no PAIF
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.paif_vinculos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum vínculo PAIF nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Vínculos PAIF" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.paif_vinculos.map((v) => (
+                      <li key={v.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {[v.extrema_pobreza && "Extrema pobreza", v.bolsa_familia && "Bolsa Família", v.bpc && "BPC"].filter(Boolean).join(" · ") || "Sem indicadores"}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {nomes.get(v.unidade_id) ?? ""} · SCFV: {v.scfv_participantes} · desde {fmtDateTime(v.data_inclusao)}
+                            {v.motivo_exclusao && ` · ${v.motivo_exclusao}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_PAIF[v.status].tone}>{STATUS_PAIF[v.status].label}</Badge>
+                          {v.status === "ativo" && (
+                            <Button size="sm" variant="danger" onClick={() => setExcluindoPaif(v.id)}>
+                              Excluir
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Conselho Tutelar</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarConselho} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Input id="conselho-resp-nome" label="Responsável" maxLength={200} value={respNome}
+                      onChange={(e) => setRespNome(e.target.value)} autoComplete="off" />
+                    <Input id="conselho-resp-cpf" label="CPF do responsável" maxLength={20} value={respCPF}
+                      onChange={(e) => setRespCPF(e.target.value)} autoComplete="off" />
+                    <Input id="conselho-resp-telefone" label="Telefone do responsável" maxLength={30} value={respTelefone}
+                      onChange={(e) => setRespTelefone(e.target.value)} autoComplete="off" />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Select id="conselho-origem" label="Origem da demanda" value={origemDemanda}
+                      onChange={(e) => setOrigemDemanda(e.target.value as OrigemDemandaConselho)}
+                      options={Object.entries(ORIGENS_DEMANDA).map(([value, label]) => ({ value, label }))} />
+                    <Select id="conselho-motivo" label="Motivo da violação" value={motivoViolacao}
+                      onChange={(e) => setMotivoViolacao(e.target.value as MotivoViolacaoConselho)}
+                      options={Object.entries(MOTIVOS_VIOLACAO).map(([value, label]) => ({ value, label }))} />
+                  </div>
+                  <Textarea id="conselho-observacoes" label="Observações" rows={3} maxLength={4000}
+                    value={observacoesConselho} onChange={(e) => setObservacoesConselho(e.target.value)} />
+                  <div>
+                    <Button type="submit" loading={pendingConselho} disabled={!unidadeId}>
+                      Abrir atendimento
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.conselho_atendimentos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum atendimento do Conselho Tutelar nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Atendimentos do Conselho Tutelar" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.conselho_atendimentos.map((ct) => (
+                      <li key={ct.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {ct.protocolo} · {MOTIVOS_VIOLACAO[ct.motivo_violacao]}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {ORIGENS_DEMANDA[ct.origem_demanda]} · {nomes.get(ct.unidade_id) ?? ""} · {fmtDateTime(ct.created_at)}
+                            {ct.medida_protetiva && ` · ${MEDIDAS_PROTETIVAS[ct.medida_protetiva]}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_CONSELHO[ct.status].tone}>{STATUS_CONSELHO[ct.status].label}</Badge>
+                          {ct.status === "em_andamento" && (
+                            <>
+                              <Button size="sm" loading={pendingTransitarConselho} onClick={() => setAplicandoMedida(ct.id)}>
+                                Aplicar medida
+                              </Button>
+                              <Button size="sm" variant="secondary" loading={pendingTransitarConselho} onClick={() => void transitarConselho(ct.id, "encaminhar_mp")}>
+                                Encaminhar ao MP
+                              </Button>
+                            </>
+                          )}
+                          {ct.status !== "arquivado" && (
+                            <Button size="sm" variant="danger" loading={pendingTransitarConselho} onClick={() => void transitarConselho(ct.id, "arquivar")}>
+                              Arquivar
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Dialog open={aplicandoMedida !== null} onClose={() => setAplicandoMedida(null)} title="Aplicar medida protetiva"
+              description="Art. 101 do ECA.">
+              <form onSubmit={confirmarMedida} className="flex flex-col gap-4">
+                <Select id="conselho-medida" label="Medida protetiva *" value={medidaEscolhida}
+                  onChange={(e) => setMedidaEscolhida(e.target.value as Exclude<MedidaProtetiva, "">)}
+                  options={Object.entries(MEDIDAS_PROTETIVAS).map(([value, label]) => ({ value, label }))} />
+                <div>
+                  <Button type="submit" loading={pendingTransitarConselho}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">PAEFI (CREAS)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarPaefi} className="mt-3 flex flex-col gap-3">
+                  <fieldset className="flex flex-wrap gap-3 text-sm">
+                    <legend className="mb-1 text-muted">Violações (Resolução CNAS nº 109/2009)</legend>
+                    {Object.entries(VIOLACOES_PAEFI).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-2">
+                        <input type="checkbox" checked={violacoesPaefi.includes(value as ViolacaoPaefi)}
+                          onChange={() => toggleViolacaoPaefi(value as ViolacaoPaefi)} /> {label}
+                      </label>
+                    ))}
+                  </fieldset>
+                  <Input id="paefi-membros" label="Membros vulneráveis" maxLength={2000} value={membrosVulneraveis}
+                    onChange={(e) => setMembrosVulneraveis(e.target.value)} autoComplete="off" />
+                  <Textarea id="paefi-observacoes" label="Observações do caso" rows={3} maxLength={4000}
+                    value={observacoesPaefi} onChange={(e) => setObservacoesPaefi(e.target.value)} />
+                  <div>
+                    <Button type="submit" loading={pendingPaefi} disabled={!unidadeId || violacoesPaefi.length === 0}>
+                      Abrir caso
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.paefi_casos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum caso do PAEFI nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Casos do PAEFI" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.paefi_casos.map((p) => (
+                      <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {p.caso_codigo} · {p.violacoes.map((v) => VIOLACOES_PAEFI[v]).join(", ")}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {nomes.get(p.unidade_id) ?? ""} · {fmtDateTime(p.data_abertura)} · PIA {p.pia_elaborado ? "elaborado" : "pendente"}
+                            {p.motivo_encerramento && ` · ${MOTIVOS_ENCERRAMENTO_PAEFI[p.motivo_encerramento]}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_PAEFI[p.status].tone}>{STATUS_PAEFI[p.status].label}</Badge>
+                          {p.status === "em_acompanhamento" && (
+                            <>
+                              {!p.pia_elaborado && (
+                                <Button size="sm" loading={pendingPiaElaborado} onClick={() => void marcarPiaElaborado(p.id)}>
+                                  Marcar PIA elaborado
+                                </Button>
+                              )}
+                              <Button size="sm" variant="danger" onClick={() => setEncerrandoPaefi(p.id)}>
+                                Encerrar
+                              </Button>
+                            </>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Medidas socioeducativas (MSE)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarMse} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input id="mse-processo" label="Número do processo" maxLength={100} value={numeroProcesso}
+                      onChange={(e) => setNumeroProcesso(e.target.value)} autoComplete="off" />
+                    <Input id="mse-vara" label="Vara de origem" maxLength={200} value={varaOrigem}
+                      onChange={(e) => setVaraOrigem(e.target.value)} autoComplete="off" />
+                  </div>
+                  <Input id="mse-ato" label="Ato infracional *" maxLength={500} value={atoInfracional}
+                    onChange={(e) => setAtoInfracional(e.target.value)} autoComplete="off" required />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Select id="mse-tipo" label="Tipo de medida" value={tipoMedida} onChange={(e) => setTipoMedida(e.target.value as TipoMse)}
+                      options={Object.entries(TIPOS_MSE).map(([value, label]) => ({ value, label }))} />
+                    <Input id="mse-instituicao" label="Instituição parceira" maxLength={200} value={instituicaoParceira}
+                      onChange={(e) => setInstituicaoParceira(e.target.value)} autoComplete="off" />
+                  </div>
+                  <div>
+                    <Button type="submit" loading={pendingMse} disabled={!unidadeId || atoInfracional.trim().length < 3}>
+                      Abrir medida
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.mse_medidas.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhuma medida socioeducativa nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Medidas socioeducativas" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.mse_medidas.map((m) => (
+                      <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">{TIPOS_MSE[m.tipo_medida]}</p>
+                          <p className="text-xs text-muted">
+                            {m.ato_infracional} · {nomes.get(m.unidade_id) ?? ""} · desde {fmtDateTime(m.data_inicio)}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_MSE[m.status].tone}>{STATUS_MSE[m.status].label}</Badge>
+                          {m.status === "em_cumprimento" && (
+                            <Button size="sm" onClick={() => setConcluindoMse(m.id)}>
+                              Concluir
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Notificações do CREAS</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarNotificacao} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+                    <Select id="notificacao-origem" label="Origem da notificação" value={origemNotificacao}
+                      onChange={(e) => setOrigemNotificacao(e.target.value as OrigemNotificacaoCreas)}
+                      options={Object.entries(ORIGENS_NOTIFICACAO_CREAS).map(([value, label]) => ({ value, label }))} />
+                    <Input id="notificacao-assunto" label="Assunto *" maxLength={2000} value={assuntoNotificacao}
+                      onChange={(e) => setAssuntoNotificacao(e.target.value)} autoComplete="off" required />
+                  </div>
+                  <div>
+                    <Button type="submit" loading={pendingNotificacao} disabled={!unidadeId || assuntoNotificacao.trim().length < 3}>
+                      Protocolar notificação
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.notificacoes_creas.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhuma notificação do CREAS nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Notificações do CREAS" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.notificacoes_creas.map((n) => (
+                      <li key={n.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {n.protocolo} · {ORIGENS_NOTIFICACAO_CREAS[n.origem_entidade]}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {n.assunto} · {fmtDateTime(n.data_entrada)}
+                            {n.resposta && ` · ${n.resposta}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_NOTIFICACAO_CREAS[n.status].tone}>{STATUS_NOTIFICACAO_CREAS[n.status].label}</Badge>
+                          {n.status === "recebida" && (
+                            <Button size="sm" loading={pendingTransitarNotificacao} onClick={() => void iniciarDiligencia(n.id)}>
+                              Iniciar diligência
+                            </Button>
+                          )}
+                          {(n.status === "recebida" || n.status === "em_diligencia") && (
+                            <Button size="sm" variant="secondary" onClick={() => setRespondendoNotificacao(n.id)}>
+                              Responder
+                            </Button>
+                          )}
+                          {n.status !== "arquivada" && (
+                            <Button size="sm" variant="danger" loading={pendingTransitarNotificacao} onClick={() => void arquivarNotificacao(n.id)}>
+                              Arquivar
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Casa Abrigo</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarAcolhimento} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Select id="acolhimento-sexo" label="Sexo" value={sexoAcolhido} onChange={(e) => setSexoAcolhido(e.target.value as SexoAcolhido)}
+                      options={[{ value: "masculino", label: "Masculino" }, { value: "feminino", label: "Feminino" }]} />
+                    <Input id="acolhimento-resp-nome" label="Nome do responsável" maxLength={200} value={respNomeAcolhimento}
+                      onChange={(e) => setRespNomeAcolhimento(e.target.value)} autoComplete="off" />
+                    <Input id="acolhimento-resp-vinculo" label="Vínculo do responsável" maxLength={100} value={respVinculoAcolhimento}
+                      onChange={(e) => setRespVinculoAcolhimento(e.target.value)} autoComplete="off" />
+                  </div>
+                  <fieldset className="flex flex-wrap gap-3 text-sm">
+                    <legend className="mb-1 text-muted">Motivos do acolhimento</legend>
+                    {Object.entries(MOTIVOS_ACOLHIMENTO).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-2">
+                        <input type="checkbox" checked={motivosAcolhimento.includes(value as MotivoAcolhimento)}
+                          onChange={() => toggleMotivoAcolhimento(value as MotivoAcolhimento)} /> {label}
+                      </label>
+                    ))}
+                  </fieldset>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input id="acolhimento-processo" label="Processo judicial" maxLength={200} value={processoJudicial}
+                      onChange={(e) => setProcessoJudicial(e.target.value)} autoComplete="off" />
+                    <Input id="acolhimento-conselheiro" label="Nome do conselheiro" maxLength={200} value={conselheiroNomeAcolhimento}
+                      onChange={(e) => setConselheiroNomeAcolhimento(e.target.value)} autoComplete="off" />
+                  </div>
+                  <div>
+                    <Button type="submit" loading={pendingAcolhimento} disabled={!unidadeId || motivosAcolhimento.length === 0}>
+                      Abrir acolhimento
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.casa_abrigo_acolhimentos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum acolhimento nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Acolhimentos" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.casa_abrigo_acolhimentos.map((a) => (
+                      <AcolhimentoItem key={a.id} acolhimento={a} nomeUnidade={nomes.get(a.unidade_id) ?? ""} onChanged={() => void ficha.mutate()} />
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Dialog open={encerrandoPaefi !== null} onClose={() => setEncerrandoPaefi(null)} title="Encerrar caso do PAEFI">
+              <form onSubmit={confirmarEncerramentoPaefi} className="flex flex-col gap-4">
+                <Select id="paefi-motivo-encerramento" label="Motivo do encerramento" value={motivoEncerramentoPaefi}
+                  onChange={(e) => setMotivoEncerramentoPaefi(e.target.value as Exclude<MotivoEncerramentoPaefi, "">)}
+                  options={Object.entries(MOTIVOS_ENCERRAMENTO_PAEFI).map(([value, label]) => ({ value, label }))} />
+                <div>
+                  <Button type="submit" variant="danger" loading={pendingEncerrarPaefi}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={concluindoMse !== null} onClose={() => setConcluindoMse(null)} title="Concluir medida socioeducativa">
+              <form onSubmit={confirmarConclusaoMse} className="flex flex-col gap-4">
+                <Select id="mse-resultado" label="Resultado" value={resultadoMse}
+                  onChange={(e) => setResultadoMse(e.target.value as "cumprida" | "descumprida" | "extinta")}
+                  options={[{ value: "cumprida", label: "Cumprida" }, { value: "descumprida", label: "Descumprida" }, { value: "extinta", label: "Extinta" }]} />
+                <div>
+                  <Button type="submit" loading={pendingConcluirMse}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={respondendoNotificacao !== null} onClose={() => setRespondendoNotificacao(null)} title="Responder notificação">
+              <form onSubmit={confirmarRespostaNotificacao} className="flex flex-col gap-4">
+                <Textarea id="notificacao-resposta" label="Resposta *" rows={3} maxLength={4000}
+                  value={respostaNotificacao} onChange={(e) => setRespostaNotificacao(e.target.value)} required />
+                <div>
+                  <Button type="submit" loading={pendingTransitarNotificacao} disabled={respostaNotificacao.trim().length < 3}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={excluindoPaif !== null} onClose={() => setExcluindoPaif(null)} title="Excluir vínculo PAIF">
+              <form onSubmit={confirmarExclusaoPaif} className="flex flex-col gap-4">
+                <Textarea id="paif-motivo-exclusao" label="Motivo da exclusão *" rows={3} maxLength={1000}
+                  value={motivoExclusaoPaif} onChange={(e) => setMotivoExclusaoPaif(e.target.value)} required />
+                <div>
+                  <Button type="submit" variant="danger" loading={pendingExcluirPaif} disabled={motivoExclusaoPaif.trim().length < 3}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={decisaoBeneficio !== null} onClose={() => setDecisaoBeneficio(null)}
+              title={decisaoBeneficio?.acao === "negar" ? "Negar benefício" : "Suspender benefício"}>
+              <form onSubmit={confirmarDecisaoBeneficio} className="flex flex-col gap-4">
+                <Textarea id="beneficio-motivo" label="Motivo *" rows={3} maxLength={1000}
+                  value={motivoBeneficio} onChange={(e) => setMotivoBeneficio(e.target.value)} required />
+                <div>
+                  <Button type="submit" variant="danger" loading={pendingDecisaoBeneficio} disabled={motivoBeneficio.trim().length < 3}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={editando} onClose={() => setEditando(false)} title="Editar cadastro" size="lg"
+              description="Informe CPF, NIS ou, na falta deles, data de nascimento e nome da mãe.">
+              <form onSubmit={salvarEdicao} className="flex flex-col gap-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {CAMPOS_CIDADAO.map((campo) => (
+                    <Input key={campo.name} id={`edit-${campo.name}`} name={campo.name} label={campo.label} type={campo.type}
+                      maxLength={campo.max} defaultValue={c[campo.name]} required={campo.name === "nome"} autoComplete="off" />
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={pedidoCorrecao} onChange={(e) => setPedidoCorrecao(e.target.checked)} />
+                  A pedido do titular (LGPD art. 18) — registra o pedido de correção
+                </label>
+                {pedidoCorrecao && (
+                  <Textarea id="edit-justificativa" label="Justificativa *" rows={3} maxLength={1000}
+                    value={justificativaCorrecao} onChange={(e) => setJustificativaCorrecao(e.target.value)} required />
+                )}
+                <div>
+                  <Button type="submit" loading={pendingEditar} disabled={pedidoCorrecao && justificativaCorrecao.trim().length < 3}>
+                    Salvar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={exportando} onClose={() => setExportando(false)} title="Exportar dados do munícipe"
+              description="Direito de acesso (LGPD art. 18, II e V): baixa o cadastro e o histórico das suas unidades em JSON, para entregar ao titular.">
+              <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4">
+                <Textarea id="export-justificativa" label="Justificativa *" rows={3} maxLength={1000}
+                  value={justificativaAcesso} onChange={(e) => setJustificativaAcesso(e.target.value)} required />
+                <div>
+                  <a
+                    href={`/api/backend/v1/sempras/cidadaos/${id}/pedidos/acesso?justificativa=${encodeURIComponent(justificativaAcesso.trim())}`}
+                    download
+                    aria-disabled={justificativaAcesso.trim().length < 3}
+                    onClick={(e) => {
+                      if (justificativaAcesso.trim().length < 3) e.preventDefault();
+                      else setExportando(false);
+                    }}
+                    className={buttonClass("primary", "md", justificativaAcesso.trim().length < 3 ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <Download size={16} aria-hidden="true" className="mr-1" /> Baixar dados
+                  </a>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={anonimizando} onClose={() => setAnonimizando(false)} title="Solicitar anonimização"
+              description="Direito de eliminação (LGPD art. 18, VI). O cadastro também serve política pública — fica pendente até a gestão (Superintendente) aprovar ou negar.">
+              <form onSubmit={solicitarAnonimizacao} className="flex flex-col gap-4">
+                <Textarea id="anon-justificativa" label="Justificativa *" rows={3} maxLength={1000}
+                  value={justificativaAnonimizacao} onChange={(e) => setJustificativaAnonimizacao(e.target.value)} required />
+                <div>
+                  <Button type="submit" variant="danger" loading={pendingAnonimizar} disabled={justificativaAnonimizacao.trim().length < 3}>
+                    Registrar pedido
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
           </>
         )}
       </DataState>

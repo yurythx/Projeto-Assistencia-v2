@@ -36,4 +36,40 @@ describe("buildNav", () => {
     const nav = buildNav(mods, (p) => hasPermission(["contact:read"], p));
     expect(nav.modules.map((m) => m.href)).toEqual(["/gestao/contato"]);
   });
+
+  it("SEMPRAS vira a própria seção (Atendimento + Painel + Pedidos) só pra quem tem sempras:gestao", () => {
+    const mods = [mod("sempras", { route: "/sempras", name: "SEMPRAS" })];
+    const semGestao = buildNav(mods, () => false);
+    expect(semGestao.sections).toEqual([]);
+    expect(semGestao.modules.map((m) => m.href)).toEqual(["/sempras"]);
+
+    const comGestao = buildNav(mods, (p) => hasPermission(["sempras:gestao"], p));
+    expect(comGestao.modules).toEqual([]);
+    expect(comGestao.sections).toHaveLength(1);
+    expect(comGestao.sections[0]!.key).toBe("sempras");
+    expect(comGestao.sections[0]!.title).toBe("SEMPRAS");
+    expect(comGestao.sections[0]!.items.map((i) => ({ href: i.href, label: i.label }))).toEqual([
+      { href: "/sempras", label: "Atendimento" },
+      { href: "/sempras/painel", label: "Painel de gestão" },
+      { href: "/sempras/pedidos", label: "Pedidos do titular" },
+      { href: "/sempras/rma", label: "RMA/MDS" },
+    ]);
+  });
+
+  it("SEMPRAS: quem só tem sempras:atendimento vê o painel de chamada, não os itens de gestão", () => {
+    const mods = [mod("sempras", { route: "/sempras", name: "SEMPRAS" })];
+    const comAtendimento = buildNav(mods, (p) => hasPermission(["sempras:atendimento"], p));
+    expect(comAtendimento.sections).toHaveLength(1);
+    expect(comAtendimento.sections[0]!.items.map((i) => ({ href: i.href, label: i.label }))).toEqual([
+      { href: "/sempras", label: "Atendimento" },
+      { href: "/sempras/painel-chamada", label: "Painel de chamada" },
+    ]);
+  });
+
+  it("módulo desligado some da sua seção sem recarregar (sempras:gestao, mas módulo off)", () => {
+    const mods = [mod("sempras", { route: "/sempras", name: "SEMPRAS", enabled: false })];
+    const nav = buildNav(mods, (p) => hasPermission(["sempras:gestao"], p));
+    expect(nav.modules).toEqual([]);
+    expect(nav.sections).toEqual([]);
+  });
 });

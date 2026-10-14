@@ -161,6 +161,92 @@ test.describe("Fluxos críticos", () => {
     await expect(page.locator("body")).toContainText("ata da reuni");
   });
 
+  test("SEMPRAS: atendimento, direitos do titular e decisão da gestão", async ({ page }) => {
+    await asAdmin(page);
+    const sufixo = uniq("e2e").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16);
+
+    // Unidade mínima pela API, sob a entidade "sempras" — o serviço só
+    // mostra pro admin/superintendente (cobertura total) as unidades da
+    // entidade de slug EXATO "sempras" (EntidadeSlug, application/service.go),
+    // nunca uma entidade qualquer; reaproveita a existente (deploy/estrutura
+    // ou fixture de outro teste) em vez de assumir que não existe.
+    const orgTree = await page.request.get("/api/backend/v1/iam/org-tree");
+    expect(orgTree.ok(), await orgTree.text()).toBeTruthy();
+    const arvore = (await orgTree.json()).data as { id: string; slug: string }[];
+    let entidadeId = arvore.find((e) => e.slug === "sempras")?.id;
+    if (!entidadeId) {
+      const ent = await page.request.post("/api/backend/v1/iam/entidades", { data: { nome: "SEMPRAS", slug: "sempras", ativo: true } });
+      expect(ent.ok(), await ent.text()).toBeTruthy();
+      entidadeId = (await ent.json()).data.id;
+    }
+    const unidade = await page.request.post("/api/backend/v1/iam/unidades", {
+      data: { nome: `CRAS E2E ${sufixo}`, slug: `cras-e2e-${sufixo}`, entidade_id: entidadeId, ativo: true },
+    });
+    expect(unidade.ok(), await unidade.text()).toBeTruthy();
+    const unidadeNome = `CRAS E2E ${sufixo}`;
+
+    // liga o módulo SEMPRAS, se ainda não estiver
+    await page.goto("/configuracao/modulos");
+    const card = moduleCard(page, /^SEMPRAS/);
+    const toggle = card.getByRole("switch");
+    if (!(await toggle.isChecked())) await toggle.click();
+    await expect(toggle).toBeChecked();
+
+    // recepção: busca (ninguém), cadastra e inclui na fila
+    const nome = uniq("Munícipe E2E");
+    await page.goto("/sempras");
+    await page.getByLabel("Unidade").selectOption({ label: unidadeNome });
+    await page.getByLabel("CPF, NIS ou nome").fill(nome);
+    await page.getByRole("button", { name: /Buscar/ }).click();
+    await expect(page.getByText(/Ninguém encontrado/)).toBeVisible();
+    await page.getByRole("button", { name: /Cadastrar/ }).click();
+    const cadastro = page.getByRole("dialog", { name: "Cadastrar munícipe" });
+    await cadastro.getByLabel("Nome civil *").fill(nome);
+    await cadastro.getByLabel("Nome da mãe").fill("Mãe E2E");
+    await cadastro.getByLabel("Data de nascimento").fill("1990-01-01");
+    await cadastro.getByRole("button", { name: "Salvar cadastro" }).click();
+    await expect(page.getByText("Sem histórico na área")).toBeVisible();
+    await page.getByRole("button", { name: new RegExp(`Incluir ${nome} na fila`) }).click();
+    await expect(page.getByText(nome)).toBeVisible();
+
+    // ficha: exerce os 3 direitos do titular (ADR 030 §8)
+    await page.getByRole("link", { name: "Ficha" }).click();
+    await expect(page).toHaveURL(/\/sempras\/cidadaos\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { name: nome })).toBeVisible();
+
+    await page.getByRole("button", { name: "Editar" }).click();
+    const editar = page.getByRole("dialog", { name: "Editar cadastro" });
+    await editar.getByLabel("Telefone").fill("66999990000");
+    await editar.getByLabel(/A pedido do titular/).check();
+    await editar.getByLabel("Justificativa *").fill("titular pediu para corrigir o telefone, e2e");
+    await editar.getByRole("button", { name: "Salvar" }).click();
+    await expect(editar).toBeHidden();
+    await expect(page.getByText("66999990000")).toBeVisible();
+
+    await page.getByRole("button", { name: "Solicitar anonimização" }).click();
+    const anonimizar = page.getByRole("dialog", { name: "Solicitar anonimização" });
+    await anonimizar.getByLabel("Justificativa *").fill("titular pediu para ser esquecido, e2e");
+    await anonimizar.getByRole("button", { name: "Registrar pedido" }).click();
+    await expect(page.getByText("Pedido registrado — aguardando decisão da gestão")).toBeVisible();
+
+    // gestão: vê o pedido pendente e aprova
+    await page.goto("/sempras/pedidos");
+    const linha = page.getByRole("row").filter({ hasText: nome });
+    await expect(linha).toContainText("Pendente");
+    await linha.getByRole("button", { name: "Decidir" }).click();
+    const decisao = page.getByRole("dialog", { name: `Decidir anonimização — ${nome}` });
+    await expect(decisao.getByText("titular pediu para ser esquecido, e2e")).toBeVisible();
+    await decisao.getByRole("button", { name: "Aprovar anonimização" }).click();
+    await expect(page.getByText("Anonimização aprovada")).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: nome })).toHaveCount(0);
+
+    // o cadastro perdeu os identificadores; o histórico da unidade continua.
+    await page.goto("/sempras");
+    await page.getByLabel("CPF, NIS ou nome").fill("Munícipe anonimizado");
+    await page.getByRole("button", { name: /Buscar/ }).click();
+    await expect(page.getByText("Munícipe anonimizado").first()).toBeVisible();
+  });
+
   test("Auditoria: toda a movimentação acima fica na trilha e a cadeia de hash é íntegra", async ({ page }) => {
     await asAdmin(page);
     await page.goto("/auditoria");

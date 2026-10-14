@@ -5,17 +5,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useApiQuery } from "@/lib/api/swr";
 import type { PainelUnidade } from "@/lib/sempras/types";
 
-/** Números do dia de todas as unidades geridas (sempras:gestao). */
+function Numero({ valor, rotulo }: { valor: string | number; rotulo: string }) {
+  return (
+    <li className="rounded-lg border border-surface-border bg-surface p-4">
+      <span className="block text-2xl font-bold text-foreground">{valor}</span>
+      <span className="block text-sm text-muted">{rotulo}</span>
+    </li>
+  );
+}
+
+/** Números do dia de todas as unidades geridas (sempras:gestao): resumo
+ * (totais) seguido do detalhe por unidade — mesmo padrão de "Cobertura do
+ * Atlas" (atlas/cobertura). */
 export function Painel() {
   const painel = useApiQuery<PainelUnidade[]>("v1/sempras/painel", { refreshInterval: 30_000 });
   const linhas = painel.data ?? [];
+  const total = (campo: "aguardando" | "em_atendimento" | "concluidos" | "nao_compareceram") =>
+    linhas.reduce((soma, l) => soma + l[campo], 0);
+  const esperaMedia = linhas.length
+    ? Math.round(linhas.reduce((soma, l) => soma + l.espera_media_min, 0) / linhas.length)
+    : 0;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle as="h2">Painel das unidades (hoje)</CardTitle>
-      </CardHeader>
-      <CardContent className="pb-5">
-        <DataState loading={painel.isLoading} error={painel.error} onRetry={() => void painel.mutate()} empty={linhas.length === 0} emptyTitle="Nenhuma unidade">
+    <DataState loading={painel.isLoading} error={painel.error} onRetry={() => void painel.mutate()} empty={linhas.length === 0} emptyTitle="Nenhuma unidade">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" aria-label="Totais do dia">
+        <Numero valor={linhas.length} rotulo="Unidades" />
+        <Numero valor={total("aguardando")} rotulo="Na fila" />
+        <Numero valor={total("em_atendimento")} rotulo="Em atendimento" />
+        <Numero valor={total("concluidos")} rotulo="Concluídos" />
+        <Numero valor={total("nao_compareceram")} rotulo="Não compareceram" />
+      </ul>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle as="h2">Por unidade (espera média geral: {esperaMedia} min)</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-5">
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">Atendimentos do dia por unidade</caption>
@@ -43,8 +68,8 @@ export function Painel() {
               </tbody>
             </table>
           </div>
-        </DataState>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </DataState>
   );
 }

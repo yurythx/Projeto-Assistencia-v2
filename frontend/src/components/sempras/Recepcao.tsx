@@ -13,18 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { apiClient } from "@/lib/api/client";
 import { useNexus } from "@/lib/nexus/NexusProvider";
-import { P, PRIORIDADES, TIPOS, type Cidadao, type Resumo } from "@/lib/sempras/types";
-
-const CAMPOS: { name: keyof Cidadao; label: string; type?: string; max: number }[] = [
-  { name: "nome", label: "Nome civil *", max: 200 },
-  { name: "nome_social", label: "Nome social", max: 200 },
-  { name: "cpf", label: "CPF", max: 20 },
-  { name: "nis", label: "NIS", max: 20 },
-  { name: "data_nascimento", label: "Data de nascimento", type: "date", max: 10 },
-  { name: "nome_mae", label: "Nome da mãe", max: 200 },
-  { name: "telefone", label: "Telefone", max: 30 },
-  { name: "endereco", label: "Endereço", max: 300 },
-];
+import { CAMPOS_CIDADAO, P, PRIORIDADES, TIPOS, type Cidadao, type Resumo } from "@/lib/sempras/types";
 
 /** Recepção (ADR 030 §4): busca por CPF, NIS ou nome; cadastro simples
  * quando a pessoa ainda não existe; inclusão na fila da unidade. */
@@ -46,7 +35,7 @@ export function Recepcao({ unidadeId, onIncluido }: { unidadeId: string; onInclu
   async function cadastrar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(CAMPOS.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()]));
+    const body = Object.fromEntries(CAMPOS_CIDADAO.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()]));
     const out = await run(() => apiClient.post<Cidadao>("v1/sempras/cidadaos", body), "Munícipe cadastrado");
     if (out) {
       const c = out.data;
@@ -133,7 +122,7 @@ export function Recepcao({ unidadeId, onIncluido }: { unidadeId: string; onInclu
       <Dialog open={cadastro} onClose={() => setCadastro(false)} title="Cadastrar munícipe" size="lg"
         description="Informe CPF, NIS ou, na falta deles, data de nascimento e nome da mãe.">
         <form onSubmit={cadastrar} className="grid gap-3 sm:grid-cols-2">
-          {CAMPOS.map((c) => (
+          {CAMPOS_CIDADAO.map((c) => (
             <Input key={c.name} id={`cad-${c.name}`} name={c.name} label={c.label} type={c.type} maxLength={c.max}
               required={c.name === "nome"} autoComplete="off" />
           ))}
