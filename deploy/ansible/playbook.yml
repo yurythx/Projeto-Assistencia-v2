@@ -1,11 +1,13 @@
 ---
 # Prepara a VM (criada pelo Terraform em deploy/terraform) e sobe a stack
 # chamando os próprios scripts do projeto (scripts/deploy.sh,
-# make prod-seed-admin) — ver docs/DEPLOY.md para o que eles fazem e para
-# os passos manuais que ainda faltam depois (HTTPS, backup agendado etc.).
+# make prod-seed-admin, make ttdd-aplicar, make estrutura-aplicar) — ver
+# docs/DEPLOY.md para o que eles fazem e para os passos manuais que ainda
+# faltam depois (HTTPS, backup agendado etc.).
 #
 #   ansible-playbook playbook.yml
-#   ansible-playbook playbook.yml --tags seed-admin   # só recria o admin local
+#   ansible-playbook playbook.yml --tags seed-admin     # só recria o admin local
+#   ansible-playbook playbook.yml --tags dados-oficiais # só recarrega TTDD + estrutura
 - name: Preparar o servidor e subir o Projeto-Assistencia-v2
   hosts: app
   become: true
@@ -107,3 +109,29 @@
       ansible.builtin.debug:
         msg: "{{ seed_admin_result.stdout_lines }}"
       tags: [seed-admin]
+
+    - name: Carregar a TTDD oficial (9 órgãos, 1.686 séries — deploy/ttdd)
+      ansible.builtin.command: make ttdd-aplicar
+      args:
+        chdir: "{{ app_repo_dest }}"
+      register: ttdd_result
+      changed_when: true
+      tags: [ttdd, dados-oficiais]
+
+    - name: Mostrar a saída do ttdd-aplicar
+      ansible.builtin.debug:
+        msg: "{{ ttdd_result.stdout_lines }}"
+      tags: [ttdd, dados-oficiais]
+
+    - name: Carregar a estrutura organizacional real (25 entidades, 255 unidades, 55 departamentos — deploy/estrutura)
+      ansible.builtin.command: make estrutura-aplicar
+      args:
+        chdir: "{{ app_repo_dest }}"
+      register: estrutura_result
+      changed_when: true
+      tags: [estrutura, dados-oficiais]
+
+    - name: Mostrar a saída do estrutura-aplicar
+      ansible.builtin.debug:
+        msg: "{{ estrutura_result.stdout_lines }}"
+      tags: [estrutura, dados-oficiais]

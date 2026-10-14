@@ -95,9 +95,13 @@ ansible-playbook playbook.yml
 
 Isso instala Docker na VM, clona o repositório, roda
 `scripts/deploy.sh --no-pull 192.168.1.20` (gera `.env` com segredos fortes na
-1ª vez, builda as imagens, sobe tudo e espera ficar `healthy`) e
+1ª vez, builda as imagens, sobe tudo e espera ficar `healthy`),
 `make prod-seed-admin` (cria o admin local — **a senha só aparece uma vez na
-saída do Ansible**, guarde-a).
+saída do Ansible**, guarde-a), `make ttdd-aplicar` (carrega a TTDD oficial:
+9 órgãos, 1.686 séries) e `make estrutura-aplicar` (carrega a estrutura
+organizacional real: 25 entidades, 255 unidades, 55 departamentos). Sem
+essas duas últimas, o banco fica só com o exemplo pequeno semeado pela
+migração (1 órgão, 21 séries) e o organograma do Atlas aparece incompleto.
 
 Ao final:
 
