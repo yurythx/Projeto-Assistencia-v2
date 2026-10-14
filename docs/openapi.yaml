@@ -4148,6 +4148,188 @@ components:
                 - url
             type: object
             x-nexus-generated: true
+        SemprasAcolhimento:
+            properties:
+                cidadao_id:
+                    format: uuid
+                    type: string
+                conselheiro_nome:
+                    type: string
+                conselheiro_telefone:
+                    type: string
+                data_desligamento:
+                    format: date-time
+                    nullable: true
+                    type: string
+                data_entrada:
+                    format: date-time
+                    type: string
+                desligado_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                diagnosticos:
+                    items:
+                        $ref: '#/components/schemas/SemprasDiagnostico'
+                    type: array
+                documentos:
+                    items:
+                        $ref: '#/components/schemas/SemprasDocumentoCasaAbrigo'
+                    type: array
+                guia_acolhimento:
+                    type: string
+                historico_acolhido_anteriormente:
+                    type: boolean
+                historico_irmaos_outra_unidade:
+                    type: boolean
+                id:
+                    format: uuid
+                    type: string
+                irmaos:
+                    items:
+                        $ref: '#/components/schemas/SemprasIrmao'
+                    type: array
+                motivo_desligamento:
+                    type: string
+                motivos:
+                    items:
+                        type: string
+                    type: array
+                observacoes_gerais:
+                    type: string
+                pia:
+                    allOf:
+                        - $ref: '#/components/schemas/SemprasPiaFicha'
+                    nullable: true
+                pia_metas:
+                    items:
+                        $ref: '#/components/schemas/SemprasPiaMeta'
+                    type: array
+                processo_judicial:
+                    type: string
+                registrado_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                responsavel_endereco:
+                    type: string
+                responsavel_nis:
+                    type: string
+                responsavel_nome:
+                    type: string
+                responsavel_telefone:
+                    type: string
+                responsavel_vinculo:
+                    type: string
+                sexo:
+                    type: string
+                situacao_juridica:
+                    type: string
+                status:
+                    type: string
+                termos:
+                    items:
+                        $ref: '#/components/schemas/SemprasTermo'
+                    type: array
+                unidade_id:
+                    format: uuid
+                    type: string
+                visitantes:
+                    items:
+                        $ref: '#/components/schemas/SemprasVisitante'
+                    type: array
+            required:
+                - cidadao_id
+                - conselheiro_nome
+                - conselheiro_telefone
+                - data_desligamento
+                - data_entrada
+                - desligado_por
+                - diagnosticos
+                - documentos
+                - guia_acolhimento
+                - historico_acolhido_anteriormente
+                - historico_irmaos_outra_unidade
+                - id
+                - irmaos
+                - motivo_desligamento
+                - motivos
+                - observacoes_gerais
+                - pia
+                - pia_metas
+                - processo_judicial
+                - registrado_por
+                - responsavel_endereco
+                - responsavel_nis
+                - responsavel_nome
+                - responsavel_telefone
+                - responsavel_vinculo
+                - sexo
+                - situacao_juridica
+                - status
+                - termos
+                - unidade_id
+                - visitantes
+            type: object
+            x-nexus-generated: true
+        SemprasAcolhimentoRequest:
+            properties:
+                conselheiro_nome:
+                    maxLength: 200
+                    type: string
+                conselheiro_telefone:
+                    maxLength: 30
+                    type: string
+                guia_acolhimento:
+                    maxLength: 2000
+                    type: string
+                historico_acolhido_anteriormente:
+                    type: boolean
+                historico_irmaos_outra_unidade:
+                    type: boolean
+                motivos:
+                    items:
+                        type: string
+                    minItems: 1
+                    type: array
+                observacoes_gerais:
+                    maxLength: 4000
+                    type: string
+                processo_judicial:
+                    maxLength: 200
+                    type: string
+                responsavel_endereco:
+                    maxLength: 300
+                    type: string
+                responsavel_nis:
+                    maxLength: 20
+                    type: string
+                responsavel_nome:
+                    maxLength: 200
+                    type: string
+                responsavel_telefone:
+                    maxLength: 30
+                    type: string
+                responsavel_vinculo:
+                    maxLength: 100
+                    type: string
+                sexo:
+                    enum:
+                        - masculino
+                        - feminino
+                    type: string
+                situacao_juridica:
+                    maxLength: 500
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - motivos
+                - sexo
+                - unidade_id
+            type: object
+            x-nexus-generated: true
         SemprasAtendimento:
             properties:
                 chamado_em:
@@ -4208,6 +4390,86 @@ components:
                 - profissional_id
                 - senha
                 - status
+                - tipo
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasBeneficio:
+            properties:
+                beneficiario_id:
+                    format: uuid
+                    type: string
+                data_decisao:
+                    format: date-time
+                    nullable: true
+                    type: string
+                data_solicitacao:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                motivo_decisao:
+                    type: string
+                observacao:
+                    type: string
+                quantidade:
+                    type: integer
+                solicitante_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                status:
+                    type: string
+                tecnico_decisao_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                tipo:
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - beneficiario_id
+                - data_decisao
+                - data_solicitacao
+                - id
+                - motivo_decisao
+                - observacao
+                - quantidade
+                - solicitante_id
+                - status
+                - tecnico_decisao_id
+                - tipo
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasBeneficioRequest:
+            properties:
+                observacao:
+                    maxLength: 2000
+                    type: string
+                quantidade:
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                solicitante_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                tipo:
+                    enum:
+                        - natalidade
+                        - funeral
+                        - cesta_basica
+                        - passagem
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - quantidade
                 - tipo
                 - unidade_id
             type: object
@@ -4290,6 +4552,369 @@ components:
                 - nome
             type: object
             x-nexus-generated: true
+        SemprasConclusaoMseRequest:
+            properties:
+                resultado:
+                    enum:
+                        - cumprida
+                        - descumprida
+                        - extinta
+                    type: string
+            required:
+                - resultado
+            type: object
+            x-nexus-generated: true
+        SemprasConclusaoPiaMetaRequest:
+            properties:
+                concluida:
+                    type: boolean
+            type: object
+            x-nexus-generated: true
+        SemprasConselhoAtendimento:
+            properties:
+                atualizado_em:
+                    format: date-time
+                    nullable: true
+                    type: string
+                conselheiro_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                crianca_id:
+                    format: uuid
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                medida_protetiva:
+                    type: string
+                motivo_violacao:
+                    type: string
+                observacoes:
+                    type: string
+                origem_demanda:
+                    type: string
+                protocolo:
+                    type: string
+                responsavel_cpf:
+                    type: string
+                responsavel_nome:
+                    type: string
+                responsavel_telefone:
+                    type: string
+                status:
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - atualizado_em
+                - conselheiro_id
+                - created_at
+                - crianca_id
+                - id
+                - medida_protetiva
+                - motivo_violacao
+                - observacoes
+                - origem_demanda
+                - protocolo
+                - responsavel_cpf
+                - responsavel_nome
+                - responsavel_telefone
+                - status
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasConselhoAtendimentoRequest:
+            properties:
+                motivo_violacao:
+                    enum:
+                        - negligencia_abandono
+                        - violencia_fisica
+                        - abuso_exploracao_sexual
+                        - evasao_escolar
+                        - trabalho_infantil
+                        - conflito_familiar
+                    type: string
+                observacoes:
+                    maxLength: 4000
+                    type: string
+                origem_demanda:
+                    enum:
+                        - disque_100
+                        - escola
+                        - unidade_saude
+                        - plantao_24h
+                        - demanda_espontanea
+                        - policia
+                    type: string
+                responsavel_cpf:
+                    maxLength: 20
+                    type: string
+                responsavel_nome:
+                    maxLength: 200
+                    type: string
+                responsavel_telefone:
+                    maxLength: 30
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - motivo_violacao
+                - origem_demanda
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasContatoRedeApoio:
+            properties:
+                cidadao_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                nome:
+                    type: string
+                parentesco:
+                    type: string
+                telefone:
+                    type: string
+            required:
+                - cidadao_id
+                - created_at
+                - id
+                - nome
+                - parentesco
+                - telefone
+            type: object
+            x-nexus-generated: true
+        SemprasContatoRedeApoioRequest:
+            properties:
+                nome:
+                    maxLength: 200
+                    type: string
+                parentesco:
+                    maxLength: 100
+                    type: string
+                telefone:
+                    maxLength: 30
+                    type: string
+            required:
+                - nome
+            type: object
+            x-nexus-generated: true
+        SemprasDecisaoBeneficioRequest:
+            properties:
+                acao:
+                    enum:
+                        - conceder
+                        - negar
+                        - suspender
+                    type: string
+                motivo:
+                    maxLength: 1000
+                    type: string
+            required:
+                - acao
+            type: object
+            x-nexus-generated: true
+        SemprasDecisaoEncaminhamentoRequest:
+            properties:
+                aceitar:
+                    type: boolean
+                observacao:
+                    maxLength: 1000
+                    type: string
+            type: object
+            x-nexus-generated: true
+        SemprasDecisaoRequest:
+            properties:
+                aprovar:
+                    type: boolean
+                justificativa:
+                    maxLength: 1000
+                    type: string
+            type: object
+            x-nexus-generated: true
+        SemprasDesligamentoRequest:
+            properties:
+                motivo:
+                    maxLength: 2000
+                    minLength: 3
+                    type: string
+            required:
+                - motivo
+            type: object
+            x-nexus-generated: true
+        SemprasDiagnostico:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                categoria:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                descricao:
+                    type: string
+                diagnostico:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+            required:
+                - acolhimento_id
+                - categoria
+                - created_at
+                - descricao
+                - diagnostico
+                - id
+            type: object
+            x-nexus-generated: true
+        SemprasDiagnosticoRequest:
+            properties:
+                categoria:
+                    enum:
+                        - doenca
+                        - deficiencia
+                        - transtorno
+                        - outro
+                    type: string
+                descricao:
+                    maxLength: 2000
+                    type: string
+                diagnostico:
+                    maxLength: 255
+                    minLength: 2
+                    type: string
+            required:
+                - categoria
+                - diagnostico
+            type: object
+            x-nexus-generated: true
+        SemprasDocumentoCasaAbrigo:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                content_type:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                nome_original:
+                    type: string
+                object_key:
+                    type: string
+                size_bytes:
+                    type: integer
+                status:
+                    type: string
+                tipo:
+                    type: string
+            required:
+                - acolhimento_id
+                - content_type
+                - created_at
+                - id
+                - nome_original
+                - object_key
+                - size_bytes
+                - status
+                - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasEncaminhamento:
+            properties:
+                cidadao_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                decidido_em:
+                    format: date-time
+                    nullable: true
+                    type: string
+                decidido_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                encaminhado_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                motivo:
+                    type: string
+                observacao_decisao:
+                    type: string
+                status:
+                    type: string
+                unidade_destino_id:
+                    format: uuid
+                    type: string
+                unidade_origem_id:
+                    format: uuid
+                    type: string
+            required:
+                - cidadao_id
+                - created_at
+                - decidido_em
+                - decidido_por
+                - encaminhado_por
+                - id
+                - motivo
+                - observacao_decisao
+                - status
+                - unidade_destino_id
+                - unidade_origem_id
+            type: object
+            x-nexus-generated: true
+        SemprasEncaminhamentoRequest:
+            properties:
+                motivo:
+                    maxLength: 2000
+                    type: string
+                unidade_destino_id:
+                    format: uuid
+                    type: string
+                unidade_origem_id:
+                    format: uuid
+                    type: string
+            required:
+                - motivo
+                - unidade_destino_id
+                - unidade_origem_id
+            type: object
+            x-nexus-generated: true
+        SemprasEncerramentoPaefiRequest:
+            properties:
+                motivo:
+                    enum:
+                        - objetivos_alcancados
+                        - mudanca_territorio
+                        - nao_localizado
+                        - a_pedido_da_familia
+                        - outro
+                    type: string
+            required:
+                - motivo
+            type: object
+            x-nexus-generated: true
         SemprasEntradaRequest:
             properties:
                 cidadao_id:
@@ -4306,6 +4931,15 @@ components:
             required:
                 - cidadao_id
                 - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasExclusaoPaifRequest:
+            properties:
+                motivo:
+                    maxLength: 1000
+                    type: string
+            required:
+                - motivo
             type: object
             x-nexus-generated: true
         SemprasFilaItem:
@@ -4378,6 +5012,375 @@ components:
                 - unidade_id
             type: object
             x-nexus-generated: true
+        SemprasIrmao:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                data_nascimento:
+                    format: date-time
+                    nullable: true
+                    type: string
+                esta_acolhido:
+                    type: boolean
+                id:
+                    format: uuid
+                    type: string
+                nome:
+                    type: string
+                observacao:
+                    type: string
+                unidade_descricao:
+                    type: string
+            required:
+                - acolhimento_id
+                - created_at
+                - data_nascimento
+                - esta_acolhido
+                - id
+                - nome
+                - observacao
+                - unidade_descricao
+            type: object
+            x-nexus-generated: true
+        SemprasIrmaoRequest:
+            properties:
+                data_nascimento:
+                    format: date-time
+                    nullable: true
+                    type: string
+                esta_acolhido:
+                    type: boolean
+                nome:
+                    maxLength: 200
+                    minLength: 2
+                    type: string
+                observacao:
+                    maxLength: 1000
+                    type: string
+                unidade_descricao:
+                    maxLength: 200
+                    type: string
+            required:
+                - nome
+            type: object
+            x-nexus-generated: true
+        SemprasMseMedida:
+            properties:
+                adolescente_id:
+                    format: uuid
+                    type: string
+                ato_infracional:
+                    type: string
+                data_conclusao:
+                    format: date-time
+                    nullable: true
+                    type: string
+                data_inicio:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                instituicao_parceira:
+                    type: string
+                numero_processo:
+                    type: string
+                observacoes:
+                    type: string
+                prazo_previsto:
+                    format: date-time
+                    nullable: true
+                    type: string
+                status:
+                    type: string
+                tecnico_referencia_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                tipo_medida:
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+                vara_origem:
+                    type: string
+            required:
+                - adolescente_id
+                - ato_infracional
+                - data_conclusao
+                - data_inicio
+                - id
+                - instituicao_parceira
+                - numero_processo
+                - observacoes
+                - prazo_previsto
+                - status
+                - tecnico_referencia_id
+                - tipo_medida
+                - unidade_id
+                - vara_origem
+            type: object
+            x-nexus-generated: true
+        SemprasMseMedidaRequest:
+            properties:
+                ato_infracional:
+                    maxLength: 500
+                    minLength: 3
+                    type: string
+                instituicao_parceira:
+                    maxLength: 200
+                    type: string
+                numero_processo:
+                    maxLength: 100
+                    type: string
+                tipo_medida:
+                    enum:
+                        - liberdade_assistida
+                        - prestacao_servico_comunidade
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+                vara_origem:
+                    maxLength: 200
+                    type: string
+            required:
+                - ato_infracional
+                - tipo_medida
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasNotificacaoCreas:
+            properties:
+                assunto:
+                    type: string
+                data_entrada:
+                    format: date-time
+                    type: string
+                data_resposta:
+                    format: date-time
+                    nullable: true
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                origem_entidade:
+                    type: string
+                prazo_resposta:
+                    format: date-time
+                    nullable: true
+                    type: string
+                protocolo:
+                    type: string
+                resposta:
+                    type: string
+                status:
+                    type: string
+                tecnico_referencia_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+                vitima_id:
+                    format: uuid
+                    type: string
+            required:
+                - assunto
+                - data_entrada
+                - data_resposta
+                - id
+                - origem_entidade
+                - prazo_resposta
+                - protocolo
+                - resposta
+                - status
+                - tecnico_referencia_id
+                - unidade_id
+                - vitima_id
+            type: object
+            x-nexus-generated: true
+        SemprasNotificacaoCreasRequest:
+            properties:
+                assunto:
+                    maxLength: 2000
+                    minLength: 3
+                    type: string
+                origem_entidade:
+                    enum:
+                        - ministerio_publico
+                        - poder_judiciario
+                        - conselho_tutelar
+                        - disque_100_180
+                        - delegacia
+                        - outro
+                    type: string
+                prazo_resposta:
+                    format: date-time
+                    nullable: true
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - assunto
+                - origem_entidade
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasPaefiCaso:
+            properties:
+                caso_codigo:
+                    type: string
+                cidadao_id:
+                    format: uuid
+                    type: string
+                data_abertura:
+                    format: date-time
+                    type: string
+                data_encerramento:
+                    format: date-time
+                    nullable: true
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                membros_vulneraveis:
+                    type: string
+                motivo_encerramento:
+                    type: string
+                observacoes:
+                    type: string
+                pia_elaborado:
+                    type: boolean
+                status:
+                    type: string
+                tecnico_referencia_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+                violacoes:
+                    items:
+                        type: string
+                    type: array
+            required:
+                - caso_codigo
+                - cidadao_id
+                - data_abertura
+                - data_encerramento
+                - id
+                - membros_vulneraveis
+                - motivo_encerramento
+                - observacoes
+                - pia_elaborado
+                - status
+                - tecnico_referencia_id
+                - unidade_id
+                - violacoes
+            type: object
+            x-nexus-generated: true
+        SemprasPaefiCasoRequest:
+            properties:
+                membros_vulneraveis:
+                    maxLength: 2000
+                    type: string
+                observacoes:
+                    maxLength: 4000
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+                violacoes:
+                    items:
+                        type: string
+                    minItems: 1
+                    type: array
+            required:
+                - unidade_id
+                - violacoes
+            type: object
+            x-nexus-generated: true
+        SemprasPaifRequest:
+            properties:
+                bolsa_familia:
+                    type: boolean
+                bpc:
+                    type: boolean
+                extrema_pobreza:
+                    type: boolean
+                scfv_participantes:
+                    maximum: 50
+                    minimum: 0
+                    type: integer
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasPaifVinculo:
+            properties:
+                bolsa_familia:
+                    type: boolean
+                bpc:
+                    type: boolean
+                cidadao_id:
+                    format: uuid
+                    type: string
+                data_exclusao:
+                    format: date-time
+                    nullable: true
+                    type: string
+                data_inclusao:
+                    format: date-time
+                    type: string
+                excluido_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                extrema_pobreza:
+                    type: boolean
+                id:
+                    format: uuid
+                    type: string
+                incluido_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                motivo_exclusao:
+                    type: string
+                scfv_participantes:
+                    type: integer
+                status:
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - bolsa_familia
+                - bpc
+                - cidadao_id
+                - data_exclusao
+                - data_inclusao
+                - excluido_por
+                - extrema_pobreza
+                - id
+                - incluido_por
+                - motivo_exclusao
+                - scfv_participantes
+                - status
+                - unidade_id
+            type: object
+            x-nexus-generated: true
         SemprasPainelUnidade:
             properties:
                 aguardando:
@@ -4401,21 +5404,301 @@ components:
                 - unidade
             type: object
             x-nexus-generated: true
+        SemprasPedidoRequest:
+            properties:
+                justificativa:
+                    maxLength: 1000
+                    type: string
+                tipo:
+                    enum:
+                        - correcao
+                        - anonimizacao
+                    type: string
+            required:
+                - justificativa
+                - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasPedidoTitular:
+            properties:
+                cidadao_id:
+                    format: uuid
+                    type: string
+                cidadao_nome:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                decidido_em:
+                    format: date-time
+                    nullable: true
+                    type: string
+                decidido_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                decidido_por_nome:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                justificativa_decisao:
+                    type: string
+                justificativa_solicitacao:
+                    type: string
+                solicitado_por:
+                    format: uuid
+                    type: string
+                solicitado_por_nome:
+                    type: string
+                status:
+                    type: string
+                tipo:
+                    type: string
+            required:
+                - cidadao_id
+                - cidadao_nome
+                - created_at
+                - decidido_em
+                - decidido_por
+                - decidido_por_nome
+                - id
+                - justificativa_decisao
+                - justificativa_solicitacao
+                - solicitado_por
+                - solicitado_por_nome
+                - status
+                - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasPiaFicha:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                alergias:
+                    type: string
+                atividades_fim_semana:
+                    type: string
+                atividades_manha:
+                    type: string
+                atividades_noite:
+                    type: string
+                atividades_tarde:
+                    type: string
+                atualizado_em:
+                    format: date-time
+                    type: string
+                atualizado_por:
+                    format: uuid
+                    nullable: true
+                    type: string
+                cartao_sus:
+                    type: string
+                contato_familiar:
+                    type: string
+                escola:
+                    type: string
+                historico_familiar:
+                    type: string
+                matricula_escolar:
+                    type: string
+                medicamentos:
+                    type: string
+                serie_escolar:
+                    type: string
+                vacinacao_atualizada:
+                    type: boolean
+                visitas_autorizadas:
+                    type: string
+            required:
+                - acolhimento_id
+                - alergias
+                - atividades_fim_semana
+                - atividades_manha
+                - atividades_noite
+                - atividades_tarde
+                - atualizado_em
+                - atualizado_por
+                - cartao_sus
+                - contato_familiar
+                - escola
+                - historico_familiar
+                - matricula_escolar
+                - medicamentos
+                - serie_escolar
+                - vacinacao_atualizada
+                - visitas_autorizadas
+            type: object
+            x-nexus-generated: true
+        SemprasPiaFichaRequest:
+            properties:
+                alergias:
+                    maxLength: 2000
+                    type: string
+                atividades_fim_semana:
+                    maxLength: 1000
+                    type: string
+                atividades_manha:
+                    maxLength: 1000
+                    type: string
+                atividades_noite:
+                    maxLength: 1000
+                    type: string
+                atividades_tarde:
+                    maxLength: 1000
+                    type: string
+                cartao_sus:
+                    maxLength: 30
+                    type: string
+                contato_familiar:
+                    maxLength: 2000
+                    type: string
+                escola:
+                    maxLength: 200
+                    type: string
+                historico_familiar:
+                    maxLength: 4000
+                    type: string
+                matricula_escolar:
+                    maxLength: 100
+                    type: string
+                medicamentos:
+                    maxLength: 2000
+                    type: string
+                serie_escolar:
+                    maxLength: 100
+                    type: string
+                vacinacao_atualizada:
+                    type: boolean
+                visitas_autorizadas:
+                    maxLength: 2000
+                    type: string
+            type: object
+            x-nexus-generated: true
+        SemprasPiaMeta:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                concluida:
+                    type: boolean
+                created_at:
+                    format: date-time
+                    type: string
+                descricao:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                prazo:
+                    format: date-time
+                    nullable: true
+                    type: string
+                providencia:
+                    type: string
+                responsavel:
+                    type: string
+                tipo:
+                    type: string
+            required:
+                - acolhimento_id
+                - concluida
+                - created_at
+                - descricao
+                - id
+                - prazo
+                - providencia
+                - responsavel
+                - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasPiaMetaRequest:
+            properties:
+                descricao:
+                    maxLength: 1000
+                    minLength: 3
+                    type: string
+                prazo:
+                    format: date-time
+                    nullable: true
+                    type: string
+                providencia:
+                    maxLength: 1000
+                    type: string
+                responsavel:
+                    maxLength: 200
+                    type: string
+                tipo:
+                    enum:
+                        - plano
+                        - intervencao
+                    type: string
+            required:
+                - descricao
+                - tipo
+            type: object
+            x-nexus-generated: true
         SemprasProntuario:
             properties:
                 atendimentos:
                     items:
                         $ref: '#/components/schemas/SemprasAtendimento'
                     type: array
+                beneficios:
+                    items:
+                        $ref: '#/components/schemas/SemprasBeneficio'
+                    type: array
+                casa_abrigo_acolhimentos:
+                    items:
+                        $ref: '#/components/schemas/SemprasAcolhimento'
+                    type: array
                 cidadao:
                     $ref: '#/components/schemas/SemprasCidadao'
+                conselho_atendimentos:
+                    items:
+                        $ref: '#/components/schemas/SemprasConselhoAtendimento'
+                    type: array
+                encaminhamentos:
+                    items:
+                        $ref: '#/components/schemas/SemprasEncaminhamento'
+                    type: array
+                mse_medidas:
+                    items:
+                        $ref: '#/components/schemas/SemprasMseMedida'
+                    type: array
+                notificacoes_creas:
+                    items:
+                        $ref: '#/components/schemas/SemprasNotificacaoCreas'
+                    type: array
+                paefi_casos:
+                    items:
+                        $ref: '#/components/schemas/SemprasPaefiCaso'
+                    type: array
+                paif_vinculos:
+                    items:
+                        $ref: '#/components/schemas/SemprasPaifVinculo'
+                    type: array
+                rede_apoio:
+                    items:
+                        $ref: '#/components/schemas/SemprasContatoRedeApoio'
+                    type: array
                 registros:
                     items:
                         $ref: '#/components/schemas/SemprasRegistro'
                     type: array
             required:
                 - atendimentos
+                - beneficios
+                - casa_abrigo_acolhimentos
                 - cidadao
+                - conselho_atendimentos
+                - encaminhamentos
+                - mse_medidas
+                - notificacoes_creas
+                - paefi_casos
+                - paif_vinculos
+                - rede_apoio
                 - registros
             type: object
             x-nexus-generated: true
@@ -4512,6 +5795,163 @@ components:
                 - nome_social
             type: object
             x-nexus-generated: true
+        SemprasRmaUnidade:
+            properties:
+                atendimentos:
+                    type: integer
+                atendimentos_psicologicos:
+                    type: integer
+                atendimentos_sociais:
+                    type: integer
+                beneficios_concedidos_no_mes:
+                    type: integer
+                casa_abrigo_acolhidos_ativos:
+                    type: integer
+                casa_abrigo_desligamentos_no_mes:
+                    type: integer
+                casa_abrigo_entradas_no_mes:
+                    type: integer
+                conselho_atendimentos_no_mes:
+                    type: integer
+                creas_notificacoes_recebidas_no_mes:
+                    type: integer
+                creas_notificacoes_respondidas_no_mes:
+                    type: integer
+                encaminhamentos_enviados_no_mes:
+                    type: integer
+                mse_ativas:
+                    type: integer
+                mse_concluidas_no_mes:
+                    type: integer
+                paefi_casos_abertos_no_mes:
+                    type: integer
+                paefi_casos_ativos:
+                    type: integer
+                paif_ativos:
+                    type: integer
+                paif_bolsa_familia:
+                    type: integer
+                paif_bpc:
+                    type: integer
+                paif_extrema_pobreza:
+                    type: integer
+                paif_scfv_participantes:
+                    type: integer
+                unidade:
+                    $ref: '#/components/schemas/SemprasUnidade'
+            required:
+                - atendimentos
+                - atendimentos_psicologicos
+                - atendimentos_sociais
+                - beneficios_concedidos_no_mes
+                - casa_abrigo_acolhidos_ativos
+                - casa_abrigo_desligamentos_no_mes
+                - casa_abrigo_entradas_no_mes
+                - conselho_atendimentos_no_mes
+                - creas_notificacoes_recebidas_no_mes
+                - creas_notificacoes_respondidas_no_mes
+                - encaminhamentos_enviados_no_mes
+                - mse_ativas
+                - mse_concluidas_no_mes
+                - paefi_casos_abertos_no_mes
+                - paefi_casos_ativos
+                - paif_ativos
+                - paif_bolsa_familia
+                - paif_bpc
+                - paif_extrema_pobreza
+                - paif_scfv_participantes
+                - unidade
+            type: object
+            x-nexus-generated: true
+        SemprasTermo:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                data_termo:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                motivo_observacao:
+                    type: string
+                parentesco_responsavel:
+                    type: string
+                responsavel_retirada:
+                    type: string
+                tipo_termo:
+                    type: string
+            required:
+                - acolhimento_id
+                - created_at
+                - data_termo
+                - id
+                - motivo_observacao
+                - parentesco_responsavel
+                - responsavel_retirada
+                - tipo_termo
+            type: object
+            x-nexus-generated: true
+        SemprasTermoRequest:
+            properties:
+                data_termo:
+                    format: date-time
+                    type: string
+                motivo_observacao:
+                    maxLength: 2000
+                    type: string
+                parentesco_responsavel:
+                    maxLength: 100
+                    type: string
+                responsavel_retirada:
+                    maxLength: 200
+                    type: string
+                tipo_termo:
+                    enum:
+                        - advertencia
+                        - passeio
+                        - saida
+                        - outro
+                    type: string
+            required:
+                - data_termo
+                - tipo_termo
+            type: object
+            x-nexus-generated: true
+        SemprasTransicaoConselhoRequest:
+            properties:
+                acao:
+                    enum:
+                        - aplicar_medida
+                        - encaminhar_mp
+                        - arquivar
+                    type: string
+                medida:
+                    maxLength: 50
+                    type: string
+            required:
+                - acao
+            type: object
+            x-nexus-generated: true
+        SemprasTransicaoNotificacaoRequest:
+            properties:
+                acao:
+                    enum:
+                        - iniciar_diligencia
+                        - responder
+                        - arquivar
+                    type: string
+                resposta:
+                    maxLength: 4000
+                    type: string
+            required:
+                - acao
+            type: object
+            x-nexus-generated: true
         SemprasUnidade:
             properties:
                 ativa:
@@ -4532,6 +5972,108 @@ components:
                 - id
                 - nome
                 - sigla
+            type: object
+            x-nexus-generated: true
+        SemprasUploadDocumentoRequest:
+            properties:
+                content_type:
+                    maxLength: 150
+                    type: string
+                filename:
+                    maxLength: 255
+                    type: string
+                size:
+                    minimum: 1
+                    type: integer
+                tipo:
+                    enum:
+                        - acolhido
+                        - responsavel
+                    type: string
+            required:
+                - content_type
+                - filename
+                - size
+                - tipo
+            type: object
+            x-nexus-generated: true
+        SemprasUploadDocumentoResult:
+            properties:
+                documento:
+                    $ref: '#/components/schemas/SemprasDocumentoCasaAbrigo'
+                upload:
+                    $ref: '#/components/schemas/ModkitUploadTicket'
+            required:
+                - documento
+                - upload
+            type: object
+            x-nexus-generated: true
+        SemprasVisitante:
+            properties:
+                acolhimento_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                data_visita:
+                    format: date-time
+                    type: string
+                documento_identidade:
+                    type: string
+                hora_entrada:
+                    type: string
+                hora_saida:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                nome_visitante:
+                    type: string
+                observacoes:
+                    type: string
+                parentesco_vinculo:
+                    type: string
+            required:
+                - acolhimento_id
+                - created_at
+                - data_visita
+                - documento_identidade
+                - hora_entrada
+                - hora_saida
+                - id
+                - nome_visitante
+                - observacoes
+                - parentesco_vinculo
+            type: object
+            x-nexus-generated: true
+        SemprasVisitanteRequest:
+            properties:
+                data_visita:
+                    format: date-time
+                    type: string
+                documento_identidade:
+                    maxLength: 30
+                    type: string
+                hora_entrada:
+                    maxLength: 5
+                    type: string
+                hora_saida:
+                    maxLength: 5
+                    type: string
+                nome_visitante:
+                    maxLength: 200
+                    minLength: 2
+                    type: string
+                observacoes:
+                    maxLength: 1000
+                    type: string
+                parentesco_vinculo:
+                    maxLength: 100
+                    type: string
+            required:
+                - data_visita
+                - nome_visitante
             type: object
             x-nexus-generated: true
         SignumChallengeResponse:
@@ -12324,6 +13866,830 @@ paths:
             summary: SEMPRAS — Executar ação /sempras/atendimentos/{id}/iniciar
             tags:
                 - sempras
+    /api/v1/sempras/beneficios/{id}/decidir:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasBeneficiosIdDecidir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasDecisaoBeneficioRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasBeneficio'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/beneficios/{id}/decidir
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-diagnosticos/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoDiagnosticosId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-diagnosticos/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-documentos/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoDocumentosId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-documentos/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-documentos/{id}/confirm:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoDocumentosIdConfirm
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasDocumentoCasaAbrigo'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo-documentos/{id}/confirm
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-documentos/{id}/download:
+        get:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: getSemprasCasaAbrigoDocumentosIdDownload
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties: {}
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/casa-abrigo-documentos/{id}/download
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-irmaos/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoIrmaosId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-irmaos/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-pia-metas/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoPiaMetasId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-pia-metas/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-pia-metas/{id}/concluir:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoPiaMetasIdConcluir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasConclusaoPiaMetaRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPiaMeta'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo-pia-metas/{id}/concluir
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-termos/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoTermosId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-termos/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo-visitantes/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasCasaAbrigoVisitantesId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/casa-abrigo-visitantes/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}:
+        put:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: putSemprasCasaAbrigoId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasAcolhimentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasAcolhimento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Salvar /sempras/casa-abrigo/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/desligar:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdDesligar
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasDesligamentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasAcolhimento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/desligar
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/diagnosticos:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdDiagnosticos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasDiagnosticoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasDiagnostico'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/diagnosticos
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/documentos/uploads:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdDocumentosUploads
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasUploadDocumentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasUploadDocumentoResult'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/documentos/uploads
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/irmaos:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdIrmaos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasIrmaoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasIrmao'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/irmaos
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/pia:
+        put:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: putSemprasCasaAbrigoIdPia
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasPiaFichaRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPiaFicha'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Salvar /sempras/casa-abrigo/{id}/pia
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/pia-metas:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdPiaMetas
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasPiaMetaRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPiaMeta'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/pia-metas
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/termos:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdTermos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasTermoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasTermo'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/termos
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/visitantes:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCasaAbrigoIdVisitantes
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasVisitanteRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasVisitante'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/visitantes
+            tags:
+                - sempras
     /api/v1/sempras/cidadaos:
         get:
             operationId: getSemprasCidadaos
@@ -12477,6 +14843,459 @@ paths:
             summary: SEMPRAS — Salvar /sempras/cidadaos/{id}
             tags:
                 - sempras
+    /api/v1/sempras/cidadaos/{id}/beneficios:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdBeneficios
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasBeneficioRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasBeneficio'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/beneficios
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/casa-abrigo:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdCasaAbrigo
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasAcolhimentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasAcolhimento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/casa-abrigo
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/conselho-tutelar:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdConselhoTutelar
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasConselhoAtendimentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasConselhoAtendimento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/conselho-tutelar
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/creas-notificacoes:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdCreasNotificacoes
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasNotificacaoCreasRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasNotificacaoCreas'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/creas-notificacoes
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/encaminhamentos:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdEncaminhamentos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasEncaminhamentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasEncaminhamento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/encaminhamentos
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/mse:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdMse
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasMseMedidaRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasMseMedida'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/mse
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/paefi:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdPaefi
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasPaefiCasoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPaefiCaso'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/paefi
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/paif:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdPaif
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasPaifRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPaifVinculo'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/paif
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/pedidos:
+        post:
+            operationId: postSemprasCidadaosIdPedidos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasPedidoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPedidoTitular'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/pedidos
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/pedidos/acesso:
+        get:
+            operationId: getSemprasCidadaosIdPedidosAcesso
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: justificativa
+                  required: false
+                  schema:
+                    maxLength: 1000
+                    type: string
+                  x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasProntuario'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/cidadaos/{id}/pedidos/acesso
+            tags:
+                - sempras
     /api/v1/sempras/cidadaos/{id}/prontuario:
         get:
             operationId: getSemprasCidadaosIdProntuario
@@ -12510,6 +15329,52 @@ paths:
             security:
                 - bearerAuth: []
             summary: SEMPRAS — Listar/consultar /sempras/cidadaos/{id}/prontuario
+            tags:
+                - sempras
+    /api/v1/sempras/cidadaos/{id}/rede-apoio:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCidadaosIdRedeApoio
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasContatoRedeApoioRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasContatoRedeApoio'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/rede-apoio
             tags:
                 - sempras
     /api/v1/sempras/cidadaos/{id}/registros:
@@ -12555,6 +15420,321 @@ paths:
             summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/registros
             tags:
                 - sempras
+    /api/v1/sempras/conselho-tutelar/{id}/transitar:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasConselhoTutelarIdTransitar
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasTransicaoConselhoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasConselhoAtendimento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/conselho-tutelar/{id}/transitar
+            tags:
+                - sempras
+    /api/v1/sempras/creas-notificacoes/{id}/transitar:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasCreasNotificacoesIdTransitar
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasTransicaoNotificacaoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasNotificacaoCreas'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/creas-notificacoes/{id}/transitar
+            tags:
+                - sempras
+    /api/v1/sempras/encaminhamentos/{id}/decidir:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasEncaminhamentosIdDecidir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasDecisaoEncaminhamentoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasEncaminhamento'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/encaminhamentos/{id}/decidir
+            tags:
+                - sempras
+    /api/v1/sempras/mse/{id}/concluir:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasMseIdConcluir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasConclusaoMseRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasMseMedida'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/mse/{id}/concluir
+            tags:
+                - sempras
+    /api/v1/sempras/paefi/{id}/encerrar:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasPaefiIdEncerrar
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasEncerramentoPaefiRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPaefiCaso'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/paefi/{id}/encerrar
+            tags:
+                - sempras
+    /api/v1/sempras/paefi/{id}/pia:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasPaefiIdPia
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPaefiCaso'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/paefi/{id}/pia
+            tags:
+                - sempras
+    /api/v1/sempras/paif/{id}/excluir:
+        post:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: postSemprasPaifIdExcluir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasExclusaoPaifRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPaifVinculo'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/paif/{id}/excluir
+            tags:
+                - sempras
     /api/v1/sempras/painel:
         get:
             operationId: getSemprasPainel
@@ -12586,6 +15766,162 @@ paths:
             summary: SEMPRAS — Listar/consultar /sempras/painel
             tags:
                 - sempras
+    /api/v1/sempras/pedidos:
+        get:
+            operationId: getSemprasPedidos
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            items:
+                                                $ref: '#/components/schemas/SemprasPedidoTitular'
+                                            type: array
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/pedidos
+            tags:
+                - sempras
+    /api/v1/sempras/pedidos/{id}/decidir:
+        post:
+            operationId: postSemprasPedidosIdDecidir
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasDecisaoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasPedidoTitular'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/pedidos/{id}/decidir
+            tags:
+                - sempras
+    /api/v1/sempras/rede-apoio/{id}:
+        delete:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: deleteSemprasRedeApoioId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            additionalProperties:
+                                                type: boolean
+                                            type: object
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Excluir /sempras/rede-apoio/{id}
+            tags:
+                - sempras
+    /api/v1/sempras/relatorios/rma:
+        get:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: getSemprasRelatoriosRma
+            parameters:
+                - in: query
+                  name: competencia
+                  required: false
+                  schema:
+                    maxLength: 10
+                    type: string
+                  x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            items:
+                                                $ref: '#/components/schemas/SemprasRmaUnidade'
+                                            type: array
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/relatorios/rma
+            tags:
+                - sempras
     /api/v1/sempras/unidades:
         get:
             operationId: getSemprasUnidades
@@ -12615,6 +15951,46 @@ paths:
             security:
                 - bearerAuth: []
             summary: SEMPRAS — Listar/consultar /sempras/unidades
+            tags:
+                - sempras
+    /api/v1/sempras/unidades/{id}/encaminhamentos:
+        get:
+            description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
+            operationId: getSemprasUnidadesIdEncaminhamentos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            items:
+                                                $ref: '#/components/schemas/SemprasEncaminhamento'
+                                            type: array
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "403":
+                    $ref: '#/components/responses/Forbidden'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/unidades/{id}/encaminhamentos
             tags:
                 - sempras
     /api/v1/sempras/unidades/{id}/fila:

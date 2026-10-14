@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -48,9 +49,177 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			_, err := r.AtendimentosNaArea(ctx, db, id, area)
 			return err
 		},
-		"Painel":          func(db database.DBTX) error { _, err := r.Painel(ctx, db, unidades, "2026-01-01"); return err },
+		"Painel": func(db database.DBTX) error { _, err := r.Painel(ctx, db, unidades, "2026-01-01"); return err },
+		"Rma": func(db database.DBTX) error {
+			_, err := r.Rma(ctx, db, unidades, time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC))
+			return err
+		},
 		"InsertRegistro":  func(db database.DBTX) error { return r.InsertRegistro(ctx, db, domain.Registro{ID: id}) },
 		"RegistrosNaArea": func(db database.DBTX) error { _, err := r.RegistrosNaArea(ctx, db, id, area); return err },
+		"InsertPedido": func(db database.DBTX) error {
+			return r.InsertPedido(ctx, db, domain.PedidoTitular{ID: id})
+		},
+		"GetPedido":            func(db database.DBTX) error { _, err := r.GetPedido(ctx, db, id, true); return err },
+		"ListPedidosPendentes": func(db database.DBTX) error { _, err := r.ListPedidosPendentes(ctx, db); return err },
+		"DecidirPedido": func(db database.DBTX) error {
+			return r.DecidirPedido(ctx, db, id, domain.PedidoStatusConcluido, id, "x", time.Now())
+		},
+		"AnonimizarCidadao": func(db database.DBTX) error { return r.AnonimizarCidadao(ctx, db, id) },
+		"InsertContatoRedeApoio": func(db database.DBTX) error {
+			return r.InsertContatoRedeApoio(ctx, db, domain.ContatoRedeApoio{ID: id}, id)
+		},
+		"ListContatosRedeApoio": func(db database.DBTX) error { _, err := r.ListContatosRedeApoio(ctx, db, id); return err },
+		"GetContatoRedeApoio":   func(db database.DBTX) error { _, err := r.GetContatoRedeApoio(ctx, db, id); return err },
+		"DeleteContatoRedeApoio": func(db database.DBTX) error {
+			return r.DeleteContatoRedeApoio(ctx, db, id)
+		},
+		"InsertBeneficio": func(db database.DBTX) error {
+			return r.InsertBeneficio(ctx, db, domain.Beneficio{ID: id}, id)
+		},
+		"GetBeneficio":    func(db database.DBTX) error { _, err := r.GetBeneficio(ctx, db, id, true); return err },
+		"UpdateBeneficio": func(db database.DBTX) error { return r.UpdateBeneficio(ctx, db, domain.Beneficio{ID: id}) },
+		"BeneficiosNaArea": func(db database.DBTX) error {
+			_, err := r.BeneficiosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertEncaminhamento": func(db database.DBTX) error {
+			return r.InsertEncaminhamento(ctx, db, domain.Encaminhamento{ID: id}, id)
+		},
+		"GetEncaminhamento":    func(db database.DBTX) error { _, err := r.GetEncaminhamento(ctx, db, id, true); return err },
+		"UpdateEncaminhamento": func(db database.DBTX) error { return r.UpdateEncaminhamento(ctx, db, domain.Encaminhamento{ID: id}) },
+		"EncaminhamentosDoCidadaoNaArea": func(db database.DBTX) error {
+			_, err := r.EncaminhamentosDoCidadaoNaArea(ctx, db, id, area)
+			return err
+		},
+		"ListEncaminhamentosPendentes": func(db database.DBTX) error {
+			_, err := r.ListEncaminhamentosPendentes(ctx, db, id)
+			return err
+		},
+		"InsertPaifVinculo": func(db database.DBTX) error {
+			return r.InsertPaifVinculo(ctx, db, domain.PaifVinculo{ID: id}, id)
+		},
+		"GetPaifVinculo":    func(db database.DBTX) error { _, err := r.GetPaifVinculo(ctx, db, id, true); return err },
+		"UpdatePaifVinculo": func(db database.DBTX) error { return r.UpdatePaifVinculo(ctx, db, domain.PaifVinculo{ID: id}) },
+		"PaifVinculosNaArea": func(db database.DBTX) error {
+			_, err := r.PaifVinculosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertConselhoAtendimento": func(db database.DBTX) error {
+			return r.InsertConselhoAtendimento(ctx, db, domain.ConselhoAtendimento{ID: id, Protocolo: "CT-" + id.String()[:8]}, id)
+		},
+		"GetConselhoAtendimento": func(db database.DBTX) error {
+			_, err := r.GetConselhoAtendimento(ctx, db, id, true)
+			return err
+		},
+		"UpdateConselhoAtendimento": func(db database.DBTX) error {
+			return r.UpdateConselhoAtendimento(ctx, db, domain.ConselhoAtendimento{ID: id})
+		},
+		"ConselhoAtendimentosNaArea": func(db database.DBTX) error {
+			_, err := r.ConselhoAtendimentosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertPaefiCaso": func(db database.DBTX) error {
+			return r.InsertPaefiCaso(ctx, db, domain.PaefiCaso{ID: id, CasoCodigo: "PAEFI-" + id.String()[:8], Violacoes: []string{"violencia_fisica"}}, id)
+		},
+		"GetPaefiCaso": func(db database.DBTX) error { _, err := r.GetPaefiCaso(ctx, db, id, true); return err },
+		"UpdatePaefiCaso": func(db database.DBTX) error {
+			return r.UpdatePaefiCaso(ctx, db, domain.PaefiCaso{ID: id})
+		},
+		"PaefiCasosNaArea": func(db database.DBTX) error {
+			_, err := r.PaefiCasosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertMseMedida": func(db database.DBTX) error {
+			return r.InsertMseMedida(ctx, db, domain.MseMedida{ID: id, AtoInfracional: "furto", TipoMedida: domain.MseTipoLiberdadeAssistida}, id)
+		},
+		"GetMseMedida": func(db database.DBTX) error { _, err := r.GetMseMedida(ctx, db, id, true); return err },
+		"UpdateMseMedida": func(db database.DBTX) error {
+			return r.UpdateMseMedida(ctx, db, domain.MseMedida{ID: id})
+		},
+		"MseMedidasNaArea": func(db database.DBTX) error {
+			_, err := r.MseMedidasNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertNotificacaoCreas": func(db database.DBTX) error {
+			return r.InsertNotificacaoCreas(ctx, db, domain.NotificacaoCreas{ID: id, Protocolo: "OF-" + id.String()[:8], OrigemEntidade: "ministerio_publico", Assunto: "assunto"}, id)
+		},
+		"GetNotificacaoCreas": func(db database.DBTX) error { _, err := r.GetNotificacaoCreas(ctx, db, id, true); return err },
+		"UpdateNotificacaoCreas": func(db database.DBTX) error {
+			return r.UpdateNotificacaoCreas(ctx, db, domain.NotificacaoCreas{ID: id})
+		},
+		"NotificacoesCreasNaArea": func(db database.DBTX) error {
+			_, err := r.NotificacoesCreasNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertAcolhimento": func(db database.DBTX) error {
+			return r.InsertAcolhimento(ctx, db, domain.Acolhimento{ID: id, Sexo: "masculino", Motivos: []string{"outro"}}, id)
+		},
+		"GetAcolhimento": func(db database.DBTX) error { _, err := r.GetAcolhimento(ctx, db, id, true); return err },
+		"UpdateAcolhimento": func(db database.DBTX) error {
+			return r.UpdateAcolhimento(ctx, db, domain.Acolhimento{ID: id, Motivos: []string{"outro"}})
+		},
+		"AcolhimentosNaArea": func(db database.DBTX) error {
+			_, err := r.AcolhimentosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertIrmao": func(db database.DBTX) error {
+			return r.InsertIrmao(ctx, db, domain.Irmao{ID: id, AcolhimentoID: id, Nome: "Irmão Teste"})
+		},
+		"ListIrmaos": func(db database.DBTX) error { _, err := r.ListIrmaos(ctx, db, id); return err },
+		"GetIrmao":   func(db database.DBTX) error { _, err := r.GetIrmao(ctx, db, id); return err },
+		"DeleteIrmao": func(db database.DBTX) error {
+			return r.DeleteIrmao(ctx, db, id)
+		},
+		"InsertDiagnostico": func(db database.DBTX) error {
+			return r.InsertDiagnostico(ctx, db, domain.Diagnostico{ID: id, AcolhimentoID: id, Categoria: "doenca", Diagnostico: "diagnóstico teste"})
+		},
+		"ListDiagnosticos": func(db database.DBTX) error { _, err := r.ListDiagnosticos(ctx, db, id); return err },
+		"GetDiagnostico":   func(db database.DBTX) error { _, err := r.GetDiagnostico(ctx, db, id); return err },
+		"DeleteDiagnostico": func(db database.DBTX) error {
+			return r.DeleteDiagnostico(ctx, db, id)
+		},
+		"InsertVisitante": func(db database.DBTX) error {
+			return r.InsertVisitante(ctx, db, domain.Visitante{ID: id, AcolhimentoID: id, NomeVisitante: "Visitante Teste", DataVisita: time.Now()}, id)
+		},
+		"ListVisitantes": func(db database.DBTX) error { _, err := r.ListVisitantes(ctx, db, id); return err },
+		"GetVisitante":   func(db database.DBTX) error { _, err := r.GetVisitante(ctx, db, id); return err },
+		"DeleteVisitante": func(db database.DBTX) error {
+			return r.DeleteVisitante(ctx, db, id)
+		},
+		"InsertTermo": func(db database.DBTX) error {
+			return r.InsertTermo(ctx, db, domain.Termo{ID: id, AcolhimentoID: id, TipoTermo: "passeio", DataTermo: time.Now()}, id)
+		},
+		"ListTermos": func(db database.DBTX) error { _, err := r.ListTermos(ctx, db, id); return err },
+		"GetTermo":   func(db database.DBTX) error { _, err := r.GetTermo(ctx, db, id); return err },
+		"DeleteTermo": func(db database.DBTX) error {
+			return r.DeleteTermo(ctx, db, id)
+		},
+		"UpsertPiaFicha": func(db database.DBTX) error {
+			return r.UpsertPiaFicha(ctx, db, domain.PiaFicha{AcolhimentoID: id}, id)
+		},
+		"GetPiaFicha": func(db database.DBTX) error { _, err := r.GetPiaFicha(ctx, db, id); return err },
+		"InsertPiaMeta": func(db database.DBTX) error {
+			return r.InsertPiaMeta(ctx, db, domain.PiaMeta{ID: id, AcolhimentoID: id, Tipo: domain.PiaMetaPlano, Descricao: "descrição teste"}, id)
+		},
+		"ListPiaMetas": func(db database.DBTX) error { _, err := r.ListPiaMetas(ctx, db, id); return err },
+		"GetPiaMeta":   func(db database.DBTX) error { _, err := r.GetPiaMeta(ctx, db, id); return err },
+		"UpdatePiaMeta": func(db database.DBTX) error {
+			return r.UpdatePiaMeta(ctx, db, domain.PiaMeta{ID: id})
+		},
+		"DeletePiaMeta": func(db database.DBTX) error {
+			return r.DeletePiaMeta(ctx, db, id)
+		},
+		"InsertDocumento": func(db database.DBTX) error {
+			return r.InsertDocumento(ctx, db, domain.DocumentoCasaAbrigo{ID: id, AcolhimentoID: id, Tipo: "acolhido", NomeOriginal: "doc.pdf", ObjectKey: "key-" + id.String()}, id)
+		},
+		"GetDocumento": func(db database.DBTX) error { _, err := r.GetDocumento(ctx, db, id); return err },
+		"UpdateDocumentoStatus": func(db database.DBTX) error {
+			return r.UpdateDocumentoStatus(ctx, db, id, "ready", 8, "application/pdf")
+		},
+		"ListDocumentos": func(db database.DBTX) error { _, err := r.ListDocumentos(ctx, db, id); return err },
+		"DeleteDocumento": func(db database.DBTX) error {
+			return r.DeleteDocumento(ctx, db, id)
+		},
 	}
 	for name, call := range calls {
 		if err := call(dbtest.Fail{}); !errors.Is(err, dbtest.ErrInjected) {
@@ -59,14 +228,23 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 	}
 	// Linhas ilegíveis e conexão perdida no meio da leitura.
 	for _, name := range []string{"GetUnidade", "ListUnidades", "GetCidadao", "BuscarPorDocumento", "BuscarPorNome",
-		"HistoricoNaArea", "ProximaSenha", "GetAtendimento", "ProximoAguardando", "Fila", "AtendimentosNaArea", "Painel",
-		"RegistrosNaArea"} {
+		"HistoricoNaArea", "ProximaSenha", "GetAtendimento", "ProximoAguardando", "Fila", "AtendimentosNaArea", "Painel", "Rma",
+		"RegistrosNaArea", "GetPedido", "ListPedidosPendentes", "GetContatoRedeApoio", "ListContatosRedeApoio",
+		"GetBeneficio", "BeneficiosNaArea", "GetEncaminhamento", "EncaminhamentosDoCidadaoNaArea", "ListEncaminhamentosPendentes",
+		"GetPaifVinculo", "PaifVinculosNaArea", "GetConselhoAtendimento", "ConselhoAtendimentosNaArea",
+		"GetPaefiCaso", "PaefiCasosNaArea", "GetMseMedida", "MseMedidasNaArea", "GetNotificacaoCreas", "NotificacoesCreasNaArea",
+		"GetAcolhimento", "AcolhimentosNaArea", "ListIrmaos", "GetIrmao", "ListDiagnosticos", "GetDiagnostico",
+		"ListVisitantes", "GetVisitante", "ListTermos", "GetTermo", "GetPiaFicha", "ListPiaMetas", "GetPiaMeta",
+		"GetDocumento", "ListDocumentos"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
 	}
 	for _, name := range []string{"ListUnidades", "BuscarPorDocumento", "BuscarPorNome", "HistoricoNaArea", "Fila",
-		"AtendimentosNaArea", "Painel", "RegistrosNaArea"} {
+		"AtendimentosNaArea", "Painel", "Rma", "RegistrosNaArea", "ListPedidosPendentes", "ListContatosRedeApoio", "BeneficiosNaArea",
+		"EncaminhamentosDoCidadaoNaArea", "ListEncaminhamentosPendentes", "PaifVinculosNaArea", "ConselhoAtendimentosNaArea",
+		"PaefiCasosNaArea", "MseMedidasNaArea", "NotificacoesCreasNaArea", "AcolhimentosNaArea", "ListIrmaos", "ListDiagnosticos",
+		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}
@@ -90,5 +268,1112 @@ func TestRepositoryNotFound(t *testing.T) {
 	}
 	if _, err := r.ProximoAguardando(ctx, pool, id, "2026-01-01", []string{"social"}); !errors.Is(err, domain.ErrFilaVazia) {
 		t.Errorf("ProximoAguardando: %v", err)
+	}
+	if _, err := r.GetPedido(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPedido: %v", err)
+	}
+	if _, err := r.GetContatoRedeApoio(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetContatoRedeApoio: %v", err)
+	}
+	if _, err := r.GetBeneficio(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetBeneficio: %v", err)
+	}
+	if _, err := r.GetEncaminhamento(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetEncaminhamento: %v", err)
+	}
+	if _, err := r.GetPaifVinculo(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPaifVinculo: %v", err)
+	}
+	if _, err := r.GetConselhoAtendimento(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetConselhoAtendimento: %v", err)
+	}
+	if _, err := r.GetPaefiCaso(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPaefiCaso: %v", err)
+	}
+	if _, err := r.GetMseMedida(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetMseMedida: %v", err)
+	}
+	if _, err := r.GetNotificacaoCreas(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetNotificacaoCreas: %v", err)
+	}
+	if _, err := r.GetAcolhimento(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetAcolhimento: %v", err)
+	}
+	if _, err := r.GetIrmao(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetIrmao: %v", err)
+	}
+	if _, err := r.GetDiagnostico(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetDiagnostico: %v", err)
+	}
+	if _, err := r.GetVisitante(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetVisitante: %v", err)
+	}
+	if _, err := r.GetTermo(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetTermo: %v", err)
+	}
+	if _, err := r.GetPiaFicha(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPiaFicha: %v", err)
+	}
+	if _, err := r.GetPiaMeta(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPiaMeta: %v", err)
+	}
+	if _, err := r.GetDocumento(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetDocumento: %v", err)
+	}
+}
+
+// Round-trip dos pedidos do titular: grava, lista como pendente, decide, e
+// a decisão fica congelada (o trigger de imutabilidade bloqueia decidir
+// de novo).
+func TestPedidosTitularRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+
+	// Sem CPF/NIS (só nascimento + mãe): evita colidir com o índice único de
+	// outro teste do pacote — mesmo truque de cenario.cadastrar.
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Pessoa Teste",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	p := domain.PedidoTitular{ID: uuid.New(), CidadaoID: cid, Tipo: domain.PedidoAnonimizacao,
+		Status: domain.PedidoStatusPendente, JustificativaSolicitacao: "titular pediu para ser esquecido",
+		SolicitadoPor: autor, CreatedAt: time.Now()}
+	if err := r.InsertPedido(ctx, pool, p); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetPedido(ctx, pool, p.ID, false)
+	if err != nil || got.Status != domain.PedidoStatusPendente || got.CidadaoID != cid || got.SolicitadoPorNome == "" ||
+		got.CidadaoNome != "Pessoa Teste" {
+		t.Fatalf("GetPedido: %+v, %v", got, err)
+	}
+
+	pend, err := r.ListPedidosPendentes(ctx, pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	achou := false
+	for _, x := range pend {
+		achou = achou || x.ID == p.ID
+	}
+	if !achou {
+		t.Error("pedido pendente não apareceu na lista")
+	}
+
+	if err := r.DecidirPedido(ctx, pool, p.ID, domain.PedidoStatusConcluido, autor, "aprovado", time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	decidido, err := r.GetPedido(ctx, pool, p.ID, false)
+	if err != nil || decidido.Status != domain.PedidoStatusConcluido || decidido.JustificativaDecisao != "aprovado" || decidido.DecididoPor == nil {
+		t.Fatalf("GetPedido após decisão: %+v, %v", decidido, err)
+	}
+	if err := r.DecidirPedido(ctx, pool, p.ID, domain.PedidoStatusNegado, autor, "tentando mudar de novo", time.Now()); err == nil {
+		t.Error("pedido já decidido deveria ser imutável (trigger)")
+	}
+}
+
+// A anonimização zera os campos identificadores sem tocar no histórico do
+// serviço (sempras_atendimentos/sempras_registros são o registro do
+// atendimento prestado, não "dado do titular") nem violar a CHECK de
+// identificação da tabela (data_nascimento e nome_mae ficam preenchidos).
+func TestAnonimizarCidadao(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Pessoa Anonimizável", CPF: "52998224725",
+		NIS: "12345678901", DataNascimento: "1990-01-01", NomeMae: "Mãe Original", Telefone: "66999990000",
+		Endereco: "Rua X", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+	atend := domain.Atendimento{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Dia: "2026-01-01", Senha: 1,
+		Tipo: domain.TipoSocial, Status: domain.StatusAguardando, CreatedAt: time.Now()}
+	if err := r.InsertAtendimento(ctx, pool, atend); err != nil {
+		t.Fatal(err)
+	}
+	reg := domain.Registro{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Tipo: domain.TipoSocial,
+		Texto: "evolução antes da anonimização", AutorID: &autor, CreatedAt: time.Now()}
+	if err := r.InsertRegistro(ctx, pool, reg); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := r.AnonimizarCidadao(ctx, pool, cid); err != nil {
+		t.Fatal(err)
+	}
+
+	depois, err := r.GetCidadao(ctx, pool, cid, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if depois.Nome != "Munícipe anonimizado" || depois.NomeSocial != "" || depois.CPF != "" || depois.NIS != "" ||
+		depois.Telefone != "" || depois.Endereco != "" {
+		t.Errorf("campos não zerados: %+v", depois)
+	}
+	// Preservados pela CHECK de identificação da tabela (cpf/nis nulos exigem
+	// data_nascimento + nome_mae não vazio).
+	if depois.DataNascimento != "1990-01-01" || depois.NomeMae == "" {
+		t.Errorf("identificação mínima deveria sobreviver: %+v", depois)
+	}
+
+	// Histórico do serviço intacto.
+	area := domain.Area{All: true}
+	atendimentos, err := r.AtendimentosNaArea(ctx, pool, cid, area)
+	if err != nil || len(atendimentos) != 1 || atendimentos[0].ID != atend.ID || atendimentos[0].Status != domain.StatusAguardando {
+		t.Errorf("atendimento mudou: %+v, %v", atendimentos, err)
+	}
+	registros, err := r.RegistrosNaArea(ctx, pool, cid, area)
+	if err != nil || len(registros) != 1 || registros[0].Texto != reg.Texto {
+		t.Errorf("registro mudou: %+v, %v", registros, err)
+	}
+}
+
+// Round-trip da rede de apoio: grava, lista, remove.
+func TestRedeApoioRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Pessoa Rede de Apoio",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	c := domain.ContatoRedeApoio{ID: uuid.New(), CidadaoID: cid, Nome: "Maria", Parentesco: "Irmã",
+		Telefone: "66999990000", CreatedAt: time.Now()}
+	if err := r.InsertContatoRedeApoio(ctx, pool, c, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetContatoRedeApoio(ctx, pool, c.ID)
+	if err != nil || got.Nome != "Maria" || got.CidadaoID != cid {
+		t.Fatalf("GetContatoRedeApoio: %+v, %v", got, err)
+	}
+	lista, err := r.ListContatosRedeApoio(ctx, pool, cid)
+	if err != nil || len(lista) != 1 || lista[0].ID != c.ID {
+		t.Fatalf("ListContatosRedeApoio: %+v, %v", lista, err)
+	}
+
+	if err := r.DeleteContatoRedeApoio(ctx, pool, c.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.GetContatoRedeApoio(ctx, pool, c.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("deveria ter sumido: %v", err)
+	}
+}
+
+// Round-trip do benefício eventual: grava, lista na área, decide.
+func TestBeneficioRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Pessoa Benefício",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	b := domain.Beneficio{ID: uuid.New(), BeneficiarioID: cid, UnidadeID: un, Tipo: domain.BeneficioCestaBasica,
+		Quantidade: 2, Status: domain.BeneficioStatusSolicitado, DataSolicitacao: time.Now()}
+	if err := r.InsertBeneficio(ctx, pool, b, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetBeneficio(ctx, pool, b.ID, false)
+	if err != nil || got.Status != domain.BeneficioStatusSolicitado || got.Quantidade != 2 {
+		t.Fatalf("GetBeneficio: %+v, %v", got, err)
+	}
+
+	area := domain.Area{Unidades: []uuid.UUID{un}}
+	lista, err := r.BeneficiosNaArea(ctx, pool, cid, area)
+	if err != nil || len(lista) != 1 || lista[0].ID != b.ID {
+		t.Fatalf("BeneficiosNaArea: %+v, %v", lista, err)
+	}
+	if _, err := r.BeneficiosNaArea(ctx, pool, cid, domain.Area{}); err != nil {
+		t.Fatal(err)
+	} else if lista, _ := r.BeneficiosNaArea(ctx, pool, cid, domain.Area{}); len(lista) != 0 {
+		t.Errorf("fora da área não deveria aparecer: %+v", lista)
+	}
+
+	now := time.Now()
+	got.Status, got.MotivoDecisao, got.TecnicoDecisaoID, got.DataDecisao = domain.BeneficioStatusConcedido, "", &autor, &now
+	if err := r.UpdateBeneficio(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	decidido, err := r.GetBeneficio(ctx, pool, b.ID, false)
+	if err != nil || decidido.Status != domain.BeneficioStatusConcedido || decidido.TecnicoDecisaoID == nil {
+		t.Fatalf("GetBeneficio após decisão: %+v, %v", decidido, err)
+	}
+}
+
+// Round-trip do encaminhamento: grava, aparece na fila do destino e na
+// área de quem vê qualquer uma das duas unidades, decide.
+func TestEncaminhamentoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, origem, destino uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "origem-"+sfx).Scan(&origem); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "destino-"+sfx).Scan(&destino); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Pessoa Encaminhada",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	e := domain.Encaminhamento{ID: uuid.New(), CidadaoID: cid, UnidadeOrigemID: origem, UnidadeDestinoID: destino,
+		Motivo: "precisa de acompanhamento especializado", Status: domain.EncaminhamentoStatusPendente, CreatedAt: time.Now()}
+	if err := r.InsertEncaminhamento(ctx, pool, e, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetEncaminhamento(ctx, pool, e.ID, false)
+	if err != nil || got.Status != domain.EncaminhamentoStatusPendente {
+		t.Fatalf("GetEncaminhamento: %+v, %v", got, err)
+	}
+
+	pendentes, err := r.ListEncaminhamentosPendentes(ctx, pool, destino)
+	if err != nil || len(pendentes) != 1 || pendentes[0].ID != e.ID {
+		t.Fatalf("ListEncaminhamentosPendentes: %+v, %v", pendentes, err)
+	}
+
+	// quem só vê a origem, ou só o destino, enxerga o mesmo encaminhamento.
+	for _, un := range []uuid.UUID{origem, destino} {
+		lista, err := r.EncaminhamentosDoCidadaoNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{un}})
+		if err != nil || len(lista) != 1 || lista[0].ID != e.ID {
+			t.Errorf("EncaminhamentosDoCidadaoNaArea(%s): %+v, %v", un, lista, err)
+		}
+	}
+	if lista, err := r.EncaminhamentosDoCidadaoNaArea(ctx, pool, cid, domain.Area{}); err != nil || len(lista) != 0 {
+		t.Errorf("fora da área não deveria aparecer: %+v, %v", lista, err)
+	}
+
+	now := time.Now()
+	got.Status, got.ObservacaoDecisao, got.DecididoPor, got.DecididoEm = domain.EncaminhamentoStatusAceito, "vamos acompanhar", &autor, &now
+	if err := r.UpdateEncaminhamento(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	decidido, err := r.GetEncaminhamento(ctx, pool, e.ID, false)
+	if err != nil || decidido.Status != domain.EncaminhamentoStatusAceito || decidido.DecididoPor == nil {
+		t.Fatalf("GetEncaminhamento após decisão: %+v, %v", decidido, err)
+	}
+	if pendentes, err := r.ListEncaminhamentosPendentes(ctx, pool, destino); err != nil || len(pendentes) != 0 {
+		t.Errorf("decidido não deveria ficar na fila: %+v, %v", pendentes, err)
+	}
+}
+
+// Round-trip do PAIF: grava, lista na área, a constraint única barra um
+// segundo vínculo ativo, exclui, reinclui (um novo vínculo, agora permitido).
+func TestPaifVinculoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Família PAIF",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	v := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
+		ExtremaPobreza: true, SCFVParticipantes: 2, DataInclusao: time.Now()}
+	if err := r.InsertPaifVinculo(ctx, pool, v, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// um segundo vínculo ativo pra mesma família+unidade é rejeitado.
+	v2 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo, DataInclusao: time.Now()}
+	if err := r.InsertPaifVinculo(ctx, pool, v2, autor); !errors.Is(err, domain.ErrPaifJaAtivo) {
+		t.Errorf("segundo vínculo ativo deveria ser rejeitado: %v", err)
+	}
+
+	got, err := r.GetPaifVinculo(ctx, pool, v.ID, false)
+	if err != nil || got.Status != domain.PaifStatusAtivo || !got.ExtremaPobreza || got.SCFVParticipantes != 2 {
+		t.Fatalf("GetPaifVinculo: %+v, %v", got, err)
+	}
+	lista, err := r.PaifVinculosNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != v.ID {
+		t.Fatalf("PaifVinculosNaArea: %+v, %v", lista, err)
+	}
+
+	now := time.Now()
+	got.Status, got.MotivoExclusao, got.ExcluidoPor, got.DataExclusao = domain.PaifStatusExcluido, "família se mudou", &autor, &now
+	if err := r.UpdatePaifVinculo(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	excluido, err := r.GetPaifVinculo(ctx, pool, v.ID, false)
+	if err != nil || excluido.Status != domain.PaifStatusExcluido {
+		t.Fatalf("GetPaifVinculo após exclusão: %+v, %v", excluido, err)
+	}
+
+	// depois de excluído, um novo vínculo ativo é aceito (reinclusão).
+	v3 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo, DataInclusao: time.Now()}
+	if err := r.InsertPaifVinculo(ctx, pool, v3, autor); err != nil {
+		t.Errorf("reinclusão após exclusão deveria ser aceita: %v", err)
+	}
+}
+
+// Round-trip do Conselho Tutelar: grava, lista na área da criança,
+// transita (aplicar_medida), confere a persistência, e o protocolo é
+// único (um segundo atendimento com o mesmo protocolo é rejeitado).
+func TestConselhoAtendimentoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	crianca := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Teste",
+		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	c, err := domain.NovoConselhoAtendimento(crianca, un, "Responsável Teste", "", "", "escola", "evasao_escolar", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.CreatedAt = time.Now()
+	if err := r.InsertConselhoAtendimento(ctx, pool, c, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// protocolo é único: um segundo atendimento com o mesmo protocolo é rejeitado.
+	dup, err := domain.NovoConselhoAtendimento(crianca, un, "", "", "", "escola", "evasao_escolar", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dup.Protocolo, dup.CreatedAt = c.Protocolo, time.Now()
+	if err := r.InsertConselhoAtendimento(ctx, pool, dup, autor); err == nil {
+		t.Error("protocolo duplicado deveria ser rejeitado")
+	}
+
+	got, err := r.GetConselhoAtendimento(ctx, pool, c.ID, false)
+	if err != nil || got.Status != domain.ConselhoStatusEmAndamento || got.OrigemDemanda != "escola" {
+		t.Fatalf("GetConselhoAtendimento: %+v, %v", got, err)
+	}
+
+	lista, err := r.ConselhoAtendimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != c.ID {
+		t.Fatalf("ConselhoAtendimentosNaArea: %+v, %v", lista, err)
+	}
+	// unidade diferente da área não vê o atendimento.
+	foraDaArea, err := r.ConselhoAtendimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("ConselhoAtendimentosNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	conselheiro := autor
+	if err := got.Transitar("aplicar_medida", "matricula_escolar_obrigatoria", conselheiro, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateConselhoAtendimento(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	atualizado, err := r.GetConselhoAtendimento(ctx, pool, c.ID, false)
+	if err != nil || atualizado.Status != domain.ConselhoStatusMedidaAplicada ||
+		atualizado.MedidaProtetiva != "matricula_escolar_obrigatoria" || atualizado.ConselheiroID == nil {
+		t.Fatalf("GetConselhoAtendimento após transição: %+v, %v", atualizado, err)
+	}
+}
+
+// Round-trip do PAEFI: grava, lista na área do munícipe, marca o PIA
+// elaborado e encerra o caso.
+func TestPaefiCasoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Família PAEFI",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	p, err := domain.NovoPaefiCaso(cid, un, []string{"violencia_fisica", "negligencia"}, "dois filhos menores", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.DataAbertura = time.Now()
+	if err := r.InsertPaefiCaso(ctx, pool, p, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetPaefiCaso(ctx, pool, p.ID, false)
+	if err != nil || got.Status != domain.PaefiStatusEmAcompanhamento || len(got.Violacoes) != 2 || got.PiaElaborado {
+		t.Fatalf("GetPaefiCaso: %+v, %v", got, err)
+	}
+
+	lista, err := r.PaefiCasosNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != p.ID {
+		t.Fatalf("PaefiCasosNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.PaefiCasosNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("PaefiCasosNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	if err := got.MarcarPiaElaborado(autor); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdatePaefiCaso(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	comPia, err := r.GetPaefiCaso(ctx, pool, p.ID, false)
+	if err != nil || !comPia.PiaElaborado {
+		t.Fatalf("GetPaefiCaso após PIA: %+v, %v", comPia, err)
+	}
+
+	if err := comPia.Encerrar("objetivos_alcancados", autor, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdatePaefiCaso(ctx, pool, comPia); err != nil {
+		t.Fatal(err)
+	}
+	encerrado, err := r.GetPaefiCaso(ctx, pool, p.ID, false)
+	if err != nil || encerrado.Status != domain.PaefiStatusDesligado || encerrado.MotivoEncerramento != "objetivos_alcancados" || encerrado.DataEncerramento == nil {
+		t.Fatalf("GetPaefiCaso após encerrar: %+v, %v", encerrado, err)
+	}
+}
+
+// Round-trip da MSE: grava, lista na área do adolescente e conclui o
+// acompanhamento.
+func TestMseMedidaRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	adolescente := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: adolescente, Nome: "Adolescente MSE",
+		DataNascimento: "2009-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	m, err := domain.NovaMseMedida(adolescente, un, "123/2026", "Vara da Infância", "furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.DataInicio = time.Now()
+	if err := r.InsertMseMedida(ctx, pool, m, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetMseMedida(ctx, pool, m.ID, false)
+	if err != nil || got.Status != domain.MseStatusEmCumprimento || got.TipoMedida != domain.MseTipoLiberdadeAssistida {
+		t.Fatalf("GetMseMedida: %+v, %v", got, err)
+	}
+
+	lista, err := r.MseMedidasNaArea(ctx, pool, adolescente, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != m.ID {
+		t.Fatalf("MseMedidasNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.MseMedidasNaArea(ctx, pool, adolescente, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("MseMedidasNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	if err := got.Concluir(domain.MseStatusCumprida, autor, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateMseMedida(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	concluida, err := r.GetMseMedida(ctx, pool, m.ID, false)
+	if err != nil || concluida.Status != domain.MseStatusCumprida || concluida.DataConclusao == nil {
+		t.Fatalf("GetMseMedida após conclusão: %+v, %v", concluida, err)
+	}
+}
+
+// Round-trip das notificações do CREAS: grava, lista na área da vítima e
+// transita (iniciar diligência, responder).
+func TestNotificacaoCreasRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	vitima := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: vitima, Nome: "Vítima Notificação",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	n, err := domain.NovaNotificacaoCreas(vitima, un, "ministerio_publico", "requisição de informações sobre acompanhamento", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n.DataEntrada = time.Now()
+	if err := r.InsertNotificacaoCreas(ctx, pool, n, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// protocolo é único: uma segunda notificação com o mesmo protocolo é rejeitada.
+	dup := n
+	dup.ID = uuid.New()
+	if err := r.InsertNotificacaoCreas(ctx, pool, dup, autor); err == nil {
+		t.Error("protocolo duplicado deveria ser rejeitado")
+	}
+
+	got, err := r.GetNotificacaoCreas(ctx, pool, n.ID, false)
+	if err != nil || got.Status != domain.NotificacaoStatusRecebida || got.OrigemEntidade != "ministerio_publico" {
+		t.Fatalf("GetNotificacaoCreas: %+v, %v", got, err)
+	}
+
+	lista, err := r.NotificacoesCreasNaArea(ctx, pool, vitima, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != n.ID {
+		t.Fatalf("NotificacoesCreasNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.NotificacoesCreasNaArea(ctx, pool, vitima, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("NotificacoesCreasNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	if err := got.Transitar("responder", "família está em acompanhamento ativo pelo PAEFI", autor, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateNotificacaoCreas(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	respondida, err := r.GetNotificacaoCreas(ctx, pool, n.ID, false)
+	if err != nil || respondida.Status != domain.NotificacaoStatusRespondida || respondida.DataResposta == nil {
+		t.Fatalf("GetNotificacaoCreas após responder: %+v, %v", respondida, err)
+	}
+}
+
+// Round-trip da Casa Abrigo: grava o acolhimento, lista na área do
+// munícipe, adiciona irmão e diagnóstico, desliga e confirma que a
+// edição geral (Atualizar) nunca toca status/desligamento.
+func TestAcolhimentoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	crianca := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
+		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	a, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"negligencia_abandono", "situacao_rua"},
+		"Mãe da Criança", "", "66999990000", "mãe", "", "", "", "", "", "", false, false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.DataEntrada = time.Now()
+	if err := r.InsertAcolhimento(ctx, pool, a, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetAcolhimento(ctx, pool, a.ID, false)
+	if err != nil || got.Status != domain.AcolhimentoStatusAcolhido || len(got.Motivos) != 2 {
+		t.Fatalf("GetAcolhimento: %+v, %v", got, err)
+	}
+
+	lista, err := r.AcolhimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != a.ID {
+		t.Fatalf("AcolhimentosNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.AcolhimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("AcolhimentosNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	irmao, err := domain.NovoIrmao(a.ID, "Irmão da Criança", nil, true, "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	irmao.CreatedAt = time.Now()
+	if err := r.InsertIrmao(ctx, pool, irmao); err != nil {
+		t.Fatal(err)
+	}
+	irmaos, err := r.ListIrmaos(ctx, pool, a.ID)
+	if err != nil || len(irmaos) != 1 || irmaos[0].Nome != "Irmão da Criança" {
+		t.Fatalf("ListIrmaos: %+v, %v", irmaos, err)
+	}
+	if err := r.DeleteIrmao(ctx, pool, irmao.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.GetIrmao(ctx, pool, irmao.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("irmão deveria ter sido removido: %v", err)
+	}
+
+	diag, err := domain.NovoDiagnostico(a.ID, "transtorno", "TEA nível 1", "suporte leve")
+	if err != nil {
+		t.Fatal(err)
+	}
+	diag.CreatedAt = time.Now()
+	if err := r.InsertDiagnostico(ctx, pool, diag); err != nil {
+		t.Fatal(err)
+	}
+	diagnosticos, err := r.ListDiagnosticos(ctx, pool, a.ID)
+	if err != nil || len(diagnosticos) != 1 || diagnosticos[0].Diagnostico != "TEA nível 1" {
+		t.Fatalf("ListDiagnosticos: %+v, %v", diagnosticos, err)
+	}
+	if err := r.DeleteDiagnostico(ctx, pool, diag.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// Atualizar regrava só campos descritivos — status/desligamento ficam intactos.
+	if err := got.Atualizar("feminino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "atualizado"); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateAcolhimento(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	atualizado, err := r.GetAcolhimento(ctx, pool, a.ID, false)
+	if err != nil || atualizado.Status != domain.AcolhimentoStatusAcolhido || atualizado.Observacoes != "atualizado" || atualizado.Sexo != "feminino" {
+		t.Fatalf("GetAcolhimento após atualizar: %+v, %v", atualizado, err)
+	}
+
+	if err := atualizado.Desligar("família reestruturada, retorno ao convívio", autor, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateAcolhimento(ctx, pool, atualizado); err != nil {
+		t.Fatal(err)
+	}
+	desligado, err := r.GetAcolhimento(ctx, pool, a.ID, false)
+	if err != nil || desligado.Status != domain.AcolhimentoStatusDesligado || desligado.DesligadoPor == nil {
+		t.Fatalf("GetAcolhimento após desligar: %+v, %v", desligado, err)
+	}
+}
+
+// Round-trip do RMA/MDS: grava um pouco de cada entidade do módulo
+// dentro e fora da competência, e confirma que o relatório soma certo
+// — "ativos" é fotografia (não some fora da competência), os demais só
+// contam dentro do intervalo [início, fim).
+func TestRmaRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Família RMA",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	inicio := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	fim := inicio.AddDate(0, 1, 0)
+	dentro := inicio.AddDate(0, 0, 10)
+	fora := inicio.AddDate(0, -1, -5) // mês anterior
+
+	// Atendimentos: um dentro (social) e um fora (psicológico) da competência.
+	if err := r.InsertAtendimento(ctx, pool, domain.Atendimento{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Dia: "2026-10-10",
+		Senha: 1, Tipo: domain.TipoSocial, Status: domain.StatusAguardando, CreatedAt: dentro}); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertAtendimento(ctx, pool, domain.Atendimento{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Dia: "2026-08-10",
+		Senha: 1, Tipo: domain.TipoPsicologico, Status: domain.StatusAguardando, CreatedAt: fora}); err != nil {
+		t.Fatal(err)
+	}
+
+	// PAIF: vínculo ativo (fotografia — entra mesmo tendo sido incluído fora da competência).
+	if err := r.InsertPaifVinculo(ctx, pool, domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
+		ExtremaPobreza: true, BolsaFamilia: true, SCFVParticipantes: 3, DataInclusao: fora}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// Benefício concedido dentro da competência.
+	if err := r.InsertBeneficio(ctx, pool, domain.Beneficio{ID: uuid.New(), BeneficiarioID: cid, UnidadeID: un,
+		Tipo: domain.BeneficioCestaBasica, Quantidade: 1, Status: domain.BeneficioStatusSolicitado, DataSolicitacao: dentro}, autor); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `UPDATE sempras_beneficios SET status = 'concedido', data_decisao = $2 WHERE unidade_id = $1 RETURNING id`,
+		un, dentro).Scan(new(uuid.UUID)); err != nil {
+		t.Fatal(err)
+	}
+
+	// PAEFI: caso aberto dentro da competência, em acompanhamento (ativo).
+	paefi, err := domain.NovoPaefiCaso(cid, un, []string{"negligencia"}, "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	paefi.DataAbertura = dentro
+	if err := r.InsertPaefiCaso(ctx, pool, paefi, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// MSE: medida concluída dentro da competência.
+	mse, err := domain.NovaMseMedida(cid, un, "", "", "ato teste", domain.MseTipoLiberdadeAssistida, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertMseMedida(ctx, pool, mse, autor); err != nil {
+		t.Fatal(err)
+	}
+	if err := mse.Concluir(domain.MseStatusCumprida, autor, dentro); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateMseMedida(ctx, pool, mse); err != nil {
+		t.Fatal(err)
+	}
+
+	// Conselho Tutelar: atendimento registrado dentro da competência.
+	conselho, err := domain.NovoConselhoAtendimento(cid, un, "", "", "", "escola", "evasao_escolar", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	conselho.CreatedAt = dentro
+	if err := r.InsertConselhoAtendimento(ctx, pool, conselho, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// Notificação do CREAS: recebida e respondida dentro da competência.
+	notif, err := domain.NovaNotificacaoCreas(cid, un, "ministerio_publico", "requisição teste", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	notif.DataEntrada = dentro
+	if err := r.InsertNotificacaoCreas(ctx, pool, notif, autor); err != nil {
+		t.Fatal(err)
+	}
+	if err := notif.Transitar("responder", "resposta teste", autor, dentro); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateNotificacaoCreas(ctx, pool, notif); err != nil {
+		t.Fatal(err)
+	}
+
+	// Casa Abrigo: acolhimento ativo com entrada dentro da competência.
+	acolh, err := domain.NovoAcolhimento(cid, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	acolh.DataEntrada = dentro
+	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	// Encaminhamento enviado dentro da competência.
+	if err := r.InsertEncaminhamento(ctx, pool, domain.Encaminhamento{ID: uuid.New(), CidadaoID: cid, UnidadeOrigemID: un,
+		UnidadeDestinoID: unOutra, Motivo: "motivo teste", Status: domain.EncaminhamentoStatusPendente, CreatedAt: dentro}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	rma, err := r.Rma(ctx, pool, []domain.Unidade{{ID: un}}, inicio, fim)
+	if err != nil || len(rma) != 1 {
+		t.Fatalf("Rma: %+v, %v", rma, err)
+	}
+	m := rma[0]
+	switch {
+	case m.Atendimentos != 1 || m.AtendimentosSociais != 1 || m.AtendimentosPsicologicos != 0:
+		t.Errorf("atendimentos (só o de dentro da competência): %+v", m)
+	case m.PaifAtivos != 1 || m.PaifExtremaPobreza != 1 || m.PaifBolsaFamilia != 1 || m.PaifSCFVParticipantes != 3:
+		t.Errorf("PAIF (fotografia, ignora a competência): %+v", m)
+	case m.BeneficiosConcedidosNoMes != 1:
+		t.Errorf("benefícios concedidos no mês: %+v", m)
+	case m.PaefiCasosAtivos != 1 || m.PaefiCasosAbertosNoMes != 1:
+		t.Errorf("PAEFI: %+v", m)
+	case m.MseAtivas != 0 || m.MseConcluidasNoMes != 1:
+		t.Errorf("MSE: %+v", m)
+	case m.ConselhoAtendimentosNoMes != 1:
+		t.Errorf("Conselho Tutelar: %+v", m)
+	case m.CreasNotificacoesRecebidasNoMes != 1 || m.CreasNotificacoesRespondidasNoMes != 1:
+		t.Errorf("notificações do CREAS: %+v", m)
+	case m.CasaAbrigoAcolhidosAtivos != 1 || m.CasaAbrigoEntradasNoMes != 1 || m.CasaAbrigoDesligamentosNoMes != 0:
+		t.Errorf("Casa Abrigo: %+v", m)
+	case m.EncaminhamentosEnviadosNoMes != 1:
+		t.Errorf("encaminhamentos: %+v", m)
+	}
+
+	// Unidade sem nenhum movimento sai zerada, não ausente.
+	semMovimento, err := r.Rma(ctx, pool, []domain.Unidade{{ID: unOutra}}, inicio, fim)
+	if err != nil || len(semMovimento) != 1 || semMovimento[0].Atendimentos != 0 {
+		t.Fatalf("Rma unidade sem movimento: %+v, %v", semMovimento, err)
+	}
+}
+
+// Round-trip de visitantes, termos e PIA da Casa Abrigo: grava, lista,
+// e confirma o upsert do PIA e a conclusão de uma meta.
+func TestVisitanteTermoPiaRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	crianca := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
+		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+	acolh, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	acolh.DataEntrada = time.Now()
+	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	v, err := domain.NovoVisitante(acolh.ID, "Maria Visitante", "", "Tia", time.Now(), "14:00", "16:30", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	v.CreatedAt = time.Now()
+	if err := r.InsertVisitante(ctx, pool, v, autor); err != nil {
+		t.Fatal(err)
+	}
+	visitantes, err := r.ListVisitantes(ctx, pool, acolh.ID)
+	if err != nil || len(visitantes) != 1 || visitantes[0].HoraEntrada != "14:00" || visitantes[0].HoraSaida != "16:30" {
+		t.Fatalf("ListVisitantes: %+v, %v", visitantes, err)
+	}
+	if err := r.DeleteVisitante(ctx, pool, v.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.GetVisitante(ctx, pool, v.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("visitante deveria ter sido removido: %v", err)
+	}
+
+	tm, err := domain.NovoTermo(acolh.ID, "passeio", "Tia Maria", "Tia", "passeio no parque", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	tm.CreatedAt = time.Now()
+	if err := r.InsertTermo(ctx, pool, tm, autor); err != nil {
+		t.Fatal(err)
+	}
+	termos, err := r.ListTermos(ctx, pool, acolh.ID)
+	if err != nil || len(termos) != 1 || termos[0].TipoTermo != "passeio" {
+		t.Fatalf("ListTermos: %+v, %v", termos, err)
+	}
+
+	// PIA ainda não preenchido.
+	if _, err := r.GetPiaFicha(ctx, pool, acolh.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetPiaFicha antes de preencher: %v", err)
+	}
+	pia, err := domain.NovaPiaFicha(acolh.ID, "", "", "Escola Municipal", "", "", true, "", "", "", "", "", "", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pia.AtualizadoEm = time.Now()
+	if err := r.UpsertPiaFicha(ctx, pool, pia, autor); err != nil {
+		t.Fatal(err)
+	}
+	got, err := r.GetPiaFicha(ctx, pool, acolh.ID)
+	if err != nil || got.Escola != "Escola Municipal" || !got.VacinacaoAtualizada {
+		t.Fatalf("GetPiaFicha: %+v, %v", got, err)
+	}
+	// upsert: uma segunda gravação atualiza, não duplica.
+	pia2, err := domain.NovaPiaFicha(acolh.ID, "", "", "Escola Estadual", "", "", false, "", "", "", "", "", "", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pia2.AtualizadoEm = time.Now()
+	if err := r.UpsertPiaFicha(ctx, pool, pia2, autor); err != nil {
+		t.Fatal(err)
+	}
+	atualizada, err := r.GetPiaFicha(ctx, pool, acolh.ID)
+	if err != nil || atualizada.Escola != "Escola Estadual" || atualizada.VacinacaoAtualizada {
+		t.Fatalf("GetPiaFicha após upsert: %+v, %v", atualizada, err)
+	}
+
+	meta, err := domain.NovaPiaMeta(acolh.ID, domain.PiaMetaIntervencao, "reduzir episódios de agressividade", "atendimento semanal", "Psicóloga", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta.CreatedAt = time.Now()
+	if err := r.InsertPiaMeta(ctx, pool, meta, autor); err != nil {
+		t.Fatal(err)
+	}
+	metas, err := r.ListPiaMetas(ctx, pool, acolh.ID)
+	if err != nil || len(metas) != 1 || metas[0].Concluida {
+		t.Fatalf("ListPiaMetas: %+v, %v", metas, err)
+	}
+	metas[0].Concluida = true
+	if err := r.UpdatePiaMeta(ctx, pool, metas[0]); err != nil {
+		t.Fatal(err)
+	}
+	concluida, err := r.GetPiaMeta(ctx, pool, meta.ID)
+	if err != nil || !concluida.Concluida {
+		t.Fatalf("GetPiaMeta após concluir: %+v, %v", concluida, err)
+	}
+	if err := r.DeletePiaMeta(ctx, pool, meta.ID); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Round-trip dos documentos da Casa Abrigo: grava pendente, confirma
+// (tamanho/tipo reais), lista e remove.
+func TestDocumentoCasaAbrigoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	crianca := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
+		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+	acolh, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	acolh.DataEntrada = time.Now()
+	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	d, err := domain.NovoDocumentoCasaAbrigo(acolh.ID, domain.DocumentoTipoAcolhido, "doc.pdf", "sempras/casa-abrigo/"+acolh.ID.String()+"/2026/10/abc.pdf", "application/pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.CreatedAt = time.Now()
+	if err := r.InsertDocumento(ctx, pool, d, autor); err != nil {
+		t.Fatal(err)
+	}
+	got, err := r.GetDocumento(ctx, pool, d.ID)
+	if err != nil || got.Status != domain.DocumentoStatusPending {
+		t.Fatalf("GetDocumento: %+v, %v", got, err)
+	}
+
+	if err := r.UpdateDocumentoStatus(ctx, pool, d.ID, domain.DocumentoStatusReady, 1024, "application/pdf"); err != nil {
+		t.Fatal(err)
+	}
+	confirmado, err := r.GetDocumento(ctx, pool, d.ID)
+	if err != nil || confirmado.Status != domain.DocumentoStatusReady || confirmado.SizeBytes != 1024 {
+		t.Fatalf("GetDocumento após confirmar: %+v, %v", confirmado, err)
+	}
+
+	documentos, err := r.ListDocumentos(ctx, pool, acolh.ID)
+	if err != nil || len(documentos) != 1 || documentos[0].ID != d.ID {
+		t.Fatalf("ListDocumentos: %+v, %v", documentos, err)
+	}
+
+	if err := r.DeleteDocumento(ctx, pool, d.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.GetDocumento(ctx, pool, d.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("documento deveria ter sido removido: %v", err)
 	}
 }

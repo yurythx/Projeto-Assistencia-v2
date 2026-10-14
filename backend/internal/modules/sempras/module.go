@@ -26,7 +26,8 @@ type Module struct {
 
 // New constrói o módulo.
 func New(deps modkit.Deps) *Module {
-	svc := application.NewService(deps.Pool, infrastructure.NewRepository(), deps.Outbox, deps.Hub, deps.Logger)
+	svc := application.NewService(deps.Pool, infrastructure.NewRepository(), deps.Outbox, deps.Hub, deps.Storage,
+		deps.Config.MinIO.Bucket, deps.Config.Upload.MaxFileBytes, deps.Config.Upload.URLExpiry, deps.Logger)
 	return &Module{svc: svc, handlers: transport.NewHandlers(svc, deps.Logger)}
 }
 

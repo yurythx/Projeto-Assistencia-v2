@@ -21,7 +21,9 @@ import (
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/audit"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
 )
 
@@ -58,17 +60,22 @@ var acoes = map[string]string{
 
 // Service orquestra os casos de uso.
 type Service struct {
-	pool   *pgxpool.Pool
-	repo   domain.Repository
-	outbox *outbox.Writer
-	hub    Publisher
-	logger *slog.Logger
-	now    func() time.Time
+	pool         *pgxpool.Pool
+	repo         domain.Repository
+	outbox       *outbox.Writer
+	hub          Publisher
+	store        storage.Provider
+	bucket       string
+	maxDocBytes  int64
+	uploadExpiry time.Duration
+	logger       *slog.Logger
+	now          func() time.Time
 }
 
 // NewService cria o serviço.
-func NewService(pool *pgxpool.Pool, repo domain.Repository, ob *outbox.Writer, hub Publisher, logger *slog.Logger) *Service {
-	return &Service{pool: pool, repo: repo, outbox: ob, hub: hub, logger: logger, now: time.Now}
+func NewService(pool *pgxpool.Pool, repo domain.Repository, ob *outbox.Writer, hub Publisher, store storage.Provider, bucket string, maxDocBytes int64, uploadExpiry time.Duration, logger *slog.Logger) *Service {
+	return &Service{pool: pool, repo: repo, outbox: ob, hub: hub, store: store, bucket: bucket, maxDocBytes: maxDocBytes,
+		uploadExpiry: uploadExpiry, logger: logger, now: time.Now}
 }
 
 // WithClock troca o relógio (testes).
@@ -91,9 +98,12 @@ func MapError(err error) error {
 	case errors.Is(err, domain.ErrForbidden):
 		return apperrors.Forbidden(err.Error())
 	case errors.Is(err, domain.ErrInvalidState), errors.Is(err, domain.ErrFilaVazia), errors.Is(err, domain.ErrJaNaFila),
-		errors.Is(err, domain.ErrDocumentoDuplicado):
+		errors.Is(err, domain.ErrDocumentoDuplicado), errors.Is(err, domain.ErrPedidoDecidido), errors.Is(err, domain.ErrBeneficioEstado),
+		errors.Is(err, domain.ErrEncaminhamentoDecidido), errors.Is(err, domain.ErrPaifJaAtivo), errors.Is(err, domain.ErrPaifJaExcluido),
+		errors.Is(err, domain.ErrConselhoEstado), errors.Is(err, domain.ErrPaefiEstado), errors.Is(err, domain.ErrMseEstado),
+		errors.Is(err, domain.ErrNotificacaoEstado), errors.Is(err, domain.ErrAcolhimentoEstado):
 		return apperrors.Conflict(err.Error())
-	case errors.Is(err, domain.ErrUnidadeInativa), errors.Is(err, domain.ErrAtendimentoOutro):
+	case errors.Is(err, domain.ErrUnidadeInativa), errors.Is(err, domain.ErrAtendimentoOutro), errors.Is(err, domain.ErrMesmaUnidade):
 		return apperrors.Validation(err.Error())
 	}
 	return err
@@ -220,8 +230,14 @@ func (s *Service) Cadastrar(ctx context.Context, identity auth.Identity, in doma
 	return c, nil
 }
 
-// Atualizar regrava o cadastro (auditoria com os campos alterados).
+// Atualizar regrava o cadastro (auditoria com os campos alterados). Os 4
+// perfis do módulo podem editar (ROADMAP_SEMPRAS.md, matriz de acesso) —
+// o cadastro não é de uma unidade, então o gate é "alguma permissão do
+// módulo", igual ao de Prontuario/Painel, não uma unidade específica.
 func (s *Service) Atualizar(ctx context.Context, identity auth.Identity, id uuid.UUID, in domain.CidadaoInput) (domain.Cidadao, error) {
+	if domain.AreaDe(identity, domain.TodasAsPermissoes...).Vazia() {
+		return domain.Cidadao{}, domain.ErrForbidden
+	}
 	now := s.now()
 	c, err := in.Normalizar(now)
 	if err != nil {
@@ -251,6 +267,98 @@ func (s *Service) Cidadao(ctx context.Context, id uuid.UUID) (domain.Cidadao, er
 	return s.repo.GetCidadao(ctx, s.pool, id, false)
 }
 
+// montarProntuario carrega cadastro, atendimentos e evoluções da área de
+// identity, ocultando o texto dos registros psicológicos sem sigilo (§5).
+// Compartilhado por Prontuario (leitura de trabalho) e SolicitarAcesso
+// (exercício do direito de acesso, §8) — mesmos dados, auditoria diferente.
+func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth.Identity, id uuid.UUID, area domain.Area) (domain.Prontuario, error) {
+	var p domain.Prontuario
+	var err error
+	if p.Cidadao, err = s.repo.GetCidadao(ctx, tx, id, false); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.Atendimentos, err = s.repo.AtendimentosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.Registros, err = s.repo.RegistrosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.RedeApoio, err = s.repo.ListContatosRedeApoio(ctx, tx, id); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.Beneficios, err = s.repo.BeneficiosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.Encaminhamentos, err = s.repo.EncaminhamentosDoCidadaoNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.PaifVinculos, err = s.repo.PaifVinculosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.ConselhoAtendimentos, err = s.repo.ConselhoAtendimentosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.PaefiCasos, err = s.repo.PaefiCasosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.MseMedidas, err = s.repo.MseMedidasNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.NotificacoesCreas, err = s.repo.NotificacoesCreasNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.CasaAbrigoAcolhimentos, err = s.repo.AcolhimentosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	for i := range p.CasaAbrigoAcolhimentos {
+		id := p.CasaAbrigoAcolhimentos[i].ID
+		if p.CasaAbrigoAcolhimentos[i].Irmaos, err = s.repo.ListIrmaos(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		if p.CasaAbrigoAcolhimentos[i].Diagnosticos, err = s.repo.ListDiagnosticos(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		if p.CasaAbrigoAcolhimentos[i].Visitantes, err = s.repo.ListVisitantes(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		if p.CasaAbrigoAcolhimentos[i].Termos, err = s.repo.ListTermos(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		if p.CasaAbrigoAcolhimentos[i].PiaMetas, err = s.repo.ListPiaMetas(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		if p.CasaAbrigoAcolhimentos[i].Documentos, err = s.repo.ListDocumentos(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+		pia, err := s.repo.GetPiaFicha(ctx, tx, id)
+		switch {
+		case errors.Is(err, domain.ErrNotFound):
+			// PIA ainda não preenchido — fica nil, não é erro.
+		case err != nil:
+			return domain.Prontuario{}, err
+		default:
+			p.CasaAbrigoAcolhimentos[i].Pia = &pia
+		}
+	}
+	unidades := map[uuid.UUID]domain.Unidade{}
+	for i, r := range p.Registros {
+		if r.Tipo != domain.TipoPsicologico {
+			continue
+		}
+		u, ok := unidades[r.UnidadeID]
+		if !ok {
+			if u, err = s.repo.GetUnidade(ctx, tx, r.UnidadeID); err != nil {
+				return domain.Prontuario{}, err
+			}
+			unidades[r.UnidadeID] = u
+		}
+		if !u.PodePsicologia(identity) {
+			p.Registros[i] = r.Ocultar()
+		}
+	}
+	return p, nil
+}
+
 // Prontuario é a ficha: cadastro, atendimentos e evoluções da área de quem
 // consulta. Toda abertura é auditada (ADR 030 §6) — sem auditoria, sem
 // ficha. Registros psicológicos sem o sigilo saem sem o texto (§5).
@@ -262,30 +370,8 @@ func (s *Service) Prontuario(ctx context.Context, identity auth.Identity, id uui
 	var p domain.Prontuario
 	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
 		var err error
-		if p.Cidadao, err = s.repo.GetCidadao(ctx, tx, id, false); err != nil {
+		if p, err = s.montarProntuario(ctx, tx, identity, id, area); err != nil {
 			return err
-		}
-		if p.Atendimentos, err = s.repo.AtendimentosNaArea(ctx, tx, id, area); err != nil {
-			return err
-		}
-		if p.Registros, err = s.repo.RegistrosNaArea(ctx, tx, id, area); err != nil {
-			return err
-		}
-		unidades := map[uuid.UUID]domain.Unidade{}
-		for i, r := range p.Registros {
-			if r.Tipo != domain.TipoPsicologico {
-				continue
-			}
-			u, ok := unidades[r.UnidadeID]
-			if !ok {
-				if u, err = s.repo.GetUnidade(ctx, tx, r.UnidadeID); err != nil {
-					return err
-				}
-				unidades[r.UnidadeID] = u
-			}
-			if !u.PodePsicologia(identity) {
-				p.Registros[i] = r.Ocultar()
-			}
 		}
 		e := audit.Meta(ctx, "sempras.prontuario.visualizado", "sempras_cidadao", id.String(), nil, nil)
 		e.Metadata = map[string]any{"atendimentos": len(p.Atendimentos), "registros": len(p.Registros)}
@@ -496,6 +582,1277 @@ func (s *Service) Painel(ctx context.Context, identity auth.Identity) ([]domain.
 		return nil, err
 	}
 	return s.repo.Painel(ctx, s.pool, unidades, s.dia())
+}
+
+// AdicionarVisitante registra uma visita recebida pelo acolhido.
+func (s *Service) AdicionarVisitante(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, nomeVisitante, documento, parentesco string, dataVisita time.Time, horaEntrada, horaSaida, observacoes string) (domain.Visitante, error) {
+	v, err := domain.NovoVisitante(acolhimento, nomeVisitante, documento, parentesco, dataVisita, horaEntrada, horaSaida, observacoes)
+	if err != nil {
+		return domain.Visitante{}, err
+	}
+	v.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.InsertVisitante(ctx, tx, v, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.visitante_adicionado", "sempras_casa_abrigo_visitante", v.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Visitante{}, err
+	}
+	return v, nil
+}
+
+// RemoverVisitante remove uma visita registrada por engano.
+func (s *Service) RemoverVisitante(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		v, err := s.repo.GetVisitante(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, v.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.DeleteVisitante(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.visitante_removido", "sempras_casa_abrigo_visitante", id.String(), nil,
+			map[string]any{"acolhimento_id": v.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+}
+
+// RegistrarTermo registra um termo de advertência, passeio ou saída.
+func (s *Service) RegistrarTermo(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, tipoTermo, responsavelRetirada, parentescoResponsavel, motivoObservacao string, dataTermo time.Time) (domain.Termo, error) {
+	t, err := domain.NovoTermo(acolhimento, tipoTermo, responsavelRetirada, parentescoResponsavel, motivoObservacao, dataTermo)
+	if err != nil {
+		return domain.Termo{}, err
+	}
+	t.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.InsertTermo(ctx, tx, t, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.termo_registrado", "sempras_casa_abrigo_termo", t.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento, "tipo_termo": t.TipoTermo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Termo{}, err
+	}
+	return t, nil
+}
+
+// RemoverTermo remove um termo registrado por engano.
+func (s *Service) RemoverTermo(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		t, err := s.repo.GetTermo(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, t.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.DeleteTermo(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.termo_removido", "sempras_casa_abrigo_termo", id.String(), nil,
+			map[string]any{"acolhimento_id": t.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+}
+
+// PiaFichaInput agrupa os campos da ficha 1:1 do PIA (saúde/família/rotina).
+type PiaFichaInput struct {
+	MatriculaEscolar, SerieEscolar, Escola, Medicamentos, Alergias         string
+	VacinacaoAtualizada                                                    bool
+	CartaoSUS, ContatoFamiliar, VisitasAutorizadas, HistoricoFamiliar      string
+	AtividadesManha, AtividadesTarde, AtividadesNoite, AtividadesFimSemana string
+}
+
+// SalvarPiaFicha grava ou atualiza a ficha do PIA de um acolhimento.
+func (s *Service) SalvarPiaFicha(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, in PiaFichaInput) (domain.PiaFicha, error) {
+	p, err := domain.NovaPiaFicha(acolhimento, in.MatriculaEscolar, in.SerieEscolar, in.Escola, in.Medicamentos, in.Alergias,
+		in.VacinacaoAtualizada, in.CartaoSUS, in.ContatoFamiliar, in.VisitasAutorizadas, in.HistoricoFamiliar,
+		in.AtividadesManha, in.AtividadesTarde, in.AtividadesNoite, in.AtividadesFimSemana)
+	if err != nil {
+		return domain.PiaFicha{}, err
+	}
+	p.AtualizadoEm = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.UpsertPiaFicha(ctx, tx, p, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.pia_atualizado", "sempras_casa_abrigo_pia", acolhimento.String(), nil, nil)
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PiaFicha{}, err
+	}
+	return p, nil
+}
+
+// AdicionarPiaMeta registra uma meta do plano ou da intervenção do PIA.
+func (s *Service) AdicionarPiaMeta(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, tipo, descricao, providencia, responsavel string, prazo *time.Time) (domain.PiaMeta, error) {
+	m, err := domain.NovaPiaMeta(acolhimento, tipo, descricao, providencia, responsavel, prazo)
+	if err != nil {
+		return domain.PiaMeta{}, err
+	}
+	m.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.InsertPiaMeta(ctx, tx, m, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.pia_meta_adicionada", "sempras_casa_abrigo_pia_meta", m.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento, "tipo": m.Tipo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PiaMeta{}, err
+	}
+	return m, nil
+}
+
+// ConcluirPiaMeta marca (ou desmarca) uma meta do PIA como concluída.
+func (s *Service) ConcluirPiaMeta(ctx context.Context, identity auth.Identity, id uuid.UUID, concluida bool) (domain.PiaMeta, error) {
+	var m domain.PiaMeta
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if m, err = s.repo.GetPiaMeta(ctx, tx, id); err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, m.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		m.Concluida = concluida
+		if err := s.repo.UpdatePiaMeta(ctx, tx, m); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.pia_meta_atualizada", "sempras_casa_abrigo_pia_meta", id.String(), nil,
+			map[string]any{"concluida": concluida})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PiaMeta{}, err
+	}
+	return m, nil
+}
+
+// RemoverPiaMeta remove uma meta registrada por engano.
+func (s *Service) RemoverPiaMeta(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		m, err := s.repo.GetPiaMeta(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, m.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.DeletePiaMeta(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.pia_meta_removida", "sempras_casa_abrigo_pia_meta", id.String(), nil,
+			map[string]any{"acolhimento_id": m.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+}
+
+// documentoPrefix é o prefixo dos objetos no bucket — um "subdiretório"
+// por acolhimento (mesmo padrão do módulo tramite, documento anexado a
+// um registro pai).
+func documentoPrefix(acolhimento uuid.UUID) string {
+	return "sempras/casa-abrigo/" + acolhimento.String()
+}
+
+// documentoTypes: só PDF (RN-15 do legado de referência é só PDF).
+var documentoTypes = []string{"application/pdf"}
+
+// UploadDocumentoResult é o ticket de upload + o metadado pendente.
+type UploadDocumentoResult struct {
+	Documento domain.DocumentoCasaAbrigo `json:"documento"`
+	Upload    modkit.UploadTicket        `json:"upload"`
+}
+
+// StartUploadDocumento cria o metadado pendente e a URL de upload direto
+// ao object storage (o conteúdo nunca atravessa a API).
+func (s *Service) StartUploadDocumento(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, tipo, filename, contentType string, size int64) (UploadDocumentoResult, error) {
+	if size <= 0 || size > s.maxDocBytes {
+		return UploadDocumentoResult{}, &domain.ValidationError{Msg: "tamanho de arquivo acima do limite permitido"}
+	}
+	a, err := s.repo.GetAcolhimento(ctx, s.pool, acolhimento, false)
+	if err != nil {
+		return UploadDocumentoResult{}, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		return UploadDocumentoResult{}, err
+	}
+	ticket, err := modkit.NewUpload(ctx, s.store, s.bucket, documentoPrefix(acolhimento), filename, contentType, documentoTypes, s.uploadExpiry)
+	if err != nil {
+		return UploadDocumentoResult{}, err
+	}
+	d, err := domain.NovoDocumentoCasaAbrigo(acolhimento, tipo, filename, ticket.ObjectKey, ticket.Headers["Content-Type"])
+	if err != nil {
+		return UploadDocumentoResult{}, err
+	}
+	d.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if err := s.repo.InsertDocumento(ctx, tx, d, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.documento_upload_iniciado", "sempras_casa_abrigo_documento", d.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento, "tipo": tipo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return UploadDocumentoResult{}, err
+	}
+	return UploadDocumentoResult{Documento: d, Upload: ticket}, nil
+}
+
+// ConfirmUploadDocumento confere o objeto enviado (tamanho e tipo reais —
+// o que o navegador declarou não é confiável) e publica o documento.
+func (s *Service) ConfirmUploadDocumento(ctx context.Context, identity auth.Identity, id uuid.UUID) (domain.DocumentoCasaAbrigo, error) {
+	d, err := s.repo.GetDocumento(ctx, s.pool, id)
+	if err != nil {
+		return domain.DocumentoCasaAbrigo{}, err
+	}
+	a, err := s.repo.GetAcolhimento(ctx, s.pool, d.AcolhimentoID, false)
+	if err != nil {
+		return domain.DocumentoCasaAbrigo{}, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		return domain.DocumentoCasaAbrigo{}, err
+	}
+	if d.Status == domain.DocumentoStatusReady {
+		return d, nil
+	}
+	info, err := modkit.ConfirmUpload(ctx, s.store, s.bucket, d.ObjectKey, documentoPrefix(d.AcolhimentoID), s.maxDocBytes, documentoTypes)
+	if err != nil {
+		return domain.DocumentoCasaAbrigo{}, err
+	}
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if err := s.repo.UpdateDocumentoStatus(ctx, tx, id, domain.DocumentoStatusReady, info.Size, info.ContentType); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.documento_confirmado", "sempras_casa_abrigo_documento", id.String(), nil,
+			map[string]any{"acolhimento_id": d.AcolhimentoID, "size_bytes": info.Size})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.DocumentoCasaAbrigo{}, err
+	}
+	d.Status, d.SizeBytes, d.ContentType = domain.DocumentoStatusReady, info.Size, info.ContentType
+	return d, nil
+}
+
+// DownloadURLDocumento devolve uma URL pré-assinada de leitura (curta).
+func (s *Service) DownloadURLDocumento(ctx context.Context, identity auth.Identity, id uuid.UUID) (string, domain.DocumentoCasaAbrigo, error) {
+	d, err := s.repo.GetDocumento(ctx, s.pool, id)
+	if err != nil {
+		return "", domain.DocumentoCasaAbrigo{}, err
+	}
+	if d.Status != domain.DocumentoStatusReady {
+		return "", domain.DocumentoCasaAbrigo{}, domain.ErrNotFound
+	}
+	a, err := s.repo.GetAcolhimento(ctx, s.pool, d.AcolhimentoID, false)
+	if err != nil {
+		return "", domain.DocumentoCasaAbrigo{}, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		return "", domain.DocumentoCasaAbrigo{}, err
+	}
+	url, err := s.store.PresignedGetURL(ctx, s.bucket, d.ObjectKey, 5*time.Minute)
+	if err != nil {
+		return "", domain.DocumentoCasaAbrigo{}, apperrors.DependencyUnavailable("armazenamento indisponível").WithCause(err)
+	}
+	e := audit.Meta(ctx, "sempras.casa_abrigo.documento_baixado", "sempras_casa_abrigo_documento", id.String(), nil, nil)
+	_ = audit.NewWriter(s.pool).Record(ctx, e)
+	return url, d, nil
+}
+
+// removeObjetos apaga objetos órfãos do storage — melhor esforço, nunca
+// bloqueia a exclusão do metadado (mesmo padrão do módulo files).
+func (s *Service) removeObjetos(ctx context.Context, keys []string) {
+	for _, k := range keys {
+		if err := s.store.Delete(ctx, s.bucket, k); err != nil {
+			s.logger.Warn("sempras: objeto órfão não removido do storage", slog.String("key", k), slog.Any("error", err))
+		}
+	}
+}
+
+// RemoverDocumento remove o metadado e, fora da transação, o objeto no storage.
+func (s *Service) RemoverDocumento(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	var key string
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		d, err := s.repo.GetDocumento(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, d.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		key = d.ObjectKey
+		if err := s.repo.DeleteDocumento(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.documento_removido", "sempras_casa_abrigo_documento", id.String(), nil,
+			map[string]any{"acolhimento_id": d.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err == nil {
+		s.removeObjetos(ctx, []string{key})
+	}
+	return err
+}
+
+// Rma é o Relatório Mensal de Atendimento (RMA/MDS) das unidades que
+// identity gere, numa competência ("AAAA-MM").
+func (s *Service) Rma(ctx context.Context, identity auth.Identity, competencia string) ([]domain.RmaUnidade, error) {
+	area := domain.AreaDe(identity, auth.PermSemprasGestao)
+	if area.Vazia() {
+		return nil, domain.ErrForbidden
+	}
+	inicio, fim, err := domain.CompetenciaMes(competencia)
+	if err != nil {
+		return nil, err
+	}
+	unidades, err := s.repo.ListUnidades(ctx, s.pool, area, EntidadeSlug)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.Rma(ctx, s.pool, unidades, inicio, fim)
+}
+
+// ------------------------------------------------------- direitos do titular
+
+// camposAnonimizados nomeia os campos zerados pela anonimização — a
+// auditoria guarda isso, nunca os valores (mesmo padrão de camposAlterados).
+// data_nascimento fica de fora: é preservado (CHECK de identificação da
+// tabela, ver infrastructure.AnonimizarCidadao).
+var camposAnonimizados = []string{"nome", "nome_social", "cpf", "nis", "nome_mae", "telefone", "endereco"}
+
+// SolicitarAcesso atende o direito de acesso (LGPD art. 18, II): exporta o
+// prontuário do titular (mesma área e mesmo sigilo psicológico de
+// Prontuario) e registra o pedido já concluído — quem atende resolve na
+// hora, com o titular presente.
+func (s *Service) SolicitarAcesso(ctx context.Context, identity auth.Identity, cidadao uuid.UUID, justificativa string) (domain.Prontuario, error) {
+	area := domain.AreaDe(identity, auth.PermSemprasAtendimento)
+	if area.Vazia() {
+		return domain.Prontuario{}, domain.ErrForbidden
+	}
+	p, err := domain.NovoPedido(cidadao, identity.UserID, domain.PedidoAcesso, justificativa)
+	if err != nil {
+		return domain.Prontuario{}, err
+	}
+	now := s.now()
+	p.Status, p.DecididoPor, p.DecididoEm, p.CreatedAt = domain.PedidoStatusConcluido, &identity.UserID, &now, now
+	var pr domain.Prontuario
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if pr, err = s.montarProntuario(ctx, tx, identity, cidadao, area); err != nil {
+			return err
+		}
+		if err := s.repo.InsertPedido(ctx, tx, p); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.titular.acesso", "sempras_pedido_titular", p.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "atendimentos": len(pr.Atendimentos), "registros": len(pr.Registros)})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Prontuario{}, err
+	}
+	return pr, nil
+}
+
+// SolicitarPedido registra correção ou anonimização a pedido do titular —
+// acesso tem rota própria (SolicitarAcesso), que já devolve os dados.
+// Correção nasce concluída (a edição em si é um PUT /cidadaos/{id} à
+// parte); anonimização nasce pendente, à espera da gestão (§8).
+func (s *Service) SolicitarPedido(ctx context.Context, identity auth.Identity, cidadao uuid.UUID, tipo, justificativa string) (domain.PedidoTitular, error) {
+	if tipo != domain.PedidoCorrecao && tipo != domain.PedidoAnonimizacao {
+		return domain.PedidoTitular{}, &domain.ValidationError{Msg: "tipo de pedido inválido (correcao ou anonimizacao)"}
+	}
+	if domain.AreaDe(identity, auth.PermSemprasAtendimento).Vazia() {
+		return domain.PedidoTitular{}, domain.ErrForbidden
+	}
+	p, err := domain.NovoPedido(cidadao, identity.UserID, tipo, justificativa)
+	if err != nil {
+		return domain.PedidoTitular{}, err
+	}
+	if tipo == domain.PedidoCorrecao {
+		now := s.now()
+		p.Status, p.DecididoPor, p.DecididoEm = domain.PedidoStatusConcluido, &identity.UserID, &now
+	}
+	p.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertPedido(ctx, tx, p); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.titular.pedido_criado", "sempras_pedido_titular", p.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "tipo": tipo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PedidoTitular{}, err
+	}
+	return p, nil
+}
+
+// ListarPedidosPendentes é a fila de decisão da gestão — exige cobertura
+// TOTAL (não um recorte de unidade): o cadastro do titular é
+// intersecretaria, a decisão de anonimizá-lo também precisa ser.
+func (s *Service) ListarPedidosPendentes(ctx context.Context, identity auth.Identity) ([]domain.PedidoTitular, error) {
+	if !domain.AreaDe(identity, auth.PermSemprasGestao).All {
+		return nil, domain.ErrForbidden
+	}
+	return s.repo.ListPedidosPendentes(ctx, s.pool)
+}
+
+// DecidirPedido aprova ou nega uma anonimização pendente. Aprovar zera os
+// campos identificadores do cadastro (fica o registro do serviço
+// prestado); negar só grava a justificativa — o cadastro não muda.
+func (s *Service) DecidirPedido(ctx context.Context, identity auth.Identity, id uuid.UUID, aprovar bool, justificativa string) (domain.PedidoTitular, error) {
+	if !domain.AreaDe(identity, auth.PermSemprasGestao).All {
+		return domain.PedidoTitular{}, domain.ErrForbidden
+	}
+	just, err := domain.JustificativaDecisaoValida(justificativa, !aprovar)
+	if err != nil {
+		return domain.PedidoTitular{}, err
+	}
+	var p domain.PedidoTitular
+	now := s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if p, err = s.repo.GetPedido(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if p.Tipo != domain.PedidoAnonimizacao || p.Status != domain.PedidoStatusPendente {
+			return domain.ErrPedidoDecidido
+		}
+		status := domain.PedidoStatusNegado
+		if aprovar {
+			status = domain.PedidoStatusConcluido
+			if err := s.repo.AnonimizarCidadao(ctx, tx, p.CidadaoID); err != nil {
+				return err
+			}
+			ea := audit.Meta(ctx, "sempras.cidadao.anonimizado", "sempras_cidadao", p.CidadaoID.String(), nil,
+				map[string]any{"campos": camposAnonimizados, "pedido_id": p.ID})
+			if err := audit.NewWriter(tx).Record(ctx, ea); err != nil {
+				return err
+			}
+		}
+		if err := s.repo.DecidirPedido(ctx, tx, id, status, identity.UserID, just, now); err != nil {
+			return err
+		}
+		p.Status, p.JustificativaDecisao, p.DecididoPor, p.DecididoEm = status, just, &identity.UserID, &now
+		e := audit.Meta(ctx, "sempras.titular.pedido_decidido", "sempras_pedido_titular", id.String(), nil,
+			map[string]any{"aprovado": aprovar})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PedidoTitular{}, err
+	}
+	return p, nil
+}
+
+// ------------------------------------------------------------ rede de apoio
+
+// AdicionarContatoRedeApoio inclui uma pessoa de apoio do munícipe.
+func (s *Service) AdicionarContatoRedeApoio(ctx context.Context, identity auth.Identity, cidadao uuid.UUID, nome, parentesco, telefone string) (domain.ContatoRedeApoio, error) {
+	if domain.AreaDe(identity, auth.PermSemprasAtendimento).Vazia() {
+		return domain.ContatoRedeApoio{}, domain.ErrForbidden
+	}
+	c, err := domain.NovoContatoRedeApoio(cidadao, nome, parentesco, telefone)
+	if err != nil {
+		return domain.ContatoRedeApoio{}, err
+	}
+	c.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertContatoRedeApoio(ctx, tx, c, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.rede_apoio.adicionado", "sempras_rede_apoio", c.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.ContatoRedeApoio{}, err
+	}
+	return c, nil
+}
+
+// RemoverContatoRedeApoio remove um contato da rede de apoio.
+func (s *Service) RemoverContatoRedeApoio(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	if domain.AreaDe(identity, auth.PermSemprasAtendimento).Vazia() {
+		return domain.ErrForbidden
+	}
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		c, err := s.repo.GetContatoRedeApoio(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		if err := s.repo.DeleteContatoRedeApoio(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.rede_apoio.removido", "sempras_rede_apoio", id.String(), nil,
+			map[string]any{"cidadao_id": c.CidadaoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+}
+
+// -------------------------------------------------- benefícios eventuais
+
+// SolicitarBeneficio registra um pedido de benefício eventual (LOAS art.
+// 22) — o solicitante pode ser outra pessoa da família do beneficiário.
+func (s *Service) SolicitarBeneficio(ctx context.Context, identity auth.Identity, beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.UUID, tipo string, quantidade int, observacao string) (domain.Beneficio, error) {
+	b, err := domain.NovoBeneficio(beneficiario, solicitante, unidade, tipo, quantidade, observacao)
+	if err != nil {
+		return domain.Beneficio{}, err
+	}
+	b.DataSolicitacao = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, beneficiario, false); err != nil {
+			return err
+		}
+		if solicitante != nil {
+			if _, err := s.repo.GetCidadao(ctx, tx, *solicitante, false); err != nil {
+				return err
+			}
+		}
+		if err := s.repo.InsertBeneficio(ctx, tx, b, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.beneficio.solicitado", "sempras_beneficio", b.ID.String(), nil,
+			map[string]any{"beneficiario_id": beneficiario, "unidade_id": unidade, "tipo": tipo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Beneficio{}, err
+	}
+	return b, nil
+}
+
+// DecidirBeneficio concede, nega ou suspende — exige atendimento na
+// unidade que recebeu o pedido (quem decide é quem está na ponta, não a
+// gestão central).
+func (s *Service) DecidirBeneficio(ctx context.Context, identity auth.Identity, id uuid.UUID, acao, motivo string) (domain.Beneficio, error) {
+	var b domain.Beneficio
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if b, err = s.repo.GetBeneficio(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, b.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := b.Status
+		if err := b.Decidir(acao, motivo, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateBeneficio(ctx, tx, b); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.beneficio."+acao, "sempras_beneficio", id.String(),
+			map[string]any{"status": antes}, map[string]any{"status": b.Status})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Beneficio{}, err
+	}
+	return b, nil
+}
+
+// --------------------------------------------------------- encaminhamentos
+
+// Encaminhar passa o caso de uma unidade a outra (ex.: CRAS → CREAS). Exige
+// atendimento na unidade de origem; a de destino só precisa existir e
+// estar ativa — quem envia não precisa ter acesso a ela.
+func (s *Service) Encaminhar(ctx context.Context, identity auth.Identity, cidadao, origem, destino uuid.UUID, motivo string) (domain.Encaminhamento, error) {
+	e, err := domain.NovoEncaminhamento(cidadao, origem, destino, motivo)
+	if err != nil {
+		return domain.Encaminhamento{}, err
+	}
+	e.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		uOrigem, err := s.unidade(ctx, tx, identity, origem, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !uOrigem.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		uDestino, err := s.repo.GetUnidade(ctx, tx, destino)
+		if err != nil {
+			return err
+		}
+		if !uDestino.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertEncaminhamento(ctx, tx, e, identity.UserID); err != nil {
+			return err
+		}
+		ev := audit.Meta(ctx, "sempras.encaminhamento.criado", "sempras_encaminhamento", e.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_origem_id": origem, "unidade_destino_id": destino})
+		return audit.NewWriter(tx).Record(ctx, ev)
+	})
+	if err != nil {
+		return domain.Encaminhamento{}, err
+	}
+	return e, nil
+}
+
+// EncaminhamentosPendentes é a fila de casos recebidos por uma unidade.
+func (s *Service) EncaminhamentosPendentes(ctx context.Context, identity auth.Identity, unidade uuid.UUID) ([]domain.Encaminhamento, error) {
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+		return nil, err
+	}
+	return s.repo.ListEncaminhamentosPendentes(ctx, s.pool, unidade)
+}
+
+// DecidirEncaminhamento aceita ou recusa — exige atendimento na unidade de
+// destino (quem recebe decide, não quem enviou).
+func (s *Service) DecidirEncaminhamento(ctx context.Context, identity auth.Identity, id uuid.UUID, aceitar bool, observacao string) (domain.Encaminhamento, error) {
+	var e domain.Encaminhamento
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if e, err = s.repo.GetEncaminhamento(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, e.UnidadeDestinoID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := e.Status
+		if err := e.Decidir(aceitar, observacao, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateEncaminhamento(ctx, tx, e); err != nil {
+			return err
+		}
+		ev := audit.Meta(ctx, "sempras.encaminhamento.decidido", "sempras_encaminhamento", id.String(),
+			map[string]any{"status": antes}, map[string]any{"status": e.Status})
+		return audit.NewWriter(tx).Record(ctx, ev)
+	})
+	if err != nil {
+		return domain.Encaminhamento{}, err
+	}
+	return e, nil
+}
+
+// ------------------------------------------------------------------- PAIF
+
+// IncluirPaif vincula a família ao Serviço de Proteção e Atendimento
+// Integral à Família do CRAS. ErrPaifJaAtivo se já houver vínculo ativo.
+func (s *Service) IncluirPaif(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, extremaPobreza, bolsaFamilia, bpc bool, scfv int) (domain.PaifVinculo, error) {
+	v, err := domain.NovoPaifVinculo(cidadao, unidade, extremaPobreza, bolsaFamilia, bpc, scfv)
+	if err != nil {
+		return domain.PaifVinculo{}, err
+	}
+	v.DataInclusao = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertPaifVinculo(ctx, tx, v, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.paif.incluido", "sempras_paif_vinculo", v.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PaifVinculo{}, err
+	}
+	return v, nil
+}
+
+// ExcluirPaif encerra um vínculo PAIF ativo (exige atendimento na unidade do vínculo).
+func (s *Service) ExcluirPaif(ctx context.Context, identity auth.Identity, id uuid.UUID, motivo string) (domain.PaifVinculo, error) {
+	var v domain.PaifVinculo
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if v, err = s.repo.GetPaifVinculo(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, v.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := v.Excluir(motivo, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdatePaifVinculo(ctx, tx, v); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.paif.excluido", "sempras_paif_vinculo", id.String(), nil,
+			map[string]any{"cidadao_id": v.CidadaoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PaifVinculo{}, err
+	}
+	return v, nil
+}
+
+// ------------------------------------------------------- Conselho Tutelar
+
+// RegistrarConselhoAtendimento abre um atendimento do Conselho Tutelar a
+// uma criança/adolescente (nasce em_andamento, sem medida).
+func (s *Service) RegistrarConselhoAtendimento(ctx context.Context, identity auth.Identity, crianca, unidade uuid.UUID, respNome, respCPF, respTelefone, origemDemanda, motivoViolacao, observacoes string) (domain.ConselhoAtendimento, error) {
+	c, err := domain.NovoConselhoAtendimento(crianca, unidade, respNome, respCPF, respTelefone, origemDemanda, motivoViolacao, observacoes)
+	if err != nil {
+		return domain.ConselhoAtendimento{}, err
+	}
+	c.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, crianca, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertConselhoAtendimento(ctx, tx, c, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.conselho.registrado", "sempras_conselho_atendimento", c.ID.String(), nil,
+			map[string]any{"crianca_id": crianca, "unidade_id": unidade, "protocolo": c.Protocolo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.ConselhoAtendimento{}, err
+	}
+	return c, nil
+}
+
+// TransitarConselhoAtendimento aplica medida (Art. 101 ECA), encaminha ao
+// MP ou arquiva — exige atendimento na unidade do caso.
+func (s *Service) TransitarConselhoAtendimento(ctx context.Context, identity auth.Identity, id uuid.UUID, acao, medida string) (domain.ConselhoAtendimento, error) {
+	var c domain.ConselhoAtendimento
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if c, err = s.repo.GetConselhoAtendimento(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, c.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := c.Status
+		if err := c.Transitar(acao, medida, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateConselhoAtendimento(ctx, tx, c); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.conselho."+acao, "sempras_conselho_atendimento", id.String(),
+			map[string]any{"status": antes}, map[string]any{"status": c.Status, "medida_protetiva": c.MedidaProtetiva})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.ConselhoAtendimento{}, err
+	}
+	return c, nil
+}
+
+// ------------------------------------------------------------------- PAEFI
+
+// RegistrarPaefiCaso abre um caso do PAEFI para a família/indivíduo (nasce
+// em_acompanhamento).
+func (s *Service) RegistrarPaefiCaso(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, violacoes []string, membrosVulneraveis, observacoes string) (domain.PaefiCaso, error) {
+	p, err := domain.NovoPaefiCaso(cidadao, unidade, violacoes, membrosVulneraveis, observacoes)
+	if err != nil {
+		return domain.PaefiCaso{}, err
+	}
+	p.DataAbertura = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertPaefiCaso(ctx, tx, p, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.paefi.registrado", "sempras_paefi_caso", p.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade, "caso_codigo": p.CasoCodigo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PaefiCaso{}, err
+	}
+	return p, nil
+}
+
+// MarcarPiaElaborado registra a elaboração do PIA de um caso em acompanhamento.
+func (s *Service) MarcarPiaElaborado(ctx context.Context, identity auth.Identity, id uuid.UUID) (domain.PaefiCaso, error) {
+	var p domain.PaefiCaso
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if p, err = s.repo.GetPaefiCaso(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := p.MarcarPiaElaborado(identity.UserID); err != nil {
+			return err
+		}
+		if err := s.repo.UpdatePaefiCaso(ctx, tx, p); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.paefi.pia_elaborado", "sempras_paefi_caso", id.String(), nil, nil)
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PaefiCaso{}, err
+	}
+	return p, nil
+}
+
+// EncerrarPaefiCaso desliga o caso do PAEFI — exige motivo.
+func (s *Service) EncerrarPaefiCaso(ctx context.Context, identity auth.Identity, id uuid.UUID, motivo string) (domain.PaefiCaso, error) {
+	var p domain.PaefiCaso
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if p, err = s.repo.GetPaefiCaso(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := p.Encerrar(motivo, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdatePaefiCaso(ctx, tx, p); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.paefi.encerrado", "sempras_paefi_caso", id.String(), nil,
+			map[string]any{"motivo_encerramento": p.MotivoEncerramento})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.PaefiCaso{}, err
+	}
+	return p, nil
+}
+
+// --------------------------------------------------------------------- MSE
+
+// RegistrarMseMedida abre o acompanhamento de uma medida socioeducativa em
+// meio aberto (nasce em_cumprimento).
+func (s *Service) RegistrarMseMedida(ctx context.Context, identity auth.Identity, adolescente, unidade uuid.UUID, numeroProcesso, varaOrigem, atoInfracional, tipoMedida, instituicaoParceira string) (domain.MseMedida, error) {
+	m, err := domain.NovaMseMedida(adolescente, unidade, numeroProcesso, varaOrigem, atoInfracional, tipoMedida, instituicaoParceira)
+	if err != nil {
+		return domain.MseMedida{}, err
+	}
+	m.DataInicio = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, adolescente, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertMseMedida(ctx, tx, m, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.mse.registrada", "sempras_mse_medida", m.ID.String(), nil,
+			map[string]any{"adolescente_id": adolescente, "unidade_id": unidade, "tipo_medida": m.TipoMedida})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.MseMedida{}, err
+	}
+	return m, nil
+}
+
+// ConcluirMseMedida encerra o acompanhamento com um dos desfechos (cumprida,
+// descumprida ou extinta).
+func (s *Service) ConcluirMseMedida(ctx context.Context, identity auth.Identity, id uuid.UUID, resultado string) (domain.MseMedida, error) {
+	var m domain.MseMedida
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if m, err = s.repo.GetMseMedida(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, m.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := m.Concluir(resultado, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateMseMedida(ctx, tx, m); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.mse.concluida", "sempras_mse_medida", id.String(), nil,
+			map[string]any{"status": m.Status})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.MseMedida{}, err
+	}
+	return m, nil
+}
+
+// ----------------------------------------------------- notificações (CREAS)
+
+// RegistrarNotificacaoCreas registra um ofício/requisição recebido de um
+// ente externo sobre uma vítima já cadastrada (nasce recebida).
+func (s *Service) RegistrarNotificacaoCreas(ctx context.Context, identity auth.Identity, vitima, unidade uuid.UUID, origemEntidade, assunto string, prazoResposta *time.Time) (domain.NotificacaoCreas, error) {
+	n, err := domain.NovaNotificacaoCreas(vitima, unidade, origemEntidade, assunto, prazoResposta)
+	if err != nil {
+		return domain.NotificacaoCreas{}, err
+	}
+	n.DataEntrada = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, vitima, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertNotificacaoCreas(ctx, tx, n, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.creas_notificacao.registrada", "sempras_creas_notificacao", n.ID.String(), nil,
+			map[string]any{"vitima_id": vitima, "unidade_id": unidade, "protocolo": n.Protocolo, "origem_entidade": n.OrigemEntidade})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.NotificacaoCreas{}, err
+	}
+	return n, nil
+}
+
+// TransitarNotificacaoCreas inicia diligência, registra a resposta ou arquiva a notificação.
+func (s *Service) TransitarNotificacaoCreas(ctx context.Context, identity auth.Identity, id uuid.UUID, acao, resposta string) (domain.NotificacaoCreas, error) {
+	var n domain.NotificacaoCreas
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if n, err = s.repo.GetNotificacaoCreas(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, n.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := n.Status
+		if err := n.Transitar(acao, resposta, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateNotificacaoCreas(ctx, tx, n); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.creas_notificacao."+acao, "sempras_creas_notificacao", id.String(),
+			map[string]any{"status": antes}, map[string]any{"status": n.Status})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.NotificacaoCreas{}, err
+	}
+	return n, nil
+}
+
+// --------------------------------------------------------------- Casa Abrigo
+
+// AcolhimentoInput agrupa os campos de um acolhimento — mesmo formato no
+// registro e na edição (Atualizar nunca toca status/motivo/data de
+// desligamento, só a ação dedicada Desligar faz isso).
+type AcolhimentoInput struct {
+	Sexo                                                                                          string
+	Motivos                                                                                       []string
+	ResponsavelNome, ResponsavelNIS, ResponsavelTelefone, ResponsavelVinculo, ResponsavelEndereco string
+	ProcessoJudicial, GuiaAcolhimento, ConselheiroNome, ConselheiroTelefone, SituacaoJuridica     string
+	HistoricoAcolhidoAnteriormente, HistoricoIrmaosOutraUnidade                                   bool
+	Observacoes                                                                                   string
+}
+
+// RegistrarAcolhimento abre um acolhimento institucional (nasce 'acolhido').
+func (s *Service) RegistrarAcolhimento(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, in AcolhimentoInput) (domain.Acolhimento, error) {
+	a, err := domain.NovoAcolhimento(cidadao, unidade, in.Sexo, in.Motivos, in.ResponsavelNome, in.ResponsavelNIS, in.ResponsavelTelefone,
+		in.ResponsavelVinculo, in.ResponsavelEndereco, in.ProcessoJudicial, in.GuiaAcolhimento, in.ConselheiroNome, in.ConselheiroTelefone,
+		in.SituacaoJuridica, in.HistoricoAcolhidoAnteriormente, in.HistoricoIrmaosOutraUnidade, in.Observacoes)
+	if err != nil {
+		return domain.Acolhimento{}, err
+	}
+	a.DataEntrada = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertAcolhimento(ctx, tx, a, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.acolhimento_registrado", "sempras_casa_abrigo_acolhimento", a.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Acolhimento{}, err
+	}
+	return a, nil
+}
+
+// AtualizarAcolhimento regrava os campos descritivos — nunca o status
+// nem o desligamento (RN-14: isso só muda por DesligarAcolhimento).
+func (s *Service) AtualizarAcolhimento(ctx context.Context, identity auth.Identity, id uuid.UUID, in AcolhimentoInput) (domain.Acolhimento, error) {
+	var a domain.Acolhimento
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if a, err = s.repo.GetAcolhimento(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := a.Atualizar(in.Sexo, in.Motivos, in.ResponsavelNome, in.ResponsavelNIS, in.ResponsavelTelefone,
+			in.ResponsavelVinculo, in.ResponsavelEndereco, in.ProcessoJudicial, in.GuiaAcolhimento, in.ConselheiroNome,
+			in.ConselheiroTelefone, in.SituacaoJuridica, in.HistoricoAcolhidoAnteriormente, in.HistoricoIrmaosOutraUnidade, in.Observacoes); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateAcolhimento(ctx, tx, a); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.acolhimento_atualizado", "sempras_casa_abrigo_acolhimento", id.String(), nil, nil)
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Acolhimento{}, err
+	}
+	return a, nil
+}
+
+// DesligarAcolhimento encerra o acolhimento — ação restrita à equipe
+// técnica (RN-14), sem equivalente em AtualizarAcolhimento.
+func (s *Service) DesligarAcolhimento(ctx context.Context, identity auth.Identity, id uuid.UUID, motivo string) (domain.Acolhimento, error) {
+	var a domain.Acolhimento
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if a, err = s.repo.GetAcolhimento(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := a.Desligar(motivo, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateAcolhimento(ctx, tx, a); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.desligado", "sempras_casa_abrigo_acolhimento", id.String(), nil,
+			map[string]any{"cidadao_id": a.CidadaoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Acolhimento{}, err
+	}
+	return a, nil
+}
+
+// AdicionarIrmao registra um irmão do acolhido (RN-07).
+func (s *Service) AdicionarIrmao(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, nome string, dataNascimento *time.Time, estaAcolhido bool, unidadeDescricao, observacao string) (domain.Irmao, error) {
+	i, err := domain.NovoIrmao(acolhimento, nome, dataNascimento, estaAcolhido, unidadeDescricao, observacao)
+	if err != nil {
+		return domain.Irmao{}, err
+	}
+	i.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.InsertIrmao(ctx, tx, i); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.irmao_adicionado", "sempras_casa_abrigo_irmao", i.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Irmao{}, err
+	}
+	return i, nil
+}
+
+// RemoverIrmao remove um irmão registrado por engano.
+func (s *Service) RemoverIrmao(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		i, err := s.repo.GetIrmao(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, i.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.DeleteIrmao(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.irmao_removido", "sempras_casa_abrigo_irmao", id.String(), nil,
+			map[string]any{"acolhimento_id": i.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+}
+
+// AdicionarDiagnostico registra um diagnóstico de saúde/deficiência/
+// transtorno do acolhido (RN-12).
+func (s *Service) AdicionarDiagnostico(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, categoria, diagnostico, descricao string) (domain.Diagnostico, error) {
+	d, err := domain.NovoDiagnostico(acolhimento, categoria, diagnostico, descricao)
+	if err != nil {
+		return domain.Diagnostico{}, err
+	}
+	d.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		a, err := s.repo.GetAcolhimento(ctx, tx, acolhimento, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.InsertDiagnostico(ctx, tx, d); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.diagnostico_adicionado", "sempras_casa_abrigo_diagnostico", d.ID.String(), nil,
+			map[string]any{"acolhimento_id": acolhimento, "categoria": d.Categoria})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Diagnostico{}, err
+	}
+	return d, nil
+}
+
+// RemoverDiagnostico remove um diagnóstico registrado por engano.
+func (s *Service) RemoverDiagnostico(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	return database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		d, err := s.repo.GetDiagnostico(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		a, err := s.repo.GetAcolhimento(ctx, tx, d.AcolhimentoID, false)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := s.repo.DeleteDiagnostico(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_abrigo.diagnostico_removido", "sempras_casa_abrigo_diagnostico", id.String(), nil,
+			map[string]any{"acolhimento_id": d.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
 }
 
 // Authorize é o autorizador de tópicos WebSocket: "sempras:fila:<unidade>"
