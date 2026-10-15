@@ -29,6 +29,7 @@ export interface Cidadao {
   nome_mae: string;
   telefone: string;
   endereco: string;
+  anonimo: boolean;
 }
 
 export type Status = "aguardando" | "chamado" | "em_atendimento" | "concluido" | "nao_compareceu" | "cancelado";
@@ -74,7 +75,8 @@ export interface ContatoRedeApoio {
   created_at: string;
 }
 
-export type TipoBeneficio = "natalidade" | "funeral" | "cesta_basica" | "passagem" | "aluguel_social" | "outro";
+export type TipoBeneficio = "natalidade" | "funeral" | "cesta_basica" | "passagem" | "aluguel_social" | "outro"
+  | "auxilio_gas" | "cobertor_agasalho";
 export type StatusBeneficio = "solicitado" | "concedido" | "negado" | "suspenso";
 export type FormaAcessoBeneficio = "demanda_espontanea" | "busca_ativa" | "encaminhamento_rede_socioassistencial" | "encaminhamento_sistema_garantia_direitos";
 
@@ -101,6 +103,8 @@ export const TIPOS_BENEFICIO: Record<TipoBeneficio, string> = {
   passagem: "Passagem",
   aluguel_social: "Aluguel social",
   outro: "Outro",
+  auxilio_gas: "Auxílio-gás",
+  cobertor_agasalho: "Cobertor/agasalho",
 };
 
 export const FORMAS_ACESSO_BENEFICIO: Record<FormaAcessoBeneficio, string> = {
@@ -612,6 +616,111 @@ export const CATEGORIAS_DIAGNOSTICO: Record<CategoriaDiagnostico, string> = {
   outro: "Outro",
 };
 
+// --------------------------------------------------------------- Centro POP
+
+export type SituacaoRua = "situacao_rua" | "abrigado_institucionalmente" | "egresso_sistema_prisional" | "trecheiro" | "albergado" | "outro";
+export type MotivoVulnerabilidade = "conflito_familiar" | "uso_de_drogas" | "alcoolismo" | "desemprego" | "perda_de_moradia"
+  | "egresso_sistema_prisional" | "migracao" | "escolha_propria" | "outro";
+
+export interface CentroPopPerfil {
+  cidadao_id: string;
+  situacao: SituacaoRua;
+  tempo_rua_anos: number | null;
+  motivo_vulnerabilidade: MotivoVulnerabilidade;
+  possui_doenca: boolean;
+  doenca_descricao: string;
+  usa_medicacao: boolean;
+  medicacao_descricao: string;
+  uso_drogas: boolean;
+  drogas_descricao: string;
+  atualizado_por: string | null;
+  atualizado_em: string;
+}
+
+export const SITUACOES_RUA: Record<SituacaoRua, string> = {
+  situacao_rua: "Situação de rua",
+  abrigado_institucionalmente: "Abrigado institucionalmente",
+  egresso_sistema_prisional: "Egresso do sistema prisional",
+  trecheiro: "Trecheiro",
+  albergado: "Albergado",
+  outro: "Outro",
+};
+
+export const MOTIVOS_VULNERABILIDADE: Record<MotivoVulnerabilidade, string> = {
+  conflito_familiar: "Conflito familiar",
+  uso_de_drogas: "Uso de drogas",
+  alcoolismo: "Alcoolismo",
+  desemprego: "Desemprego",
+  perda_de_moradia: "Perda de moradia",
+  egresso_sistema_prisional: "Egresso do sistema prisional",
+  migracao: "Migração",
+  escolha_propria: "Escolha própria",
+  outro: "Outro",
+};
+
+export type DestinoExterno = "caps_ad" | "caps_iii" | "albergue_noturno" | "abrigo_municipal" | "saude_upa_hospital"
+  | "sine_qualificacao" | "conselho_tutelar" | "policia_civil_deam" | "outro";
+export type PrioridadeEncaminhamentoExterno = "baixa" | "media" | "alta" | "urgente";
+export type StatusEncaminhamentoExterno = "pendente" | "em_atendimento" | "concluido" | "cancelado";
+
+export interface EncaminhamentoExterno {
+  id: string;
+  cidadao_id: string;
+  unidade_id: string;
+  destino: DestinoExterno;
+  prioridade: PrioridadeEncaminhamentoExterno;
+  motivo: string;
+  status: StatusEncaminhamentoExterno;
+  observacoes: string;
+  tecnico_id: string | null;
+  created_at: string;
+  atualizado_em: string;
+}
+
+export const DESTINOS_EXTERNOS: Record<DestinoExterno, string> = {
+  caps_ad: "CAPS AD",
+  caps_iii: "CAPS III",
+  albergue_noturno: "Albergue noturno",
+  abrigo_municipal: "Abrigo municipal",
+  saude_upa_hospital: "Saúde (UPA/Hospital)",
+  sine_qualificacao: "SINE/Qualificação",
+  conselho_tutelar: "Conselho Tutelar",
+  policia_civil_deam: "Polícia Civil/DEAM",
+  outro: "Outro",
+};
+
+export const PRIORIDADES_ENCAMINHAMENTO_EXTERNO: Record<PrioridadeEncaminhamentoExterno, string> = {
+  baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
+};
+
+export const STATUS_ENCAMINHAMENTO_EXTERNO: Record<StatusEncaminhamentoExterno, { label: string; tone: "warning" | "success" | "danger" | "neutral" }> = {
+  pendente: { label: "Pendente", tone: "warning" },
+  em_atendimento: { label: "Em atendimento", tone: "warning" },
+  concluido: { label: "Concluído", tone: "success" },
+  cancelado: { label: "Cancelado", tone: "danger" },
+};
+
+export type TipoDocumentoCentroPop = "identificacao" | "laudo_saude" | "outro";
+
+export interface DocumentoCentroPop {
+  id: string;
+  cidadao_id: string;
+  unidade_id: string;
+  tipo: TipoDocumentoCentroPop;
+  nome_original: string;
+  object_key: string;
+  content_type: string;
+  size_bytes: number;
+  status: "pending" | "ready";
+  created_at: string;
+}
+
+export const TIPOS_DOCUMENTO_CENTRO_POP: Record<TipoDocumentoCentroPop, string> = {
+  identificacao: "Identificação",
+  laudo_saude: "Laudo de saúde",
+  outro: "Outro",
+};
+
 export interface Prontuario {
   cidadao: Cidadao;
   atendimentos: Atendimento[];
@@ -626,6 +735,9 @@ export interface Prontuario {
   notificacoes_creas: NotificacaoCreas[];
   oficios_cras: OficioCras[];
   casa_abrigo_acolhimentos: Acolhimento[];
+  centro_pop_perfil: CentroPopPerfil | null;
+  encaminhamentos_externos: EncaminhamentoExterno[];
+  centro_pop_documentos: DocumentoCentroPop[];
 }
 
 export interface PainelUnidade {
@@ -739,7 +851,8 @@ export function rotuloPrioridade(valor: string): string {
 
 /** Campos editáveis do cadastro — cadastro novo (Recepcao) e correção
  * (ficha do munícipe) usam a mesma lista. */
-export const CAMPOS_CIDADAO: { name: keyof Cidadao; label: string; type?: string; max: number }[] = [
+export const CAMPOS_CIDADAO: { name: "nome" | "nome_social" | "cpf" | "nis" | "data_nascimento" | "nome_mae" | "telefone" | "endereco";
+  label: string; type?: string; max: number }[] = [
   { name: "nome", label: "Nome civil *", max: 200 },
   { name: "nome_social", label: "Nome social", max: 200 },
   { name: "cpf", label: "CPF", max: 20 },

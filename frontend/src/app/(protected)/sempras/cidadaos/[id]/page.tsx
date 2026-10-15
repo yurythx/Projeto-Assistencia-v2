@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Download, Lock, NotebookPen, Pencil, ShieldAlert, Trash2, UserPlus } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
@@ -18,9 +18,13 @@ import { Textarea } from "@/components/ui/Textarea";
 import { apiClient } from "@/lib/api/client";
 import { useApiQuery } from "@/lib/api/swr";
 import { useNexus } from "@/lib/nexus/NexusProvider";
+import { mimeOf, putToTicket } from "@/lib/nexus/upload";
+import type { UploadTicket } from "@/lib/nexus/types";
 import { AcolhimentoItem } from "@/components/sempras/AcolhimentoItem";
+import { CentroPopPerfilCard } from "@/components/sempras/CentroPopPerfilCard";
 import {
   CAMPOS_CIDADAO,
+  DESTINOS_EXTERNOS,
   FORMAS_ACESSO_BENEFICIO,
   MEDIDAS_PROTETIVAS,
   MOTIVOS_ACOLHIMENTO,
@@ -29,10 +33,12 @@ import {
   ORIGENS_DEMANDA,
   ORIGENS_NOTIFICACAO_CREAS,
   P,
+  PRIORIDADES_ENCAMINHAMENTO_EXTERNO,
   STATUS,
   STATUS_BENEFICIO,
   STATUS_CONSELHO,
   STATUS_ENCAMINHAMENTO,
+  STATUS_ENCAMINHAMENTO_EXTERNO,
   STATUS_MSE,
   STATUS_NOTIFICACAO_CREAS,
   STATUS_OFICIO_CRAS,
@@ -41,10 +47,13 @@ import {
   TIPOS,
   TIPOS_ATENDIMENTO_PAIF,
   TIPOS_BENEFICIO,
+  TIPOS_DOCUMENTO_CENTRO_POP,
   TIPOS_MSE,
   VIOLACOES_PAEFI,
   rotuloPrioridade,
   type Cidadao,
+  type DestinoExterno,
+  type DocumentoCentroPop,
   type FormaAcessoBeneficio,
   type MedidaProtetiva,
   type MotivoAcolhimento,
@@ -52,10 +61,12 @@ import {
   type MotivoViolacaoConselho,
   type OrigemDemandaConselho,
   type OrigemNotificacaoCreas,
+  type PrioridadeEncaminhamentoExterno,
   type Prontuario,
   type SexoAcolhido,
   type TipoAtendimentoPaif,
   type TipoBeneficio,
+  type TipoDocumentoCentroPop,
   type TipoMse,
   type Unidade,
   type ViolacaoPaefi,
@@ -109,7 +120,10 @@ export default function FichaPage() {
   async function salvarEdicao(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(CAMPOS_CIDADAO.map((campo) => [campo.name, String(fd.get(campo.name) ?? "").trim()]));
+    const body = {
+      ...Object.fromEntries(CAMPOS_CIDADAO.map((campo) => [campo.name, String(fd.get(campo.name) ?? "").trim()])),
+      anonimo: fd.get("anonimo") === "on",
+    };
     const ok = await runEditar(() => apiClient.put<Cidadao>(`v1/sempras/cidadaos/${id}`, body), "Cadastro atualizado");
     if (!ok) return;
     if (pedidoCorrecao) {
@@ -545,6 +559,69 @@ export default function FichaPage() {
       setConselheiroNomeAcolhimento("");
       void ficha.mutate();
     }
+  }
+
+  // Centro POP: encaminhamento pra fora do sistema (CAPS AD, albergue,
+  // saúde, polícia) — log gerenciado por quem atende, sem fluxo de
+  // aceite de 2 pontas (diferente de Encaminhamento entre unidades).
+  const [destinoExterno, setDestinoExterno] = useState<DestinoExterno>("caps_ad");
+  const [prioridadeExterno, setPrioridadeExterno] = useState<PrioridadeEncaminhamentoExterno>("media");
+  const [motivoExterno, setMotivoExterno] = useState("");
+  const { run: runEncaminhamentoExterno, pending: pendingEncaminhamentoExterno } = useAction();
+  const { run: runTransitarExterno, pending: pendingTransitarExterno } = useAction();
+
+  async function registrarEncaminhamentoExterno(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runEncaminhamentoExterno(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/encaminhamentos-externos`, {
+        unidade_id: unidadeId, destino: destinoExterno, prioridade: prioridadeExterno, motivo: motivoExterno.trim(),
+      }),
+      "Encaminhamento externo registrado",
+    );
+    if (ok) {
+      setMotivoExterno("");
+      void ficha.mutate();
+    }
+  }
+
+  async function transitarEncaminhamentoExterno(encId: string, status: string) {
+    const ok = await runTransitarExterno(
+      () => apiClient.post(`v1/sempras/encaminhamentos-externos/${encId}/transitar`, { status, observacoes: "" }),
+      "Encaminhamento atualizado",
+    );
+    if (ok) void ficha.mutate();
+  }
+
+  // Centro POP: documentos do munícipe (mesmo padrão dos documentos da
+  // Casa Abrigo, mas chaveados pelo cidadão, não por um acolhimento).
+  const { run: runDocumentoCp } = useAction();
+  const [tipoDocumentoCp, setTipoDocumentoCp] = useState<TipoDocumentoCentroPop>("identificacao");
+  const [enviandoCp, setEnviandoCp] = useState(false);
+  const { run: runRemoverDocumentoCp } = useAction();
+  const fileInputCp = useRef<HTMLInputElement>(null);
+
+  async function enviarDocumentoCp(file: File) {
+    setEnviandoCp(true);
+    await runDocumentoCp(async () => {
+      const { data } = await apiClient.post<{ documento: DocumentoCentroPop; upload: UploadTicket }>(
+        `v1/sempras/cidadaos/${id}/centro-pop-documentos/uploads`,
+        { unidade_id: unidadeId, tipo: tipoDocumentoCp, filename: file.name, content_type: mimeOf(file), size: file.size },
+      );
+      await putToTicket(data.upload, file);
+      await apiClient.post(`v1/sempras/centro-pop-documentos/${data.documento.id}/confirm`);
+    }, "Documento enviado");
+    setEnviandoCp(false);
+    void ficha.mutate();
+  }
+
+  async function baixarDocumentoCp(docId: string) {
+    const res = await runDocumentoCp(() => apiClient.get<{ url: string }>(`v1/sempras/centro-pop-documentos/${docId}/download`));
+    if (res) window.location.assign(res.data.url);
+  }
+
+  async function removerDocumentoCp(docId: string) {
+    const ok = await runRemoverDocumentoCp(() => apiClient.delete(`v1/sempras/centro-pop-documentos/${docId}`), "Documento removido");
+    if (ok) void ficha.mutate();
   }
 
   const c = ficha.data?.cidadao;
@@ -1204,6 +1281,104 @@ export default function FichaPage() {
               </CardContent>
             </Card>
 
+            <CentroPopPerfilCard cidadaoId={id} unidadeId={unidadeId} perfil={ficha.data!.centro_pop_perfil}
+              onChanged={() => void ficha.mutate()} />
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Encaminhamentos externos</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarEncaminhamentoExterno} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Select id="enc-externo-destino" label="Destino" value={destinoExterno}
+                      onChange={(e) => setDestinoExterno(e.target.value as DestinoExterno)}
+                      options={Object.entries(DESTINOS_EXTERNOS).map(([value, label]) => ({ value, label }))} />
+                    <Select id="enc-externo-prioridade" label="Prioridade" value={prioridadeExterno}
+                      onChange={(e) => setPrioridadeExterno(e.target.value as PrioridadeEncaminhamentoExterno)}
+                      options={Object.entries(PRIORIDADES_ENCAMINHAMENTO_EXTERNO).map(([value, label]) => ({ value, label }))} />
+                  </div>
+                  <Textarea id="enc-externo-motivo" label="Motivo do encaminhamento externo *" rows={2} maxLength={2000}
+                    value={motivoExterno} onChange={(e) => setMotivoExterno(e.target.value)} required />
+                  <div>
+                    <Button type="submit" loading={pendingEncaminhamentoExterno} disabled={!unidadeId || motivoExterno.trim().length < 3}>
+                      Registrar encaminhamento externo
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.encaminhamentos_externos.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum encaminhamento externo nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Encaminhamentos externos" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.encaminhamentos_externos.map((enc) => (
+                      <li key={enc.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">{DESTINOS_EXTERNOS[enc.destino]}</p>
+                          <p className="text-xs text-muted">
+                            {enc.motivo} · {fmtDateTime(enc.created_at)}
+                            {enc.observacoes && ` · ${enc.observacoes}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_ENCAMINHAMENTO_EXTERNO[enc.status].tone}>{STATUS_ENCAMINHAMENTO_EXTERNO[enc.status].label}</Badge>
+                          {enc.status !== "concluido" && enc.status !== "cancelado" && (
+                            <Button size="sm" loading={pendingTransitarExterno} onClick={() => void transitarEncaminhamentoExterno(enc.id, "concluido")}>
+                              Concluir
+                            </Button>
+                          )}
+                          {enc.status === "pendente" && (
+                            <Button size="sm" variant="danger" loading={pendingTransitarExterno} onClick={() => void transitarEncaminhamentoExterno(enc.id, "cancelado")}>
+                              Cancelar
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Documentos (Centro POP)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                {ficha.data!.centro_pop_documentos.length > 0 && (
+                  <ul aria-label="Documentos do Centro POP" className="flex flex-col gap-1">
+                    {ficha.data!.centro_pop_documentos.map((doc) => (
+                      <li key={doc.id} className="flex items-center justify-between gap-2 text-sm">
+                        <span>
+                          {doc.nome_original} · {TIPOS_DOCUMENTO_CENTRO_POP[doc.tipo]}
+                          {doc.status === "pending" && <Badge tone="warning">Enviando</Badge>}
+                        </span>
+                        <span className="flex gap-1">
+                          {doc.status === "ready" && (
+                            <Button size="sm" variant="ghost" aria-label={`Baixar documento ${doc.nome_original}`} onClick={() => void baixarDocumentoCp(doc.id)}>
+                              Baixar
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" aria-label={`Remover documento ${doc.nome_original}`} onClick={() => void removerDocumentoCp(doc.id)}>
+                            Remover
+                          </Button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+                  <Select id="centro-pop-documento-tipo" label="Tipo de documento" value={tipoDocumentoCp}
+                    onChange={(e) => setTipoDocumentoCp(e.target.value as TipoDocumentoCentroPop)}
+                    options={Object.entries(TIPOS_DOCUMENTO_CENTRO_POP).map(([value, label]) => ({ value, label }))} />
+                  <input ref={fileInputCp} type="file" accept="application/pdf" className="sr-only" id="centro-pop-documento-arquivo"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void enviarDocumentoCp(f); e.target.value = ""; }} />
+                  <Button size="sm" loading={enviandoCp} disabled={!unidadeId} onClick={() => fileInputCp.current?.click()}>
+                    {enviandoCp ? "Enviando…" : "Enviar PDF"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <Dialog open={encerrandoPaefi !== null} onClose={() => setEncerrandoPaefi(null)} title="Encerrar caso do PAEFI">
               <form onSubmit={confirmarEncerramentoPaefi} className="flex flex-col gap-4">
                 <Select id="paefi-motivo-encerramento" label="Motivo do encerramento" value={motivoEncerramentoPaefi}
@@ -1288,6 +1463,10 @@ export default function FichaPage() {
                       maxLength={campo.max} defaultValue={c[campo.name]} required={campo.name === "nome"} autoComplete="off" />
                   ))}
                 </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="anonimo" defaultChecked={c.anonimo} />
+                  Cadastro anônimo (Centro POP — sem documento, nascimento ou nome da mãe confiáveis)
+                </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={pedidoCorrecao} onChange={(e) => setPedidoCorrecao(e.target.checked)} />
                   A pedido do titular (LGPD art. 18) — registra o pedido de correção

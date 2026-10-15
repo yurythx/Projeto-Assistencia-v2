@@ -35,7 +35,10 @@ export function Recepcao({ unidadeId, onIncluido }: { unidadeId: string; onInclu
   async function cadastrar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const body = Object.fromEntries(CAMPOS_CIDADAO.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()]));
+    const body = {
+      ...Object.fromEntries(CAMPOS_CIDADAO.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()])),
+      anonimo: fd.get("anonimo") === "on",
+    };
     const out = await run(() => apiClient.post<Cidadao>("v1/sempras/cidadaos", body), "Munícipe cadastrado");
     if (out) {
       const c = out.data;
@@ -126,6 +129,10 @@ export function Recepcao({ unidadeId, onIncluido }: { unidadeId: string; onInclu
             <Input key={c.name} id={`cad-${c.name}`} name={c.name} label={c.label} type={c.type} maxLength={c.max}
               required={c.name === "nome"} autoComplete="off" />
           ))}
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input type="checkbox" name="anonimo" />
+            Não sabe o CPF/documento (Centro POP — cadastro anônimo)
+          </label>
           <div className="sm:col-span-2">
             <Button type="submit" loading={pending}>
               Salvar cadastro

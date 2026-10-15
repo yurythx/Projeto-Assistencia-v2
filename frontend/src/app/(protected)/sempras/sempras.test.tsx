@@ -270,7 +270,7 @@ describe("SEMPRAS — RMA/MDS", () => {
 });
 
 const PRONTUARIO = {
-  cidadao: { id: "c1", nome: "João", nome_social: "", cpf: "52998224725", nis: "", data_nascimento: "1990-05-01", nome_mae: "Ana", telefone: "", endereco: "" },
+  cidadao: { id: "c1", nome: "João", nome_social: "", cpf: "52998224725", nis: "", data_nascimento: "1990-05-01", nome_mae: "Ana", telefone: "", endereco: "", anonimo: false },
   atendimentos: [{ ...item("1", { status: "concluido", prioridade: "idoso" }) }],
   registros: [
     { id: "r1", unidade_id: "u1", atendimento_id: null, tipo: "psicologico", texto: "", sigiloso: true, autor_nome: "Psi", created_at: "2026-10-08T11:00:00Z" },
@@ -344,6 +344,13 @@ const PRONTUARIO = {
         object_key: "sempras/casa-abrigo/acolh1/2026/10/x.pdf", content_type: "application/pdf", size_bytes: 1024,
         status: "ready", created_at: "2026-10-07T00:00:00Z" }] },
   ],
+  centro_pop_perfil: null,
+  encaminhamentos_externos: [
+    { id: "encext1", cidadao_id: "c1", unidade_id: "u1", destino: "caps_ad", prioridade: "alta",
+      motivo: "uso abusivo de substâncias", status: "pendente", observacoes: "", tecnico_id: null,
+      created_at: "2026-10-08T00:30:00Z", atualizado_em: "2026-10-08T00:30:00Z" },
+  ],
+  centro_pop_documentos: [],
 };
 
 describe("SEMPRAS — ficha do munícipe", () => {
@@ -945,6 +952,82 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(lista.getByRole("button", { name: "Remover documento certidao.pdf" }));
     await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-documentos/doc1")).toHaveLength(1));
     expect(await screen.findByText("Documento removido")).toBeInTheDocument();
+  });
+
+  it("Centro POP: salva o perfil de rua, encaminha pra fora do sistema e conclui, envia um documento", async () => {
+    const api = mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
+      "GET v1/sempras/unidades": { data: UNIDADES },
+      "PUT v1/sempras/cidadaos/c1/centro-pop-perfil": {
+        data: { cidadao_id: "c1", situacao: "situacao_rua", tempo_rua_anos: 2, motivo_vulnerabilidade: "uso_de_drogas",
+          possui_doenca: false, doenca_descricao: "", usa_medicacao: false, medicacao_descricao: "",
+          uso_drogas: true, drogas_descricao: "uso de crack", atualizado_por: null, atualizado_em: "2026-10-08T12:00:00Z" },
+      },
+      "POST v1/sempras/cidadaos/c1/encaminhamentos-externos": {
+        status: 201,
+        data: { ...PRONTUARIO.encaminhamentos_externos[0], id: "encext2", destino: "saude_upa_hospital" },
+      },
+      "POST v1/sempras/encaminhamentos-externos/encext1/transitar": { data: { ...PRONTUARIO.encaminhamentos_externos[0], status: "concluido" } },
+      "POST v1/sempras/cidadaos/c1/centro-pop-documentos/uploads": {
+        status: 201,
+        data: {
+          documento: { id: "docCp1", cidadao_id: "c1", unidade_id: "u1", tipo: "laudo_saude", nome_original: "laudo.pdf",
+            object_key: "k3", content_type: "application/pdf", size_bytes: 8, status: "pending", created_at: "2026-10-08T12:30:00Z" },
+          upload: { object_key: "k3", upload_url: "http://minio.test/b/k3", method: "PUT", headers: {}, expires_at: "" },
+        },
+      },
+      "PUT minio.test/*": { status: 200 },
+      "POST v1/sempras/centro-pop-documentos/docCp1/confirm": {
+        data: { id: "docCp1", cidadao_id: "c1", unidade_id: "u1", tipo: "laudo_saude", nome_original: "laudo.pdf",
+          object_key: "k3", content_type: "application/pdf", size_bytes: 8, status: "ready", created_at: "2026-10-08T12:30:00Z" },
+      },
+    });
+    renderApp(<FichaPage />);
+    expect(await screen.findByRole("heading", { name: "João" })).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText("Motivo da vulnerabilidade"), "uso_de_drogas");
+    await userEvent.click(screen.getByLabelText("Uso de drogas"));
+    await userEvent.type(screen.getByLabelText("Descrição do uso de drogas"), "uso de crack");
+    await userEvent.click(screen.getByRole("button", { name: "Salvar perfil de rua" }));
+    await waitFor(() =>
+      expect(api.to("PUT v1/sempras/cidadaos/c1/centro-pop-perfil")[0]!.body).toEqual({
+        unidade_id: "u1", situacao: "situacao_rua", tempo_rua_anos: null, motivo_vulnerabilidade: "uso_de_drogas",
+        possui_doenca: false, doenca_descricao: "", usa_medicacao: false, medicacao_descricao: "",
+        uso_drogas: true, drogas_descricao: "uso de crack",
+      }),
+    );
+    expect(await screen.findByText("Perfil de rua atualizado")).toBeInTheDocument();
+
+    const listaEnc = within(await screen.findByRole("list", { name: "Encaminhamentos externos" }));
+    expect(listaEnc.getByText("CAPS AD")).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText("Destino"), "saude_upa_hospital");
+    await userEvent.type(screen.getByLabelText("Motivo do encaminhamento externo *"), "avaliação médica urgente");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar encaminhamento externo" }));
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/cidadaos/c1/encaminhamentos-externos")[0]!.body).toEqual({
+        unidade_id: "u1", destino: "saude_upa_hospital", prioridade: "media", motivo: "avaliação médica urgente",
+      }),
+    );
+    expect(await screen.findByText("Encaminhamento externo registrado")).toBeInTheDocument();
+
+    await userEvent.click(listaEnc.getByRole("button", { name: "Concluir" }));
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/encaminhamentos-externos/encext1/transitar")[0]!.body).toEqual({ status: "concluido", observacoes: "" }),
+    );
+    expect(await screen.findByText("Encaminhamento atualizado")).toBeInTheDocument();
+
+    await userEvent.upload(
+      document.getElementById("centro-pop-documento-arquivo") as HTMLInputElement,
+      new File(["%PDF-1.4"], "laudo.pdf", { type: "application/pdf" }),
+    );
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/cidadaos/c1/centro-pop-documentos/uploads")[0]!.body).toEqual({
+        unidade_id: "u1", tipo: "identificacao", filename: "laudo.pdf", content_type: "application/pdf", size: 8,
+      }),
+    );
+    await waitFor(() => expect(api.to("POST v1/sempras/centro-pop-documentos/docCp1/confirm")).toHaveLength(1));
+    expect(await screen.findByText("Documento enviado")).toBeInTheDocument();
   });
 });
 

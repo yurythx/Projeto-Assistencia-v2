@@ -3004,6 +3004,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sempras/centro-pop-documentos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** SEMPRAS — Excluir /sempras/centro-pop-documentos/{id} */
+        delete: operations["deleteSemprasCentroPopDocumentosId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/centro-pop-documentos/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/centro-pop-documentos/{id}/confirm */
+        post: operations["postSemprasCentroPopDocumentosIdConfirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/centro-pop-documentos/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/centro-pop-documentos/{id}/download */
+        get: operations["getSemprasCentroPopDocumentosIdDownload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sempras/cidadaos": {
         parameters: {
             query?: never;
@@ -3080,6 +3131,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sempras/cidadaos/{id}/centro-pop-documentos/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/cidadaos/{id}/centro-pop-documentos/uploads */
+        post: operations["postSemprasCidadaosIdCentroPopDocumentosUploads"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/cidadaos/{id}/centro-pop-perfil": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** SEMPRAS — Salvar /sempras/cidadaos/{id}/centro-pop-perfil */
+        put: operations["putSemprasCidadaosIdCentroPopPerfil"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sempras/cidadaos/{id}/conselho-tutelar": {
         parameters: {
             query?: never;
@@ -3134,6 +3219,23 @@ export interface paths {
          * @description Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
          */
         post: operations["postSemprasCidadaosIdEncaminhamentos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/cidadaos/{id}/encaminhamentos-externos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/cidadaos/{id}/encaminhamentos-externos */
+        post: operations["postSemprasCidadaosIdEncaminhamentosExternos"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3339,6 +3441,23 @@ export interface paths {
          * @description Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
          */
         post: operations["postSemprasCreasNotificacoesIdTransitar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/encaminhamentos-externos/{id}/transitar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/encaminhamentos-externos/{id}/transitar */
+        post: operations["postSemprasEncaminhamentosExternosIdTransitar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6166,14 +6285,47 @@ export interface components {
             /** Format: uuid */
             solicitante_id?: string | null;
             /** @enum {string} */
-            tipo: "natalidade" | "funeral" | "cesta_basica" | "passagem" | "aluguel_social" | "outro";
+            tipo: "natalidade" | "funeral" | "cesta_basica" | "passagem" | "aluguel_social" | "outro" | "auxilio_gas" | "cobertor_agasalho";
             /** Format: uuid */
             unidade_id: string;
+        };
+        SemprasCentroPopPerfil: {
+            /** Format: date-time */
+            atualizado_em: string;
+            /** Format: uuid */
+            atualizado_por: string | null;
+            /** Format: uuid */
+            cidadao_id: string;
+            doenca_descricao: string;
+            drogas_descricao: string;
+            medicacao_descricao: string;
+            motivo_vulnerabilidade: string;
+            possui_doenca: boolean;
+            situacao: string;
+            tempo_rua_anos: number | null;
+            usa_medicacao: boolean;
+            uso_drogas: boolean;
+        };
+        SemprasCentroPopPerfilRequest: {
+            doenca_descricao?: string;
+            drogas_descricao?: string;
+            medicacao_descricao?: string;
+            /** @enum {string} */
+            motivo_vulnerabilidade: "conflito_familiar" | "uso_de_drogas" | "alcoolismo" | "desemprego" | "perda_de_moradia" | "egresso_sistema_prisional" | "migracao" | "escolha_propria" | "outro";
+            possui_doenca?: boolean;
+            /** @enum {string} */
+            situacao: "situacao_rua" | "abrigado_institucionalmente" | "egresso_sistema_prisional" | "trecheiro" | "albergado" | "outro";
+            tempo_rua_anos?: number | null;
+            /** Format: uuid */
+            unidade_id: string;
+            usa_medicacao?: boolean;
+            uso_drogas?: boolean;
         };
         SemprasChamadaRequest: {
             local?: string;
         };
         SemprasCidadao: {
+            anonimo: boolean;
             cpf: string;
             /** Format: date-time */
             created_at: string;
@@ -6190,6 +6342,7 @@ export interface components {
             updated_at: string;
         };
         SemprasCidadaoRequest: {
+            anonimo?: boolean;
             cpf?: string;
             data_nascimento?: string;
             endereco?: string;
@@ -6304,6 +6457,22 @@ export interface components {
             status: string;
             tipo: string;
         };
+        SemprasDocumentoCentroPop: {
+            /** Format: uuid */
+            cidadao_id: string;
+            content_type: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            id: string;
+            nome_original: string;
+            object_key: string;
+            size_bytes: number;
+            status: string;
+            tipo: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
         SemprasEncaminhamento: {
             /** Format: uuid */
             cidadao_id: string;
@@ -6324,6 +6493,34 @@ export interface components {
             unidade_destino_id: string;
             /** Format: uuid */
             unidade_origem_id: string;
+        };
+        SemprasEncaminhamentoExterno: {
+            /** Format: date-time */
+            atualizado_em: string;
+            /** Format: uuid */
+            cidadao_id: string;
+            /** Format: date-time */
+            created_at: string;
+            destino: string;
+            /** Format: uuid */
+            id: string;
+            motivo: string;
+            observacoes: string;
+            prioridade: string;
+            status: string;
+            /** Format: uuid */
+            tecnico_id: string | null;
+            /** Format: uuid */
+            unidade_id: string;
+        };
+        SemprasEncaminhamentoExternoRequest: {
+            /** @enum {string} */
+            destino: "caps_ad" | "caps_iii" | "albergue_noturno" | "abrigo_municipal" | "saude_upa_hospital" | "sine_qualificacao" | "conselho_tutelar" | "policia_civil_deam" | "outro";
+            motivo: string;
+            /** @enum {string} */
+            prioridade: "baixa" | "media" | "alta" | "urgente";
+            /** Format: uuid */
+            unidade_id: string;
         };
         SemprasEncaminhamentoRequest: {
             motivo: string;
@@ -6650,9 +6847,12 @@ export interface components {
             atendimentos: components["schemas"]["SemprasAtendimento"][];
             beneficios: components["schemas"]["SemprasBeneficio"][];
             casa_abrigo_acolhimentos: components["schemas"]["SemprasAcolhimento"][];
+            centro_pop_documentos: components["schemas"]["SemprasDocumentoCentroPop"][];
+            centro_pop_perfil: components["schemas"]["SemprasCentroPopPerfil"] | null;
             cidadao: components["schemas"]["SemprasCidadao"];
             conselho_atendimentos: components["schemas"]["SemprasConselhoAtendimento"][];
             encaminhamentos: components["schemas"]["SemprasEncaminhamento"][];
+            encaminhamentos_externos: components["schemas"]["SemprasEncaminhamentoExterno"][];
             mse_medidas: components["schemas"]["SemprasMseMedida"][];
             notificacoes_creas: components["schemas"]["SemprasNotificacaoCreas"][];
             oficios_cras: components["schemas"]["SemprasOficioCras"][];
@@ -6763,6 +6963,11 @@ export interface components {
             acao: "aplicar_medida" | "encaminhar_mp" | "arquivar";
             medida?: string;
         };
+        SemprasTransicaoEncaminhamentoExternoRequest: {
+            observacoes?: string;
+            /** @enum {string} */
+            status: "pendente" | "em_atendimento" | "concluido" | "cancelado";
+        };
         SemprasTransicaoNotificacaoRequest: {
             /** @enum {string} */
             acao: "iniciar_diligencia" | "responder" | "arquivar";
@@ -6776,6 +6981,19 @@ export interface components {
             id: string;
             nome: string;
             sigla: string;
+        };
+        SemprasUploadDocumentoCentroPopRequest: {
+            content_type: string;
+            filename: string;
+            size: number;
+            /** @enum {string} */
+            tipo: "identificacao" | "laudo_saude" | "outro";
+            /** Format: uuid */
+            unidade_id: string;
+        };
+        SemprasUploadDocumentoCentroPopResult: {
+            documento: components["schemas"]["SemprasDocumentoCentroPop"];
+            upload: components["schemas"]["ModkitUploadTicket"];
         };
         SemprasUploadDocumentoRequest: {
             content_type: string;
@@ -13743,6 +13961,100 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    deleteSemprasCentroPopDocumentosId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: {
+                            [key: string]: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasCentroPopDocumentosIdConfirm: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasDocumentoCentroPop"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasCentroPopDocumentosIdDownload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     getSemprasCidadaos: {
         parameters: {
             query?: {
@@ -13951,6 +14263,82 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    postSemprasCidadaosIdCentroPopDocumentosUploads: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasUploadDocumentoCentroPopRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasUploadDocumentoCentroPopResult"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    putSemprasCidadaosIdCentroPopPerfil: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasCentroPopPerfilRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasCentroPopPerfil"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     postSemprasCidadaosIdConselhoTutelar: {
         parameters: {
             query?: never;
@@ -14063,6 +14451,44 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasCidadaosIdEncaminhamentosExternos: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasEncaminhamentoExternoRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasEncaminhamentoExterno"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["ModuleDisabledOrNotFound"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyRequests"];
@@ -14469,6 +14895,44 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasEncaminhamentosExternosIdTransitar: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasTransicaoEncaminhamentoExternoRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasEncaminhamentoExterno"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["ModuleDisabledOrNotFound"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyRequests"];
