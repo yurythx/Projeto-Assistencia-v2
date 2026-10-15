@@ -27,6 +27,7 @@ import PainelPage from "./painel/page";
 import PedidosPage from "./pedidos/page";
 import RmaPage from "./rma/page";
 import PainelChamadaPage from "./painel-chamada/page";
+import ColetivosPage from "./coletivos/page";
 import FichaPage from "./cidadaos/[id]/page";
 
 const UNIDADES = [
@@ -230,13 +231,21 @@ describe("SEMPRAS — RMA/MDS", () => {
             beneficios_concedidos_no_mes: 2, paefi_casos_ativos: 1, paefi_casos_abertos_no_mes: 1, mse_ativas: 0,
             mse_concluidas_no_mes: 0, conselho_atendimentos_no_mes: 0, creas_notificacoes_recebidas_no_mes: 0,
             creas_notificacoes_respondidas_no_mes: 0, casa_abrigo_acolhidos_ativos: 0, casa_abrigo_entradas_no_mes: 0,
-            casa_abrigo_desligamentos_no_mes: 0, encaminhamentos_enviados_no_mes: 1 },
+            casa_abrigo_desligamentos_no_mes: 0, encaminhamentos_enviados_no_mes: 1,
+            oficios_cras_recebidos_no_mes: 0, oficios_cras_respondidos_no_mes: 0, coletivo_paif_familias_no_mes: 0,
+            coletivo_scfv_0_6_no_mes: 0, coletivo_scfv_7_14_no_mes: 0, coletivo_scfv_15_17_no_mes: 0,
+            coletivo_scfv_18_59_no_mes: 0, coletivo_scfv_idosos_no_mes: 0, coletivo_palestras_no_mes: 0,
+            coletivo_pcd_no_mes: 0, coletivo_total_no_mes: 0 },
           { unidade: UNIDADES[1], atendimentos: 4, atendimentos_sociais: 4, atendimentos_psicologicos: 0,
             paif_ativos: 0, paif_extrema_pobreza: 0, paif_bolsa_familia: 0, paif_bpc: 0, paif_scfv_participantes: 0,
             beneficios_concedidos_no_mes: 0, paefi_casos_ativos: 1, paefi_casos_abertos_no_mes: 0, mse_ativas: 1,
             mse_concluidas_no_mes: 1, conselho_atendimentos_no_mes: 3, creas_notificacoes_recebidas_no_mes: 2,
             creas_notificacoes_respondidas_no_mes: 1, casa_abrigo_acolhidos_ativos: 1, casa_abrigo_entradas_no_mes: 1,
-            casa_abrigo_desligamentos_no_mes: 0, encaminhamentos_enviados_no_mes: 0 },
+            casa_abrigo_desligamentos_no_mes: 0, encaminhamentos_enviados_no_mes: 0,
+            oficios_cras_recebidos_no_mes: 0, oficios_cras_respondidos_no_mes: 0, coletivo_paif_familias_no_mes: 0,
+            coletivo_scfv_0_6_no_mes: 0, coletivo_scfv_7_14_no_mes: 0, coletivo_scfv_15_17_no_mes: 0,
+            coletivo_scfv_18_59_no_mes: 0, coletivo_scfv_idosos_no_mes: 0, coletivo_palestras_no_mes: 0,
+            coletivo_pcd_no_mes: 0, coletivo_total_no_mes: 0 },
         ],
       }),
     });
@@ -269,7 +278,8 @@ const PRONTUARIO = {
   ],
   rede_apoio: [{ id: "ra1", cidadao_id: "c1", nome: "Maria", parentesco: "Irmã", telefone: "66999990000", created_at: "2026-10-08T09:00:00Z" }],
   beneficios: [
-    { id: "b1", beneficiario_id: "c1", solicitante_id: null, unidade_id: "u1", tipo: "cesta_basica", quantidade: 1, status: "solicitado",
+    { id: "b1", beneficiario_id: "c1", solicitante_id: null, unidade_id: "u1", tipo: "cesta_basica", forma_acesso: "demanda_espontanea",
+      quantidade: 1, status: "solicitado",
       observacao: "", motivo_decisao: "", tecnico_decisao_id: null, data_solicitacao: "2026-10-08T08:00:00Z", data_decisao: null },
   ],
   encaminhamentos: [
@@ -277,7 +287,8 @@ const PRONTUARIO = {
       status: "pendente", observacao_decisao: "", encaminhado_por: null, decidido_por: null, created_at: "2026-10-08T07:00:00Z", decidido_em: null },
   ],
   paif_vinculos: [
-    { id: "paif1", cidadao_id: "c1", unidade_id: "u1", status: "ativo", extrema_pobreza: true, bolsa_familia: false, bpc: false,
+    { id: "paif1", cidadao_id: "c1", unidade_id: "u1", status: "ativo", tipo_atendimento: "particularizado",
+      extrema_pobreza: true, bolsa_familia: false, bpc: false,
       scfv_participantes: 2, motivo_exclusao: "", incluido_por: null, excluido_por: null, data_inclusao: "2026-10-08T06:00:00Z", data_exclusao: null },
   ],
   conselho_atendimentos: [
@@ -300,6 +311,11 @@ const PRONTUARIO = {
     { id: "notif1", protocolo: "OF-ABCD1234", vitima_id: "c1", unidade_id: "u1", origem_entidade: "ministerio_publico",
       assunto: "requisição de informações sobre acompanhamento", status: "recebida", resposta: "", tecnico_referencia_id: null,
       data_entrada: "2026-10-08T02:00:00Z", prazo_resposta: null, data_resposta: null },
+  ],
+  oficios_cras: [
+    { id: "oficio1", cidadao_id: "c1", unidade_id: "u1", orgao_emissor: "Conselho Tutelar", numero_oficio: "123/2026",
+      data_oficio: null, data_recebimento: "2026-10-08T02:30:00Z", assunto: "acompanhamento da família",
+      status: "pendente", numero_resposta: "", data_resposta: null, tecnico_responsavel_id: null },
   ],
   casa_abrigo_acolhimentos: [
     { id: "acolh1", cidadao_id: "c1", unidade_id: "u1", sexo: "masculino", responsavel_nome: "", responsavel_nis: "",
@@ -350,7 +366,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
 
     await userEvent.selectOptions(screen.getByLabelText("Unidade"), "u2");
     await userEvent.type(screen.getByLabelText("Nova evolução *"), "  Visita domiciliar agendada ");
-    await userEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Registrar" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/registros")[0]!.body).toEqual({ unidade_id: "u2", tipo: "social", texto: "Visita domiciliar agendada" }),
     );
@@ -368,7 +384,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     expect(await screen.findByText("Sem atendimentos nas suas unidades.")).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText("Tipo"), "psicologico");
     await userEvent.type(screen.getByLabelText("Nova evolução *"), "Escuta");
-    await userEvent.click(screen.getByRole("button", { name: /Registrar/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Registrar" }));
     expect(await screen.findByText("sem permissão nesta unidade")).toBeInTheDocument();
     expect(screen.getByLabelText("Nova evolução *")).toHaveValue("Escuta");
   });
@@ -471,7 +487,9 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.selectOptions(screen.getByLabelText("Tipo de benefício"), "funeral");
     await userEvent.click(screen.getByRole("button", { name: "Solicitar" }));
     await waitFor(() =>
-      expect(api.to("POST v1/sempras/cidadaos/c1/beneficios")[0]!.body).toEqual({ unidade_id: "u1", tipo: "funeral", quantidade: 1, observacao: "" }),
+      expect(api.to("POST v1/sempras/cidadaos/c1/beneficios")[0]!.body).toEqual({
+        unidade_id: "u1", tipo: "funeral", forma_acesso: "demanda_espontanea", quantidade: 1, observacao: "",
+      }),
     );
     expect(await screen.findByText("Benefício solicitado")).toBeInTheDocument();
 
@@ -529,7 +547,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Incluir no PAIF" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/paif")[0]!.body).toEqual({
-        unidade_id: "u1", extrema_pobreza: false, bolsa_familia: true, bpc: false, scfv_participantes: 3,
+        unidade_id: "u1", tipo_atendimento: "particularizado", extrema_pobreza: false, bolsa_familia: true, bpc: false, scfv_participantes: 3,
       }),
     );
     expect(await screen.findByText("Família incluída no PAIF")).toBeInTheDocument();
@@ -681,7 +699,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Protocolar notificação" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/creas-notificacoes")[0]!.body).toEqual({
-        unidade_id: "u1", origem_entidade: "disque_100_180", assunto: "nova denúncia recebida",
+        unidade_id: "u1", origem_entidade: "disque_100_180", assunto: "nova denúncia recebida", prazo_resposta: null,
       }),
     );
     expect(await screen.findByText("Notificação do CREAS registrada")).toBeInTheDocument();
@@ -708,6 +726,40 @@ describe("SEMPRAS — ficha do munícipe", () => {
       expect(api.to("POST v1/sempras/creas-notificacoes/notif1/transitar").at(-1)!.body).toEqual({ acao: "arquivar" }),
     );
     expect(await screen.findByText("Notificação arquivada")).toBeInTheDocument();
+  });
+
+  it("Ofícios do CRAS: lista, registra e responde", async () => {
+    const api = mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
+      "GET v1/sempras/unidades": { data: UNIDADES },
+      "POST v1/sempras/cidadaos/c1/oficios-cras": { status: 201, data: { ...PRONTUARIO.oficios_cras[0], id: "oficio2" } },
+      "POST v1/sempras/oficios-cras/oficio1/responder": { data: { ...PRONTUARIO.oficios_cras[0], status: "respondido", numero_resposta: "456/2026" } },
+    });
+    renderApp(<FichaPage />);
+    const lista = within(await screen.findByRole("list", { name: "Ofícios do CRAS" }));
+    expect(lista.getByText("123/2026 · Conselho Tutelar")).toBeInTheDocument();
+    expect(lista.getByText("Pendente")).toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText("Órgão emissor *"), "Ministério Público");
+    await userEvent.type(screen.getByLabelText("Nº do ofício *"), "789/2026");
+    await userEvent.type(screen.getByLabelText("Assunto"), "requisição sobre a família");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar ofício" }));
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/cidadaos/c1/oficios-cras")[0]!.body).toEqual({
+        unidade_id: "u1", orgao_emissor: "Ministério Público", numero_oficio: "789/2026", assunto: "requisição sobre a família",
+      }),
+    );
+    expect(await screen.findByText("Ofício registrado")).toBeInTheDocument();
+
+    await userEvent.click(lista.getByRole("button", { name: "Responder" }));
+    const dialog = await screen.findByRole("dialog", { name: "Responder ofício" });
+    await userEvent.type(within(dialog).getByLabelText("Nº da resposta *"), "456/2026");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Confirmar" }));
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/oficios-cras/oficio1/responder")[0]!.body).toEqual({ numero_resposta: "456/2026" }),
+    );
+    expect(await screen.findByText("Ofício respondido")).toBeInTheDocument();
   });
 
   it("Casa Abrigo: lista, abre acolhimento, adiciona irmão/diagnóstico e desliga", async () => {
@@ -1038,5 +1090,40 @@ describe("SEMPRAS — painel de chamada", () => {
     mockBackend({ ...identityRoutes(recepcionista) });
     renderApp(<PainelChamadaPage />);
     expect(await screen.findByText(/O painel de chamada é de quem atende a fila do SEMPRAS/)).toBeInTheDocument();
+  });
+});
+
+describe("SEMPRAS — atendimentos coletivos", () => {
+  beforeEach(() => resetNavigation());
+
+  it("escolhe a unidade, lista e registra um evento de grupo", async () => {
+    const api = mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades/u1/coletivos": { data: [
+        { id: "col1", unidade_id: "u1", data_evento: "2026-10-05", categoria: "scfv_0_6", participantes: 8,
+          descricao: "turma da manhã", created_at: "2026-10-05T00:00:00Z" },
+      ] },
+      "POST v1/sempras/unidades/u1/coletivos": { status: 201, data: { id: "col2", unidade_id: "u1", data_evento: "2026-10-10",
+        categoria: "scfv_7_14", participantes: 12, descricao: "", created_at: "2026-10-10T00:00:00Z" } },
+    });
+    renderApp(<ColetivosPage />);
+    expect(await screen.findByRole("heading", { level: 1, name: "SEMPRAS — Atendimentos coletivos" })).toBeInTheDocument();
+    const lista = within(await screen.findByRole("list", { name: "Atendimentos coletivos" }));
+    expect(lista.getByText("SCFV — crianças até 6 anos")).toBeInTheDocument();
+    expect(lista.getByText(/8 participantes/)).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText("Categoria *"), "scfv_7_14");
+    await userEvent.clear(screen.getByLabelText("Participantes *"));
+    await userEvent.type(screen.getByLabelText("Participantes *"), "12");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar" }));
+    await waitFor(() => expect(api.to("POST v1/sempras/unidades/u1/coletivos")).toHaveLength(1));
+    expect(await screen.findByText("Atendimento coletivo registrado")).toBeInTheDocument();
+  });
+
+  it("sem a permissão de atendimento: explica de quem são os coletivos", async () => {
+    mockBackend({ ...identityRoutes(recepcionista) });
+    renderApp(<ColetivosPage />);
+    expect(await screen.findByText(/Os atendimentos coletivos são de quem atende a unidade do SEMPRAS/)).toBeInTheDocument();
   });
 });

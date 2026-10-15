@@ -74,8 +74,9 @@ export interface ContatoRedeApoio {
   created_at: string;
 }
 
-export type TipoBeneficio = "natalidade" | "funeral" | "cesta_basica" | "passagem";
+export type TipoBeneficio = "natalidade" | "funeral" | "cesta_basica" | "passagem" | "aluguel_social" | "outro";
 export type StatusBeneficio = "solicitado" | "concedido" | "negado" | "suspenso";
+export type FormaAcessoBeneficio = "demanda_espontanea" | "busca_ativa" | "encaminhamento_rede_socioassistencial" | "encaminhamento_sistema_garantia_direitos";
 
 export interface Beneficio {
   id: string;
@@ -83,6 +84,7 @@ export interface Beneficio {
   solicitante_id: string | null;
   unidade_id: string;
   tipo: TipoBeneficio;
+  forma_acesso: FormaAcessoBeneficio;
   quantidade: number;
   status: StatusBeneficio;
   observacao: string;
@@ -97,6 +99,15 @@ export const TIPOS_BENEFICIO: Record<TipoBeneficio, string> = {
   funeral: "Auxílio funeral",
   cesta_basica: "Cesta básica",
   passagem: "Passagem",
+  aluguel_social: "Aluguel social",
+  outro: "Outro",
+};
+
+export const FORMAS_ACESSO_BENEFICIO: Record<FormaAcessoBeneficio, string> = {
+  demanda_espontanea: "Demanda espontânea",
+  busca_ativa: "Busca ativa",
+  encaminhamento_rede_socioassistencial: "Encaminhamento da rede socioassistencial",
+  encaminhamento_sistema_garantia_direitos: "Encaminhamento do sistema de garantia de direitos",
 };
 
 export const STATUS_BENEFICIO: Record<StatusBeneficio, { label: string; tone: "warning" | "success" | "danger" | "neutral" }> = {
@@ -129,12 +140,20 @@ export const STATUS_ENCAMINHAMENTO: Record<StatusEncaminhamento, { label: string
 };
 
 export type StatusPaif = "ativo" | "excluido";
+export type TipoAtendimentoPaif = "particularizado" | "coletivo" | "ambos";
+
+export const TIPOS_ATENDIMENTO_PAIF: Record<TipoAtendimentoPaif, string> = {
+  particularizado: "Particularizado",
+  coletivo: "Coletivo",
+  ambos: "Ambos",
+};
 
 export interface PaifVinculo {
   id: string;
   cidadao_id: string;
   unidade_id: string;
   status: StatusPaif;
+  tipo_atendimento: TipoAtendimentoPaif;
   extrema_pobreza: boolean;
   bolsa_familia: boolean;
   bpc: boolean;
@@ -357,6 +376,56 @@ export const STATUS_NOTIFICACAO_CREAS: Record<StatusNotificacaoCreas, { label: s
   arquivada: { label: "Arquivada", tone: "neutral" },
 };
 
+// ------------------------------------------------------------- Ofícios (CRAS)
+
+export type StatusOficioCras = "pendente" | "respondido";
+
+export interface OficioCras {
+  id: string;
+  cidadao_id: string;
+  unidade_id: string;
+  orgao_emissor: string;
+  numero_oficio: string;
+  data_oficio: string | null;
+  data_recebimento: string;
+  assunto: string;
+  status: StatusOficioCras;
+  numero_resposta: string;
+  data_resposta: string | null;
+  tecnico_responsavel_id: string | null;
+}
+
+export const STATUS_OFICIO_CRAS: Record<StatusOficioCras, { label: string; tone: "warning" | "success" | "danger" | "neutral" }> = {
+  pendente: { label: "Pendente", tone: "warning" },
+  respondido: { label: "Respondido", tone: "success" },
+};
+
+// ---------------------------------------------------- Atendimentos coletivos
+
+export type CategoriaColetivo = "paif_familias" | "scfv_0_6" | "scfv_7_14" | "scfv_15_17" | "scfv_18_59" | "scfv_idosos"
+  | "palestras_nao_continuado" | "pcd";
+
+export interface AtendimentoColetivo {
+  id: string;
+  unidade_id: string;
+  data_evento: string;
+  categoria: CategoriaColetivo;
+  participantes: number;
+  descricao: string;
+  created_at: string;
+}
+
+export const CATEGORIAS_COLETIVO: Record<CategoriaColetivo, string> = {
+  paif_familias: "Famílias em grupos do PAIF",
+  scfv_0_6: "SCFV — crianças até 6 anos",
+  scfv_7_14: "SCFV — crianças/adolescentes de 7 a 14 anos",
+  scfv_15_17: "SCFV — adolescentes de 15 a 17 anos",
+  scfv_18_59: "SCFV — adultos de 18 a 59 anos",
+  scfv_idosos: "SCFV — idosos",
+  palestras_nao_continuado: "Palestras e atividades não continuadas",
+  pcd: "Pessoas com deficiência",
+};
+
 // ---------------------------------------------------------------- Casa Abrigo
 
 export type MotivoAcolhimento =
@@ -555,6 +624,7 @@ export interface Prontuario {
   paefi_casos: PaefiCaso[];
   mse_medidas: MseMedida[];
   notificacoes_creas: NotificacaoCreas[];
+  oficios_cras: OficioCras[];
   casa_abrigo_acolhimentos: Acolhimento[];
 }
 
@@ -590,6 +660,17 @@ export interface RmaUnidade {
   casa_abrigo_entradas_no_mes: number;
   casa_abrigo_desligamentos_no_mes: number;
   encaminhamentos_enviados_no_mes: number;
+  oficios_cras_recebidos_no_mes: number;
+  oficios_cras_respondidos_no_mes: number;
+  coletivo_paif_familias_no_mes: number;
+  coletivo_scfv_0_6_no_mes: number;
+  coletivo_scfv_7_14_no_mes: number;
+  coletivo_scfv_15_17_no_mes: number;
+  coletivo_scfv_18_59_no_mes: number;
+  coletivo_scfv_idosos_no_mes: number;
+  coletivo_palestras_no_mes: number;
+  coletivo_pcd_no_mes: number;
+  coletivo_total_no_mes: number;
 }
 
 // -------------------------------------------------- direitos do titular

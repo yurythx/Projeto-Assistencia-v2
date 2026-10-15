@@ -67,6 +67,8 @@ export function Rma() {
                     <th scope="col">Casa Abrigo — ativos</th>
                     <th scope="col">Casa Abrigo — entradas</th>
                     <th scope="col">Encaminhamentos</th>
+                    <th scope="col">Ofícios CRAS (recebidos/respondidos)</th>
+                    <th scope="col">Atend. coletivos (participantes)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -85,6 +87,8 @@ export function Rma() {
                       <td>{l.casa_abrigo_acolhidos_ativos}</td>
                       <td>{l.casa_abrigo_entradas_no_mes}</td>
                       <td>{l.encaminhamentos_enviados_no_mes}</td>
+                      <td>{l.oficios_cras_recebidos_no_mes}/{l.oficios_cras_respondidos_no_mes}</td>
+                      <td>{l.coletivo_total_no_mes}</td>
                     </tr>
                   ))}
                 </tbody>

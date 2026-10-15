@@ -63,6 +63,7 @@ describe("buildNav", () => {
     expect(comAtendimento.sections[0]!.items.map((i) => ({ href: i.href, label: i.label }))).toEqual([
       { href: "/sempras", label: "Atendimento" },
       { href: "/sempras/painel-chamada", label: "Painel de chamada" },
+      { href: "/sempras/coletivos", label: "Atendimentos coletivos" },
     ]);
   });
 

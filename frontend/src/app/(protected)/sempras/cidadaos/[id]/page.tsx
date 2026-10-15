@@ -7,7 +7,7 @@ import { useState, type FormEvent } from "react";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
-import { fmtDateTime, useAction } from "@/components/nexus/useAction";
+import { fmtDate, fmtDateTime, useAction } from "@/components/nexus/useAction";
 import { Badge } from "@/components/ui/Badge";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -21,6 +21,7 @@ import { useNexus } from "@/lib/nexus/NexusProvider";
 import { AcolhimentoItem } from "@/components/sempras/AcolhimentoItem";
 import {
   CAMPOS_CIDADAO,
+  FORMAS_ACESSO_BENEFICIO,
   MEDIDAS_PROTETIVAS,
   MOTIVOS_ACOLHIMENTO,
   MOTIVOS_ENCERRAMENTO_PAEFI,
@@ -34,14 +35,17 @@ import {
   STATUS_ENCAMINHAMENTO,
   STATUS_MSE,
   STATUS_NOTIFICACAO_CREAS,
+  STATUS_OFICIO_CRAS,
   STATUS_PAEFI,
   STATUS_PAIF,
   TIPOS,
+  TIPOS_ATENDIMENTO_PAIF,
   TIPOS_BENEFICIO,
   TIPOS_MSE,
   VIOLACOES_PAEFI,
   rotuloPrioridade,
   type Cidadao,
+  type FormaAcessoBeneficio,
   type MedidaProtetiva,
   type MotivoAcolhimento,
   type MotivoEncerramentoPaefi,
@@ -50,6 +54,7 @@ import {
   type OrigemNotificacaoCreas,
   type Prontuario,
   type SexoAcolhido,
+  type TipoAtendimentoPaif,
   type TipoBeneficio,
   type TipoMse,
   type Unidade,
@@ -158,6 +163,7 @@ export default function FichaPage() {
   // Benefícios eventuais (LOAS art. 22): solicitado → concedido/negado;
   // concedido → suspenso. Negar e suspender exigem motivo; conceder não.
   const [tipoBeneficio, setTipoBeneficio] = useState<TipoBeneficio>("cesta_basica");
+  const [formaAcessoBeneficio, setFormaAcessoBeneficio] = useState<FormaAcessoBeneficio>("demanda_espontanea");
   const [quantidadeBeneficio, setQuantidadeBeneficio] = useState("1");
   const [observacaoBeneficio, setObservacaoBeneficio] = useState("");
   const { run: runBeneficio, pending: pendingBeneficio } = useAction();
@@ -169,7 +175,8 @@ export default function FichaPage() {
     e.preventDefault();
     const ok = await runBeneficio(
       () => apiClient.post(`v1/sempras/cidadaos/${id}/beneficios`, {
-        unidade_id: unidadeId, tipo: tipoBeneficio, quantidade: Number(quantidadeBeneficio) || 1, observacao: observacaoBeneficio.trim(),
+        unidade_id: unidadeId, tipo: tipoBeneficio, forma_acesso: formaAcessoBeneficio,
+        quantidade: Number(quantidadeBeneficio) || 1, observacao: observacaoBeneficio.trim(),
       }),
       "Benefício solicitado",
     );
@@ -224,6 +231,7 @@ export default function FichaPage() {
 
   // PAIF (CRAS): vínculo da família ao serviço, com status real (não
   // inferido pela ausência de data de exclusão).
+  const [tipoAtendimentoPaif, setTipoAtendimentoPaif] = useState<TipoAtendimentoPaif>("particularizado");
   const [extremaPobreza, setExtremaPobreza] = useState(false);
   const [bolsaFamilia, setBolsaFamilia] = useState(false);
   const [bpc, setBpc] = useState(false);
@@ -237,11 +245,13 @@ export default function FichaPage() {
     e.preventDefault();
     const ok = await runPaif(
       () => apiClient.post(`v1/sempras/cidadaos/${id}/paif`, {
-        unidade_id: unidadeId, extrema_pobreza: extremaPobreza, bolsa_familia: bolsaFamilia, bpc, scfv_participantes: Number(scfv) || 0,
+        unidade_id: unidadeId, tipo_atendimento: tipoAtendimentoPaif, extrema_pobreza: extremaPobreza,
+        bolsa_familia: bolsaFamilia, bpc, scfv_participantes: Number(scfv) || 0,
       }),
       "Família incluída no PAIF",
     );
     if (ok) {
+      setTipoAtendimentoPaif("particularizado");
       setExtremaPobreza(false);
       setBolsaFamilia(false);
       setBpc(false);
@@ -411,6 +421,7 @@ export default function FichaPage() {
   // Judiciário, Conselho Tutelar, Disque 100/180, Delegacia).
   const [origemNotificacao, setOrigemNotificacao] = useState<OrigemNotificacaoCreas>("ministerio_publico");
   const [assuntoNotificacao, setAssuntoNotificacao] = useState("");
+  const [prazoNotificacao, setPrazoNotificacao] = useState("");
   const { run: runNotificacao, pending: pendingNotificacao } = useAction();
   const { run: runTransitarNotificacao, pending: pendingTransitarNotificacao } = useAction();
   const [respondendoNotificacao, setRespondendoNotificacao] = useState<string | null>(null);
@@ -421,11 +432,13 @@ export default function FichaPage() {
     const ok = await runNotificacao(
       () => apiClient.post(`v1/sempras/cidadaos/${id}/creas-notificacoes`, {
         unidade_id: unidadeId, origem_entidade: origemNotificacao, assunto: assuntoNotificacao.trim(),
+        prazo_resposta: prazoNotificacao ? new Date(prazoNotificacao).toISOString() : null,
       }),
       "Notificação do CREAS registrada",
     );
     if (ok) {
       setAssuntoNotificacao("");
+      setPrazoNotificacao("");
       void ficha.mutate();
     }
   }
@@ -456,6 +469,46 @@ export default function FichaPage() {
     if (ok) {
       setRespondendoNotificacao(null);
       setRespostaNotificacao("");
+      void ficha.mutate();
+    }
+  }
+
+  // Ofícios do CRAS: ofício recebido de um ente externo (Conselho
+  // Tutelar, MP etc.) sobre a família acompanhada.
+  const [orgaoOficio, setOrgaoOficio] = useState("");
+  const [numeroOficio, setNumeroOficio] = useState("");
+  const [assuntoOficio, setAssuntoOficio] = useState("");
+  const { run: runOficio, pending: pendingOficio } = useAction();
+  const { run: runResponderOficio, pending: pendingResponderOficio } = useAction();
+  const [respondendoOficio, setRespondendoOficio] = useState<string | null>(null);
+  const [numeroRespostaOficio, setNumeroRespostaOficio] = useState("");
+
+  async function registrarOficio(e: FormEvent) {
+    e.preventDefault();
+    const ok = await runOficio(
+      () => apiClient.post(`v1/sempras/cidadaos/${id}/oficios-cras`, {
+        unidade_id: unidadeId, orgao_emissor: orgaoOficio.trim(), numero_oficio: numeroOficio.trim(), assunto: assuntoOficio.trim(),
+      }),
+      "Ofício registrado",
+    );
+    if (ok) {
+      setOrgaoOficio("");
+      setNumeroOficio("");
+      setAssuntoOficio("");
+      void ficha.mutate();
+    }
+  }
+
+  async function confirmarRespostaOficio(e: FormEvent) {
+    e.preventDefault();
+    if (!respondendoOficio) return;
+    const ok = await runResponderOficio(
+      () => apiClient.post(`v1/sempras/oficios-cras/${respondendoOficio}/responder`, { numero_resposta: numeroRespostaOficio.trim() }),
+      "Ofício respondido",
+    );
+    if (ok) {
+      setRespondendoOficio(null);
+      setNumeroRespostaOficio("");
       void ficha.mutate();
     }
   }
@@ -638,9 +691,12 @@ export default function FichaPage() {
                 <CardTitle as="h2">Benefícios eventuais</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4 pb-5">
-                <form onSubmit={solicitarBeneficio} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto] sm:items-end">
+                <form onSubmit={solicitarBeneficio} className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto_1fr_auto] sm:items-end">
                   <Select id="beneficio-tipo" label="Tipo de benefício" value={tipoBeneficio} onChange={(e) => setTipoBeneficio(e.target.value as TipoBeneficio)}
                     options={Object.entries(TIPOS_BENEFICIO).map(([value, label]) => ({ value, label }))} />
+                  <Select id="beneficio-forma-acesso" label="Forma de acesso" value={formaAcessoBeneficio}
+                    onChange={(e) => setFormaAcessoBeneficio(e.target.value as FormaAcessoBeneficio)}
+                    options={Object.entries(FORMAS_ACESSO_BENEFICIO).map(([value, label]) => ({ value, label }))} />
                   <Input id="beneficio-quantidade" label="Qtd." type="number" min={1} max={100} value={quantidadeBeneficio}
                     onChange={(e) => setQuantidadeBeneficio(e.target.value)} className="w-20" />
                   <Input id="beneficio-observacao" label="Observação" maxLength={2000} value={observacaoBeneficio}
@@ -660,7 +716,7 @@ export default function FichaPage() {
                             {TIPOS_BENEFICIO[b.tipo]} {b.quantidade > 1 ? `(${b.quantidade}x)` : ""}
                           </p>
                           <p className="text-xs text-muted">
-                            {nomes.get(b.unidade_id) ?? ""} · {fmtDateTime(b.data_solicitacao)}
+                            {nomes.get(b.unidade_id) ?? ""} · {FORMAS_ACESSO_BENEFICIO[b.forma_acesso]} · {fmtDateTime(b.data_solicitacao)}
                             {b.motivo_decisao && ` · ${b.motivo_decisao}`}
                           </p>
                         </div>
@@ -732,6 +788,9 @@ export default function FichaPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-4 pb-5">
                 <form onSubmit={incluirPaif} className="mt-3 flex flex-col gap-3">
+                  <Select id="paif-tipo-atendimento" label="Tipo de atendimento" value={tipoAtendimentoPaif}
+                    onChange={(e) => setTipoAtendimentoPaif(e.target.value as TipoAtendimentoPaif)}
+                    options={Object.entries(TIPOS_ATENDIMENTO_PAIF).map(([value, label]) => ({ value, label }))} className="max-w-xs" />
                   <div className="flex flex-wrap gap-4 text-sm">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" checked={extremaPobreza} onChange={(e) => setExtremaPobreza(e.target.checked)} /> Extrema pobreza
@@ -762,7 +821,7 @@ export default function FichaPage() {
                             {[v.extrema_pobreza && "Extrema pobreza", v.bolsa_familia && "Bolsa Família", v.bpc && "BPC"].filter(Boolean).join(" · ") || "Sem indicadores"}
                           </p>
                           <p className="text-xs text-muted">
-                            {nomes.get(v.unidade_id) ?? ""} · SCFV: {v.scfv_participantes} · desde {fmtDateTime(v.data_inclusao)}
+                            {nomes.get(v.unidade_id) ?? ""} · {TIPOS_ATENDIMENTO_PAIF[v.tipo_atendimento]} · SCFV: {v.scfv_participantes} · desde {fmtDateTime(v.data_inclusao)}
                             {v.motivo_exclusao && ` · ${v.motivo_exclusao}`}
                           </p>
                         </div>
@@ -993,6 +1052,8 @@ export default function FichaPage() {
                     <Input id="notificacao-assunto" label="Assunto *" maxLength={2000} value={assuntoNotificacao}
                       onChange={(e) => setAssuntoNotificacao(e.target.value)} autoComplete="off" required />
                   </div>
+                  <Input id="notificacao-prazo" label="Prazo de resposta" type="date" value={prazoNotificacao}
+                    onChange={(e) => setPrazoNotificacao(e.target.value)} className="w-40" />
                   <div>
                     <Button type="submit" loading={pendingNotificacao} disabled={!unidadeId || assuntoNotificacao.trim().length < 3}>
                       Protocolar notificação
@@ -1003,7 +1064,10 @@ export default function FichaPage() {
                   <p className="text-sm text-muted">Nenhuma notificação do CREAS nas suas unidades.</p>
                 ) : (
                   <ul aria-label="Notificações do CREAS" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
-                    {ficha.data!.notificacoes_creas.map((n) => (
+                    {ficha.data!.notificacoes_creas.map((n) => {
+                      const vencida = !!n.prazo_resposta && n.status !== "respondida" && n.status !== "arquivada"
+                        && new Date(n.prazo_resposta).getTime() < new Date().getTime();
+                      return (
                       <li key={n.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
                         <div>
                           <p className="font-medium">
@@ -1011,10 +1075,12 @@ export default function FichaPage() {
                           </p>
                           <p className="text-xs text-muted">
                             {n.assunto} · {fmtDateTime(n.data_entrada)}
+                            {n.prazo_resposta && ` · Prazo: ${fmtDate(n.prazo_resposta)}`}
                             {n.resposta && ` · ${n.resposta}`}
                           </p>
                         </div>
                         <span className="flex items-center gap-2">
+                          {vencida && <Badge tone="danger">Prazo vencido</Badge>}
                           <Badge tone={STATUS_NOTIFICACAO_CREAS[n.status].tone}>{STATUS_NOTIFICACAO_CREAS[n.status].label}</Badge>
                           {n.status === "recebida" && (
                             <Button size="sm" loading={pendingTransitarNotificacao} onClick={() => void iniciarDiligencia(n.id)}>
@@ -1029,6 +1095,58 @@ export default function FichaPage() {
                           {n.status !== "arquivada" && (
                             <Button size="sm" variant="danger" loading={pendingTransitarNotificacao} onClick={() => void arquivarNotificacao(n.id)}>
                               Arquivar
+                            </Button>
+                          )}
+                        </span>
+                      </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle as="h2">Ofícios recebidos (CRAS)</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 pb-5">
+                <form onSubmit={registrarOficio} className="mt-3 flex flex-col gap-3">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Input id="oficio-orgao" label="Órgão emissor *" maxLength={200} value={orgaoOficio}
+                      onChange={(e) => setOrgaoOficio(e.target.value)} autoComplete="off" required />
+                    <Input id="oficio-numero" label="Nº do ofício *" maxLength={100} value={numeroOficio}
+                      onChange={(e) => setNumeroOficio(e.target.value)} autoComplete="off" required />
+                    <Input id="oficio-assunto" label="Assunto" maxLength={2000} value={assuntoOficio}
+                      onChange={(e) => setAssuntoOficio(e.target.value)} autoComplete="off" />
+                  </div>
+                  <div>
+                    <Button type="submit" loading={pendingOficio}
+                      disabled={!unidadeId || orgaoOficio.trim().length < 3 || numeroOficio.trim().length < 1}>
+                      Registrar ofício
+                    </Button>
+                  </div>
+                </form>
+                {ficha.data!.oficios_cras.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum ofício do CRAS nas suas unidades.</p>
+                ) : (
+                  <ul aria-label="Ofícios do CRAS" className="flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border">
+                    {ficha.data!.oficios_cras.map((o) => (
+                      <li key={o.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <div>
+                          <p className="font-medium">
+                            {o.numero_oficio} · {o.orgao_emissor}
+                          </p>
+                          <p className="text-xs text-muted">
+                            {o.assunto} · {fmtDateTime(o.data_recebimento)}
+                            {o.numero_resposta && ` · resposta nº ${o.numero_resposta}`}
+                          </p>
+                        </div>
+                        <span className="flex items-center gap-2">
+                          <Badge tone={STATUS_OFICIO_CRAS[o.status].tone}>{STATUS_OFICIO_CRAS[o.status].label}</Badge>
+                          {o.status === "pendente" && (
+                            <Button size="sm" variant="secondary" onClick={() => setRespondendoOficio(o.id)}>
+                              Responder
                             </Button>
                           )}
                         </span>
@@ -1118,6 +1236,18 @@ export default function FichaPage() {
                   value={respostaNotificacao} onChange={(e) => setRespostaNotificacao(e.target.value)} required />
                 <div>
                   <Button type="submit" loading={pendingTransitarNotificacao} disabled={respostaNotificacao.trim().length < 3}>
+                    Confirmar
+                  </Button>
+                </div>
+              </form>
+            </Dialog>
+
+            <Dialog open={respondendoOficio !== null} onClose={() => setRespondendoOficio(null)} title="Responder ofício">
+              <form onSubmit={confirmarRespostaOficio} className="flex flex-col gap-4">
+                <Input id="oficio-numero-resposta" label="Nº da resposta *" maxLength={100}
+                  value={numeroRespostaOficio} onChange={(e) => setNumeroRespostaOficio(e.target.value)} autoComplete="off" required />
+                <div>
+                  <Button type="submit" loading={pendingResponderOficio} disabled={numeroRespostaOficio.trim().length < 1}>
                     Confirmar
                   </Button>
                 </div>
