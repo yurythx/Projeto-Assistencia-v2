@@ -6185,7 +6185,9 @@
               "cesta_basica",
               "passagem",
               "aluguel_social",
-              "outro"
+              "outro",
+              "auxilio_gas",
+              "cobertor_agasalho"
             ],
             "type": "string"
           },
@@ -6203,6 +6205,133 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasCentroPopPerfil": {
+        "properties": {
+          "atualizado_em": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "atualizado_por": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "doenca_descricao": {
+            "type": "string"
+          },
+          "drogas_descricao": {
+            "type": "string"
+          },
+          "medicacao_descricao": {
+            "type": "string"
+          },
+          "motivo_vulnerabilidade": {
+            "type": "string"
+          },
+          "possui_doenca": {
+            "type": "boolean"
+          },
+          "situacao": {
+            "type": "string"
+          },
+          "tempo_rua_anos": {
+            "nullable": true,
+            "type": "number"
+          },
+          "usa_medicacao": {
+            "type": "boolean"
+          },
+          "uso_drogas": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "atualizado_em",
+          "atualizado_por",
+          "cidadao_id",
+          "doenca_descricao",
+          "drogas_descricao",
+          "medicacao_descricao",
+          "motivo_vulnerabilidade",
+          "possui_doenca",
+          "situacao",
+          "tempo_rua_anos",
+          "usa_medicacao",
+          "uso_drogas"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasCentroPopPerfilRequest": {
+        "properties": {
+          "doenca_descricao": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "drogas_descricao": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "medicacao_descricao": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "motivo_vulnerabilidade": {
+            "enum": [
+              "conflito_familiar",
+              "uso_de_drogas",
+              "alcoolismo",
+              "desemprego",
+              "perda_de_moradia",
+              "egresso_sistema_prisional",
+              "migracao",
+              "escolha_propria",
+              "outro"
+            ],
+            "type": "string"
+          },
+          "possui_doenca": {
+            "type": "boolean"
+          },
+          "situacao": {
+            "enum": [
+              "situacao_rua",
+              "abrigado_institucionalmente",
+              "egresso_sistema_prisional",
+              "trecheiro",
+              "albergado",
+              "outro"
+            ],
+            "type": "string"
+          },
+          "tempo_rua_anos": {
+            "minimum": 0,
+            "nullable": true,
+            "type": "number"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "usa_medicacao": {
+            "type": "boolean"
+          },
+          "uso_drogas": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "motivo_vulnerabilidade",
+          "situacao",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SemprasChamadaRequest": {
         "properties": {
           "local": {
@@ -6215,6 +6344,9 @@
       },
       "SemprasCidadao": {
         "properties": {
+          "anonimo": {
+            "type": "boolean"
+          },
           "cpf": {
             "type": "string"
           },
@@ -6253,6 +6385,7 @@
           }
         },
         "required": [
+          "anonimo",
           "cpf",
           "created_at",
           "data_nascimento",
@@ -6270,6 +6403,9 @@
       },
       "SemprasCidadaoRequest": {
         "properties": {
+          "anonimo": {
+            "type": "boolean"
+          },
           "cpf": {
             "maxLength": 20,
             "type": "string"
@@ -6691,6 +6827,58 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasDocumentoCentroPop": {
+        "properties": {
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nome_original": {
+            "type": "string"
+          },
+          "object_key": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cidadao_id",
+          "content_type",
+          "created_at",
+          "id",
+          "nome_original",
+          "object_key",
+          "size_bytes",
+          "status",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SemprasEncaminhamento": {
         "properties": {
           "cidadao_id": {
@@ -6750,6 +6938,109 @@
           "status",
           "unidade_destino_id",
           "unidade_origem_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasEncaminhamentoExterno": {
+        "properties": {
+          "atualizado_em": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "destino": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "motivo": {
+            "type": "string"
+          },
+          "observacoes": {
+            "type": "string"
+          },
+          "prioridade": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tecnico_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "atualizado_em",
+          "cidadao_id",
+          "created_at",
+          "destino",
+          "id",
+          "motivo",
+          "observacoes",
+          "prioridade",
+          "status",
+          "tecnico_id",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasEncaminhamentoExternoRequest": {
+        "properties": {
+          "destino": {
+            "enum": [
+              "caps_ad",
+              "caps_iii",
+              "albergue_noturno",
+              "abrigo_municipal",
+              "saude_upa_hospital",
+              "sine_qualificacao",
+              "conselho_tutelar",
+              "policia_civil_deam",
+              "outro"
+            ],
+            "type": "string"
+          },
+          "motivo": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "type": "string"
+          },
+          "prioridade": {
+            "enum": [
+              "baixa",
+              "media",
+              "alta",
+              "urgente"
+            ],
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "destino",
+          "motivo",
+          "prioridade",
+          "unidade_id"
         ],
         "type": "object",
         "x-nexus-generated": true
@@ -7889,6 +8180,20 @@
             },
             "type": "array"
           },
+          "centro_pop_documentos": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasDocumentoCentroPop"
+            },
+            "type": "array"
+          },
+          "centro_pop_perfil": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SemprasCentroPopPerfil"
+              }
+            ],
+            "nullable": true
+          },
           "cidadao": {
             "$ref": "#/components/schemas/SemprasCidadao"
           },
@@ -7901,6 +8206,12 @@
           "encaminhamentos": {
             "items": {
               "$ref": "#/components/schemas/SemprasEncaminhamento"
+            },
+            "type": "array"
+          },
+          "encaminhamentos_externos": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasEncaminhamentoExterno"
             },
             "type": "array"
           },
@@ -7951,9 +8262,12 @@
           "atendimentos",
           "beneficios",
           "casa_abrigo_acolhimentos",
+          "centro_pop_documentos",
+          "centro_pop_perfil",
           "cidadao",
           "conselho_atendimentos",
           "encaminhamentos",
+          "encaminhamentos_externos",
           "mse_medidas",
           "notificacoes_creas",
           "oficios_cras",
@@ -8338,6 +8652,28 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasTransicaoEncaminhamentoExternoRequest": {
+        "properties": {
+          "observacoes": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pendente",
+              "em_atendimento",
+              "concluido",
+              "cancelado"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SemprasTransicaoNotificacaoRequest": {
         "properties": {
           "acao": {
@@ -8385,6 +8721,59 @@
           "id",
           "nome",
           "sigla"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasUploadDocumentoCentroPopRequest": {
+        "properties": {
+          "content_type": {
+            "maxLength": 150,
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "size": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "tipo": {
+            "enum": [
+              "identificacao",
+              "laudo_saude",
+              "outro"
+            ],
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_type",
+          "filename",
+          "size",
+          "tipo",
+          "unidade_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasUploadDocumentoCentroPopResult": {
+        "properties": {
+          "documento": {
+            "$ref": "#/components/schemas/SemprasDocumentoCentroPop"
+          },
+          "upload": {
+            "$ref": "#/components/schemas/ModkitUploadTicket"
+          }
+        },
+        "required": [
+          "documento",
+          "upload"
         ],
         "type": "object",
         "x-nexus-generated": true
@@ -22781,6 +23170,196 @@
         ]
       }
     },
+    "/api/v1/sempras/centro-pop-documentos/{id}": {
+      "delete": {
+        "operationId": "deleteSemprasCentroPopDocumentosId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Excluir /sempras/centro-pop-documentos/{id}",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/centro-pop-documentos/{id}/confirm": {
+      "post": {
+        "operationId": "postSemprasCentroPopDocumentosIdConfirm",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasDocumentoCentroPop"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/centro-pop-documentos/{id}/confirm",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/centro-pop-documentos/{id}/download": {
+      "get": {
+        "operationId": "getSemprasCentroPopDocumentosIdDownload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "additionalProperties": {},
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/centro-pop-documentos/{id}/download",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
     "/api/v1/sempras/cidadaos": {
       "get": {
         "operationId": "getSemprasCidadaos",
@@ -23204,6 +23783,156 @@
         ]
       }
     },
+    "/api/v1/sempras/cidadaos/{id}/centro-pop-documentos/uploads": {
+      "post": {
+        "operationId": "postSemprasCidadaosIdCentroPopDocumentosUploads",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasUploadDocumentoCentroPopRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasUploadDocumentoCentroPopResult"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/centro-pop-documentos/uploads",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}/centro-pop-perfil": {
+      "put": {
+        "operationId": "putSemprasCidadaosIdCentroPopPerfil",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasCentroPopPerfilRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCentroPopPerfil"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Salvar /sempras/cidadaos/{id}/centro-pop-perfil",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
     "/api/v1/sempras/cidadaos/{id}/conselho-tutelar": {
       "post": {
         "description": "Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.",
@@ -23436,6 +24165,81 @@
           }
         ],
         "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/encaminhamentos",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}/encaminhamentos-externos": {
+      "post": {
+        "operationId": "postSemprasCidadaosIdEncaminhamentosExternos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasEncaminhamentoExternoRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasEncaminhamentoExterno"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/encaminhamentos-externos",
         "tags": [
           "sempras"
         ]
@@ -24267,6 +25071,81 @@
           }
         ],
         "summary": "SEMPRAS — Executar ação /sempras/creas-notificacoes/{id}/transitar",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/encaminhamentos-externos/{id}/transitar": {
+      "post": {
+        "operationId": "postSemprasEncaminhamentosExternosIdTransitar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasTransicaoEncaminhamentoExternoRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasEncaminhamentoExterno"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/encaminhamentos-externos/{id}/transitar",
         "tags": [
           "sempras"
         ]

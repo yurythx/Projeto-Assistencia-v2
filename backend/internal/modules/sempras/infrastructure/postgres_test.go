@@ -1480,3 +1480,166 @@ func TestDocumentoCasaAbrigoRoundTrip(t *testing.T) {
 		t.Errorf("documento deveria ter sido removido: %v", err)
 	}
 }
+
+// Round-trip do perfil de rua do Centro POP: ainda não preenchido vira
+// ErrNotFound; upsert grava e atualiza (um só por cidadão).
+func TestCentroPopPerfilRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Cidadão não identificado", Anonimo: true,
+		CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := r.GetCentroPopPerfil(ctx, pool, cid); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("perfil ainda não preenchido deveria ser ErrNotFound: %v", err)
+	}
+
+	tempo := 1.5
+	p, err := domain.NovoCentroPopPerfil(cid, "situacao_rua", &tempo, "desemprego", false, "", false, "", false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.AtualizadoEm = time.Now()
+	if err := r.UpsertCentroPopPerfil(ctx, pool, p, autor); err != nil {
+		t.Fatal(err)
+	}
+	got, err := r.GetCentroPopPerfil(ctx, pool, cid)
+	if err != nil || got.Situacao != "situacao_rua" || *got.TempoRuaAnos != 1.5 {
+		t.Fatalf("GetCentroPopPerfil: %+v, %v", got, err)
+	}
+
+	// upsert de novo (atualização) continua um só registro.
+	p2, err := domain.NovoCentroPopPerfil(cid, "albergado", nil, "desemprego", true, "diabetes", false, "", false, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p2.AtualizadoEm = time.Now()
+	if err := r.UpsertCentroPopPerfil(ctx, pool, p2, autor); err != nil {
+		t.Fatal(err)
+	}
+	atualizado, err := r.GetCentroPopPerfil(ctx, pool, cid)
+	if err != nil || atualizado.Situacao != "albergado" || atualizado.TempoRuaAnos != nil || !atualizado.PossuiDoenca {
+		t.Fatalf("GetCentroPopPerfil após atualizar: %+v, %v", atualizado, err)
+	}
+}
+
+// Round-trip do encaminhamento externo: grava, lista na área do
+// cidadão e muda de status (sem trava de "já decidido").
+func TestEncaminhamentoExternoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Cidadão da Rua",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	e, err := domain.NovoEncaminhamentoExterno(cid, un, "caps_ad", "alta", "uso abusivo de substâncias")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertEncaminhamentoExterno(ctx, pool, e, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetEncaminhamentoExterno(ctx, pool, e.ID, false)
+	if err != nil || got.Status != domain.EncaminhamentoExternoStatusPendente || got.Destino != "caps_ad" {
+		t.Fatalf("GetEncaminhamentoExterno: %+v, %v", got, err)
+	}
+
+	lista, err := r.EncaminhamentosExternosNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != e.ID {
+		t.Fatalf("EncaminhamentosExternosNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.EncaminhamentosExternosNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("EncaminhamentosExternosNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	if err := got.Transitar(domain.EncaminhamentoExternoStatusConcluido, "atendido", autor, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateEncaminhamentoExterno(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	concluido, err := r.GetEncaminhamentoExterno(ctx, pool, e.ID, false)
+	if err != nil || concluido.Status != domain.EncaminhamentoExternoStatusConcluido {
+		t.Fatalf("GetEncaminhamentoExterno após concluir: %+v, %v", concluido, err)
+	}
+}
+
+// Round-trip dos documentos do Centro POP: mesmo padrão dos documentos
+// da Casa Abrigo, mas chaveado por cidadão (não por acolhimento).
+func TestDocumentoCentroPopRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Cidadão da Rua",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	d, err := domain.NovoDocumentoCentroPop(cid, un, domain.DocumentoCentroPopLaudoSaude, "laudo.pdf",
+		"sempras/centro-pop/"+cid.String()+"/2026/10/abc.pdf", "application/pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.CreatedAt = time.Now()
+	if err := r.InsertDocumentoCentroPop(ctx, pool, d, autor); err != nil {
+		t.Fatal(err)
+	}
+	got, err := r.GetDocumentoCentroPop(ctx, pool, d.ID)
+	if err != nil || got.Status != domain.DocumentoStatusPending {
+		t.Fatalf("GetDocumentoCentroPop: %+v, %v", got, err)
+	}
+
+	if err := r.UpdateDocumentoCentroPopStatus(ctx, pool, d.ID, domain.DocumentoStatusReady, 2048, "application/pdf"); err != nil {
+		t.Fatal(err)
+	}
+	confirmado, err := r.GetDocumentoCentroPop(ctx, pool, d.ID)
+	if err != nil || confirmado.Status != domain.DocumentoStatusReady || confirmado.SizeBytes != 2048 {
+		t.Fatalf("GetDocumentoCentroPop após confirmar: %+v, %v", confirmado, err)
+	}
+
+	documentos, err := r.ListDocumentosCentroPop(ctx, pool, cid)
+	if err != nil || len(documentos) != 1 || documentos[0].ID != d.ID {
+		t.Fatalf("ListDocumentosCentroPop: %+v, %v", documentos, err)
+	}
+
+	if err := r.DeleteDocumentoCentroPop(ctx, pool, d.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.GetDocumentoCentroPop(ctx, pool, d.ID); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("documento deveria ter sido removido: %v", err)
+	}
+}

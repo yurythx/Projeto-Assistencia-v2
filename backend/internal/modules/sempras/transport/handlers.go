@@ -103,6 +103,14 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	r.With(atendimento).Get("/sempras/casa-abrigo-documentos/{id}/download", h.DownloadDocumento)
 	r.With(atendimento).Delete("/sempras/casa-abrigo-documentos/{id}", h.RemoverDocumento)
 
+	r.With(atendimento).Put("/sempras/cidadaos/{id}/centro-pop-perfil", h.AtualizarCentroPopPerfil)
+	r.With(atendimento).Post("/sempras/cidadaos/{id}/encaminhamentos-externos", h.RegistrarEncaminhamentoExterno)
+	r.With(atendimento).Post("/sempras/encaminhamentos-externos/{id}/transitar", h.TransitarEncaminhamentoExterno)
+	r.With(atendimento).Post("/sempras/cidadaos/{id}/centro-pop-documentos/uploads", h.StartUploadDocumentoCentroPop)
+	r.With(atendimento).Post("/sempras/centro-pop-documentos/{id}/confirm", h.ConfirmUploadDocumentoCentroPop)
+	r.With(atendimento).Get("/sempras/centro-pop-documentos/{id}/download", h.DownloadDocumentoCentroPop)
+	r.With(atendimento).Delete("/sempras/centro-pop-documentos/{id}", h.RemoverDocumentoCentroPop)
+
 	r.Get("/sempras/unidades/{id}/fila", h.Fila)
 	r.Post("/sempras/unidades/{id}/fila", h.Incluir)
 	r.With(atendimento).Post("/sempras/unidades/{id}/fila/proximo", h.ChamarProximo)
@@ -166,7 +174,8 @@ func (h *Handlers) Buscar(w http.ResponseWriter, r *http.Request) {
 	httputil.WriteOK(w, out)
 }
 
-// CidadaoRequest é o cadastro simples do munícipe.
+// CidadaoRequest é o cadastro simples do munícipe. Anonimo (Centro POP —
+// abordagem de rua) dispensa CPF/NIS/nascimento/mãe, nunca o nome.
 type CidadaoRequest struct {
 	Nome           string `json:"nome" validate:"required,max=200"`
 	NomeSocial     string `json:"nome_social" validate:"max=200"`
@@ -176,11 +185,13 @@ type CidadaoRequest struct {
 	NomeMae        string `json:"nome_mae" validate:"max=200"`
 	Telefone       string `json:"telefone" validate:"max=30"`
 	Endereco       string `json:"endereco" validate:"max=300"`
+	Anonimo        bool   `json:"anonimo"`
 }
 
 func (req CidadaoRequest) input() domain.CidadaoInput {
 	return domain.CidadaoInput{Nome: req.Nome, NomeSocial: req.NomeSocial, CPF: req.CPF, NIS: req.NIS,
-		DataNascimento: req.DataNascimento, NomeMae: req.NomeMae, Telefone: req.Telefone, Endereco: req.Endereco}
+		DataNascimento: req.DataNascimento, NomeMae: req.NomeMae, Telefone: req.Telefone, Endereco: req.Endereco,
+		Anonimo: req.Anonimo}
 }
 
 // Cadastrar grava um novo munícipe.
@@ -481,7 +492,7 @@ func (h *Handlers) RemoverContatoRedeApoio(w http.ResponseWriter, r *http.Reques
 type BeneficioRequest struct {
 	SolicitanteID *uuid.UUID `json:"solicitante_id"`
 	UnidadeID     uuid.UUID  `json:"unidade_id" validate:"required"`
-	Tipo          string     `json:"tipo" validate:"required,oneof=natalidade funeral cesta_basica passagem aluguel_social outro"`
+	Tipo          string     `json:"tipo" validate:"required,oneof=natalidade funeral cesta_basica passagem aluguel_social outro auxilio_gas cobertor_agasalho"`
 	FormaAcesso   string     `json:"forma_acesso" validate:"required,oneof=demanda_espontanea busca_ativa encaminhamento_rede_socioassistencial encaminhamento_sistema_garantia_direitos"`
 	Quantidade    int        `json:"quantidade" validate:"required,min=1,max=100"`
 	Observacao    string     `json:"observacao" validate:"max=2000"`
@@ -1445,6 +1456,173 @@ func (h *Handlers) RemoverDocumento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.RemoverDocumento(r.Context(), identity(r), id); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, map[string]bool{"removido": true})
+}
+
+// CentroPopPerfilRequest é o perfil de rua do munícipe (Centro POP).
+type CentroPopPerfilRequest struct {
+	UnidadeID             uuid.UUID `json:"unidade_id" validate:"required"`
+	Situacao              string    `json:"situacao" validate:"required,oneof=situacao_rua abrigado_institucionalmente egresso_sistema_prisional trecheiro albergado outro"`
+	TempoRuaAnos          *float64  `json:"tempo_rua_anos" validate:"omitempty,min=0"`
+	MotivoVulnerabilidade string    `json:"motivo_vulnerabilidade" validate:"required,oneof=conflito_familiar uso_de_drogas alcoolismo desemprego perda_de_moradia egresso_sistema_prisional migracao escolha_propria outro"`
+	PossuiDoenca          bool      `json:"possui_doenca"`
+	DoencaDescricao       string    `json:"doenca_descricao" validate:"max=1000"`
+	UsaMedicacao          bool      `json:"usa_medicacao"`
+	MedicacaoDescricao    string    `json:"medicacao_descricao" validate:"max=1000"`
+	UsoDrogas             bool      `json:"uso_drogas"`
+	DrogasDescricao       string    `json:"drogas_descricao" validate:"max=1000"`
+}
+
+// AtualizarCentroPopPerfil grava (upsert) o perfil de rua.
+func (h *Handlers) AtualizarCentroPopPerfil(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req CentroPopPerfilRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	p, err := h.svc.AtualizarCentroPopPerfil(r.Context(), identity(r), id, req.UnidadeID, req.Situacao, req.TempoRuaAnos,
+		req.MotivoVulnerabilidade, req.PossuiDoenca, req.DoencaDescricao, req.UsaMedicacao, req.MedicacaoDescricao,
+		req.UsoDrogas, req.DrogasDescricao)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, p)
+}
+
+// EncaminhamentoExternoRequest é o registro de um encaminhamento pra
+// fora do sistema.
+type EncaminhamentoExternoRequest struct {
+	UnidadeID  uuid.UUID `json:"unidade_id" validate:"required"`
+	Destino    string    `json:"destino" validate:"required,oneof=caps_ad caps_iii albergue_noturno abrigo_municipal saude_upa_hospital sine_qualificacao conselho_tutelar policia_civil_deam outro"`
+	Prioridade string    `json:"prioridade" validate:"required,oneof=baixa media alta urgente"`
+	Motivo     string    `json:"motivo" validate:"required,min=3,max=2000"`
+}
+
+// RegistrarEncaminhamentoExterno registra o encaminhamento.
+func (h *Handlers) RegistrarEncaminhamentoExterno(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req EncaminhamentoExternoRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	e, err := h.svc.RegistrarEncaminhamentoExterno(r.Context(), identity(r), id, req.UnidadeID, req.Destino, req.Prioridade, req.Motivo)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, e)
+}
+
+// TransicaoEncaminhamentoExternoRequest é a mudança de status de um
+// encaminhamento externo.
+type TransicaoEncaminhamentoExternoRequest struct {
+	Status      string `json:"status" validate:"required,oneof=pendente em_atendimento concluido cancelado"`
+	Observacoes string `json:"observacoes" validate:"max=2000"`
+}
+
+// TransitarEncaminhamentoExterno muda o status do encaminhamento.
+func (h *Handlers) TransitarEncaminhamentoExterno(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req TransicaoEncaminhamentoExternoRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	e, err := h.svc.TransitarEncaminhamentoExterno(r.Context(), identity(r), id, req.Status, req.Observacoes)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, e)
+}
+
+// UploadDocumentoCentroPopRequest é o pedido de upload de um documento
+// do Centro POP.
+type UploadDocumentoCentroPopRequest struct {
+	UnidadeID   uuid.UUID `json:"unidade_id" validate:"required"`
+	Tipo        string    `json:"tipo" validate:"required,oneof=identificacao laudo_saude outro"`
+	Filename    string    `json:"filename" validate:"required,max=255"`
+	ContentType string    `json:"content_type" validate:"required,max=150"`
+	Size        int64     `json:"size" validate:"required,min=1"`
+}
+
+// StartUploadDocumentoCentroPop cria o metadado pendente e a URL de upload direto ao object storage.
+func (h *Handlers) StartUploadDocumentoCentroPop(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req UploadDocumentoCentroPopRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	res, err := h.svc.StartUploadDocumentoCentroPop(r.Context(), identity(r), id, req.UnidadeID, req.Tipo, req.Filename, req.ContentType, req.Size)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, res)
+}
+
+// ConfirmUploadDocumentoCentroPop confere o objeto enviado e publica o documento.
+func (h *Handlers) ConfirmUploadDocumentoCentroPop(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	d, err := h.svc.ConfirmUploadDocumentoCentroPop(r.Context(), identity(r), id)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, d)
+}
+
+// DownloadDocumentoCentroPop devolve uma URL pré-assinada de leitura (curta).
+func (h *Handlers) DownloadDocumentoCentroPop(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	url, d, err := h.svc.DownloadURLDocumentoCentroPop(r.Context(), identity(r), id)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	httputil.WriteOK(w, map[string]any{"url": url, "documento": d})
+}
+
+// RemoverDocumentoCentroPop remove o documento (metadado + objeto no storage).
+func (h *Handlers) RemoverDocumentoCentroPop(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	if err := h.svc.RemoverDocumentoCentroPop(r.Context(), identity(r), id); err != nil {
 		h.fail(w, r, err)
 		return
 	}

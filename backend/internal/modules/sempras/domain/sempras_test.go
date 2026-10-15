@@ -48,6 +48,9 @@ func TestNormalizarCadastro(t *testing.T) {
 	if _, err := (CidadaoInput{Nome: "Zé", NIS: "123.45678.90-1"}).Normalizar(hoje); err != nil {
 		t.Fatalf("NIS válido: %v", err)
 	}
+	if c, err := (CidadaoInput{Nome: "Cidadão não identificado", Anonimo: true}).Normalizar(hoje); err != nil || !c.Anonimo {
+		t.Fatalf("cadastro anônimo (Centro POP), sem nenhuma identificação: %+v %v", c, err)
+	}
 	for nome, in := range map[string]CidadaoInput{
 		"nome curto":        {Nome: "A", CPF: "52998224725"},
 		"nome social longo": {Nome: "Maria", NomeSocial: strings.Repeat("x", 201), CPF: "52998224725"},
@@ -724,5 +727,79 @@ func TestAtendimentoColetivo(t *testing.T) {
 	}
 	if a.Categoria != ColetivoSCFV0a6 || a.Participantes != 12 {
 		t.Errorf("atendimento coletivo: %+v", a)
+	}
+}
+
+func TestCentroPopPerfil(t *testing.T) {
+	cidadao := uuid.New()
+	tempo := 2.5
+
+	if _, err := NovoCentroPopPerfil(cidadao, "invalida", nil, "outro", false, "", false, "", false, ""); err == nil {
+		t.Error("situação inválida")
+	}
+	if _, err := NovoCentroPopPerfil(cidadao, SituacoesRua[0], nil, "invalido", false, "", false, "", false, ""); err == nil {
+		t.Error("motivo de vulnerabilidade inválido")
+	}
+	menosUm := -1.0
+	if _, err := NovoCentroPopPerfil(cidadao, SituacoesRua[0], &menosUm, "outro", false, "", false, "", false, ""); err == nil {
+		t.Error("tempo de rua negativo")
+	}
+	p, err := NovoCentroPopPerfil(cidadao, "situacao_rua", &tempo, "uso_de_drogas", true, "hipertensão", true, "losartana", true, "uso de crack")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Situacao != "situacao_rua" || *p.TempoRuaAnos != 2.5 || !p.PossuiDoenca || !p.UsoDrogas || p.DrogasDescricao != "uso de crack" {
+		t.Errorf("perfil de rua: %+v", p)
+	}
+}
+
+func TestEncaminhamentoExterno(t *testing.T) {
+	cidadao, unidade, tecnico := uuid.New(), uuid.New(), uuid.New()
+
+	if _, err := NovoEncaminhamentoExterno(cidadao, unidade, "invalido", "media", "motivo válido"); err == nil {
+		t.Error("destino inválido")
+	}
+	if _, err := NovoEncaminhamentoExterno(cidadao, unidade, "caps_ad", "invalida", "motivo válido"); err == nil {
+		t.Error("prioridade inválida")
+	}
+	if _, err := NovoEncaminhamentoExterno(cidadao, unidade, "caps_ad", "alta", "x"); err == nil {
+		t.Error("motivo curto demais")
+	}
+	e, err := NovoEncaminhamentoExterno(cidadao, unidade, "caps_ad", "alta", "uso abusivo de substâncias")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e.Status != EncaminhamentoExternoStatusPendente {
+		t.Errorf("encaminhamento externo: %+v", e)
+	}
+
+	if err := e.Transitar("invalido", "", tecnico, hoje); err == nil {
+		t.Error("status inválido")
+	}
+	if err := e.Transitar(EncaminhamentoExternoStatusConcluido, "atendido pelo CAPS AD", tecnico, hoje); err != nil {
+		t.Fatal(err)
+	}
+	if e.Status != EncaminhamentoExternoStatusConcluido || e.Observacoes != "atendido pelo CAPS AD" || e.TecnicoID == nil {
+		t.Errorf("encaminhamento externo concluído: %+v", e)
+	}
+	// diferente de Encaminhamento (entre unidades), aqui não há trava de
+	// "já decidido" — quem atende pode reabrir se precisar.
+	if err := e.Transitar(EncaminhamentoExternoStatusEmAtendimento, "reaberto", tecnico, hoje); err != nil {
+		t.Errorf("deveria aceitar nova transição: %v", err)
+	}
+}
+
+func TestDocumentoCentroPop(t *testing.T) {
+	cidadao, unidade := uuid.New(), uuid.New()
+
+	if _, err := NovoDocumentoCentroPop(cidadao, unidade, "tipo_invalido", "doc.pdf", "key", "application/pdf"); err == nil {
+		t.Error("tipo de documento inválido")
+	}
+	d, err := NovoDocumentoCentroPop(cidadao, unidade, DocumentoCentroPopLaudoSaude, "laudo.pdf", "sempras/centro-pop/x/2026/10/abc.pdf", "application/pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Status != DocumentoStatusPending || d.Tipo != DocumentoCentroPopLaudoSaude || d.UnidadeID != unidade {
+		t.Errorf("documento centro pop: %+v", d)
 	}
 }

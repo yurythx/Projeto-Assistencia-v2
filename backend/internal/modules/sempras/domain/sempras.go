@@ -93,13 +93,19 @@ type Cidadao struct {
 	NomeMae        string    `json:"nome_mae"`
 	Telefone       string    `json:"telefone"`
 	Endereco       string    `json:"endereco"`
+	Anonimo        bool      `json:"anonimo"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-// CidadaoInput são os campos editáveis do cadastro.
+// CidadaoInput são os campos editáveis do cadastro. Anonimo é a 4ª via
+// de identificação (Centro POP — abordagem de rua às vezes não consegue
+// nem o fallback de nascimento+mãe): dispensa CPF/NIS/nascimento/mãe,
+// mas não dispensa um nome — mesmo que seja um apelido ou "Cidadão não
+// identificado", escolha de quem cadastra, não um padrão escondido.
 type CidadaoInput struct {
 	Nome, NomeSocial, CPF, NIS, DataNascimento, NomeMae, Telefone, Endereco string
+	Anonimo                                                                 bool
 }
 
 // NomeExibicao respeita o nome social (Decreto 8.727/2016).
@@ -216,9 +222,10 @@ func (in CidadaoInput) Normalizar(hoje time.Time) (Cidadao, error) {
 		}
 		c.DataNascimento = d
 	}
-	if c.CPF == "" && c.NIS == "" && (c.DataNascimento == "" || c.NomeMae == "") {
-		return Cidadao{}, invalid("informe CPF, NIS ou data de nascimento e nome da mãe")
+	if c.CPF == "" && c.NIS == "" && (c.DataNascimento == "" || c.NomeMae == "") && !in.Anonimo {
+		return Cidadao{}, invalid("informe CPF, NIS ou data de nascimento e nome da mãe (ou marque cadastro anônimo)")
 	}
+	c.Anonimo = in.Anonimo
 	return c, nil
 }
 
@@ -397,19 +404,22 @@ func (r Registro) Ocultar() Registro {
 // Prontuario é a ficha do munícipe: cadastro, atendimentos, evoluções da
 // área de quem consulta e a rede de apoio (secretaria-wide, como o cadastro).
 type Prontuario struct {
-	Cidadao                Cidadao               `json:"cidadao"`
-	Atendimentos           []Atendimento         `json:"atendimentos"`
-	Registros              []Registro            `json:"registros"`
-	RedeApoio              []ContatoRedeApoio    `json:"rede_apoio"`
-	Beneficios             []Beneficio           `json:"beneficios"`
-	Encaminhamentos        []Encaminhamento      `json:"encaminhamentos"`
-	PaifVinculos           []PaifVinculo         `json:"paif_vinculos"`
-	ConselhoAtendimentos   []ConselhoAtendimento `json:"conselho_atendimentos"`
-	PaefiCasos             []PaefiCaso           `json:"paefi_casos"`
-	MseMedidas             []MseMedida           `json:"mse_medidas"`
-	NotificacoesCreas      []NotificacaoCreas    `json:"notificacoes_creas"`
-	OficiosCras            []OficioCras          `json:"oficios_cras"`
-	CasaAbrigoAcolhimentos []Acolhimento         `json:"casa_abrigo_acolhimentos"`
+	Cidadao                 Cidadao                 `json:"cidadao"`
+	Atendimentos            []Atendimento           `json:"atendimentos"`
+	Registros               []Registro              `json:"registros"`
+	RedeApoio               []ContatoRedeApoio      `json:"rede_apoio"`
+	Beneficios              []Beneficio             `json:"beneficios"`
+	Encaminhamentos         []Encaminhamento        `json:"encaminhamentos"`
+	PaifVinculos            []PaifVinculo           `json:"paif_vinculos"`
+	ConselhoAtendimentos    []ConselhoAtendimento   `json:"conselho_atendimentos"`
+	PaefiCasos              []PaefiCaso             `json:"paefi_casos"`
+	MseMedidas              []MseMedida             `json:"mse_medidas"`
+	NotificacoesCreas       []NotificacaoCreas      `json:"notificacoes_creas"`
+	OficiosCras             []OficioCras            `json:"oficios_cras"`
+	CasaAbrigoAcolhimentos  []Acolhimento           `json:"casa_abrigo_acolhimentos"`
+	CentroPopPerfil         *CentroPopPerfil        `json:"centro_pop_perfil"`
+	EncaminhamentosExternos []EncaminhamentoExterno `json:"encaminhamentos_externos"`
+	CentroPopDocumentos     []DocumentoCentroPop    `json:"centro_pop_documentos"`
 }
 
 // ContatoRedeApoio é uma pessoa de apoio do munícipe (família, vizinho,
@@ -760,12 +770,14 @@ func JustificativaDecisaoValida(justificativa string, exigida bool) (string, err
 
 // Tipos de benefício eventual (LOAS art. 22; Decreto 6.307/2007).
 const (
-	BeneficioNatalidade    = "natalidade"
-	BeneficioFuneral       = "funeral"
-	BeneficioCestaBasica   = "cesta_basica"
-	BeneficioPassagem      = "passagem"
-	BeneficioAluguelSocial = "aluguel_social"
-	BeneficioOutro         = "outro"
+	BeneficioNatalidade       = "natalidade"
+	BeneficioFuneral          = "funeral"
+	BeneficioCestaBasica      = "cesta_basica"
+	BeneficioPassagem         = "passagem"
+	BeneficioAluguelSocial    = "aluguel_social"
+	BeneficioOutro            = "outro"
+	BeneficioAuxilioGas       = "auxilio_gas"
+	BeneficioCobertorAgasalho = "cobertor_agasalho"
 )
 
 // Formas de acesso de um benefício eventual — como a demanda chegou até a
@@ -781,7 +793,7 @@ var formasAcessoBeneficio = []string{FormaAcessoDemandaEspontanea, FormaAcessoBu
 	FormaAcessoEncaminhamentoRedeSocioass, FormaAcessoEncaminhamentoSistemaGarantia}
 
 var tiposBeneficio = []string{BeneficioNatalidade, BeneficioFuneral, BeneficioCestaBasica, BeneficioPassagem,
-	BeneficioAluguelSocial, BeneficioOutro}
+	BeneficioAluguelSocial, BeneficioOutro, BeneficioAuxilioGas, BeneficioCobertorAgasalho}
 
 // Estados de um benefício: solicitado → concedido (entregue) ou negado;
 // concedido → suspenso, se a condição que o justificava deixar de valer.
@@ -1666,5 +1678,171 @@ func NovoDocumentoCasaAbrigo(acolhimento uuid.UUID, tipo, nomeOriginal, objectKe
 		return DocumentoCasaAbrigo{}, err
 	}
 	return DocumentoCasaAbrigo{ID: uuid.New(), AcolhimentoID: acolhimento, Tipo: tipo, NomeOriginal: nome,
+		ObjectKey: objectKey, ContentType: contentType, Status: DocumentoStatusPending}, nil
+}
+
+// ----------------------------------------------------------------- Centro POP
+
+// Situações habitacionais do perfil de rua.
+var SituacoesRua = []string{"situacao_rua", "abrigado_institucionalmente", "egresso_sistema_prisional", "trecheiro", "albergado", "outro"}
+
+// Motivos de vulnerabilidade do perfil de rua.
+var MotivosVulnerabilidade = []string{"conflito_familiar", "uso_de_drogas", "alcoolismo", "desemprego", "perda_de_moradia",
+	"egresso_sistema_prisional", "migracao", "escolha_propria", "outro"}
+
+// CentroPopPerfil é o perfil de rua de um munícipe atendido no Centro
+// POP — extensão 1:1 de Cidadao, não campo solto nele (não faz sentido
+// pra uma família do CRAS). Saúde e drogas são sigilosos como o
+// registro psicológico: o Prontuario só inclui isso pra quem tem
+// sempras:atendimento.
+type CentroPopPerfil struct {
+	CidadaoID             uuid.UUID  `json:"cidadao_id"`
+	Situacao              string     `json:"situacao"`
+	TempoRuaAnos          *float64   `json:"tempo_rua_anos"`
+	MotivoVulnerabilidade string     `json:"motivo_vulnerabilidade"`
+	PossuiDoenca          bool       `json:"possui_doenca"`
+	DoencaDescricao       string     `json:"doenca_descricao"`
+	UsaMedicacao          bool       `json:"usa_medicacao"`
+	MedicacaoDescricao    string     `json:"medicacao_descricao"`
+	UsoDrogas             bool       `json:"uso_drogas"`
+	DrogasDescricao       string     `json:"drogas_descricao"`
+	AtualizadoPor         *uuid.UUID `json:"atualizado_por"`
+	AtualizadoEm          time.Time  `json:"atualizado_em"`
+}
+
+// NovoCentroPopPerfil valida e monta o perfil de rua (upsert — um por
+// cidadão).
+func NovoCentroPopPerfil(cidadao uuid.UUID, situacao string, tempoRuaAnos *float64, motivo string,
+	possuiDoenca bool, doencaDescricao string, usaMedicacao bool, medicacaoDescricao string,
+	usoDrogas bool, drogasDescricao string) (CentroPopPerfil, error) {
+	if !slices.Contains(SituacoesRua, situacao) {
+		return CentroPopPerfil{}, invalid("situação inválida")
+	}
+	if !slices.Contains(MotivosVulnerabilidade, motivo) {
+		return CentroPopPerfil{}, invalid("motivo de vulnerabilidade inválido")
+	}
+	if tempoRuaAnos != nil && *tempoRuaAnos < 0 {
+		return CentroPopPerfil{}, invalid("tempo de rua não pode ser negativo")
+	}
+	doenca, err := texto("descrição da doença", doencaDescricao, 0, 1000)
+	if err != nil {
+		return CentroPopPerfil{}, err
+	}
+	medicacao, err := texto("descrição da medicação", medicacaoDescricao, 0, 1000)
+	if err != nil {
+		return CentroPopPerfil{}, err
+	}
+	drogas, err := texto("descrição do uso de drogas", drogasDescricao, 0, 1000)
+	if err != nil {
+		return CentroPopPerfil{}, err
+	}
+	return CentroPopPerfil{CidadaoID: cidadao, Situacao: situacao, TempoRuaAnos: tempoRuaAnos, MotivoVulnerabilidade: motivo,
+		PossuiDoenca: possuiDoenca, DoencaDescricao: doenca, UsaMedicacao: usaMedicacao, MedicacaoDescricao: medicacao,
+		UsoDrogas: usoDrogas, DrogasDescricao: drogas}, nil
+}
+
+// Destinos de um encaminhamento externo (pra fora do sistema).
+var DestinosExternos = []string{"caps_ad", "caps_iii", "albergue_noturno", "abrigo_municipal", "saude_upa_hospital",
+	"sine_qualificacao", "conselho_tutelar", "policia_civil_deam", "outro"}
+
+// Prioridades de um encaminhamento externo.
+var PrioridadesEncaminhamentoExterno = []string{"baixa", "media", "alta", "urgente"}
+
+// Estados de um encaminhamento externo — gerenciado por quem registrou
+// (não há "outra ponta" no nosso sistema pra aceitar/recusar, diferente
+// de Encaminhamento entre unidades nossas).
+const (
+	EncaminhamentoExternoStatusPendente      = "pendente"
+	EncaminhamentoExternoStatusEmAtendimento = "em_atendimento"
+	EncaminhamentoExternoStatusConcluido     = "concluido"
+	EncaminhamentoExternoStatusCancelado     = "cancelado"
+)
+
+var statusEncaminhamentoExterno = []string{EncaminhamentoExternoStatusPendente, EncaminhamentoExternoStatusEmAtendimento,
+	EncaminhamentoExternoStatusConcluido, EncaminhamentoExternoStatusCancelado}
+
+// EncaminhamentoExterno é um registro de que o munícipe foi encaminhado
+// pra fora do sistema (CAPS AD, albergue, saúde, polícia etc.) — log,
+// não um fluxo de aceite de 2 pontas.
+type EncaminhamentoExterno struct {
+	ID           uuid.UUID  `json:"id"`
+	CidadaoID    uuid.UUID  `json:"cidadao_id"`
+	UnidadeID    uuid.UUID  `json:"unidade_id"`
+	Destino      string     `json:"destino"`
+	Prioridade   string     `json:"prioridade"`
+	Motivo       string     `json:"motivo"`
+	Status       string     `json:"status"`
+	Observacoes  string     `json:"observacoes"`
+	TecnicoID    *uuid.UUID `json:"tecnico_id"`
+	CreatedAt    time.Time  `json:"created_at"`
+	AtualizadoEm time.Time  `json:"atualizado_em"`
+}
+
+// NovoEncaminhamentoExterno valida e monta o registro (nasce 'pendente').
+func NovoEncaminhamentoExterno(cidadao, unidade uuid.UUID, destino, prioridade, motivo string) (EncaminhamentoExterno, error) {
+	if !slices.Contains(DestinosExternos, destino) {
+		return EncaminhamentoExterno{}, invalid("destino inválido")
+	}
+	if !slices.Contains(PrioridadesEncaminhamentoExterno, prioridade) {
+		return EncaminhamentoExterno{}, invalid("prioridade inválida (baixa, media, alta ou urgente)")
+	}
+	m, err := texto("motivo", motivo, 3, 2000)
+	if err != nil {
+		return EncaminhamentoExterno{}, err
+	}
+	return EncaminhamentoExterno{ID: uuid.New(), CidadaoID: cidadao, UnidadeID: unidade, Destino: destino,
+		Prioridade: prioridade, Motivo: m, Status: EncaminhamentoExternoStatusPendente}, nil
+}
+
+// Transitar muda o status (gerenciado por quem atende, sem fluxo de
+// aceite — ver comentário do tipo).
+func (e *EncaminhamentoExterno) Transitar(status, observacoes string, tecnico uuid.UUID, agora time.Time) error {
+	if !slices.Contains(statusEncaminhamentoExterno, status) {
+		return invalid("status inválido")
+	}
+	obs, err := texto("observações", observacoes, 0, 2000)
+	if err != nil {
+		return err
+	}
+	e.Status, e.Observacoes, e.TecnicoID, e.AtualizadoEm = status, obs, &tecnico, agora
+	return nil
+}
+
+// Tipos de documento do Centro POP.
+const (
+	DocumentoCentroPopIdentificacao = "identificacao"
+	DocumentoCentroPopLaudoSaude    = "laudo_saude"
+	DocumentoCentroPopOutro         = "outro"
+)
+
+var tiposDocumentoCentroPop = []string{DocumentoCentroPopIdentificacao, DocumentoCentroPopLaudoSaude, DocumentoCentroPopOutro}
+
+// DocumentoCentroPop é o metadado de um documento do munícipe atendido
+// no Centro POP — mesmo padrão de DocumentoCasaAbrigo. UnidadeID é a
+// unidade de quem subiu (Cidadao não tem unidade própria), pro escopo
+// de área.
+type DocumentoCentroPop struct {
+	ID           uuid.UUID `json:"id"`
+	CidadaoID    uuid.UUID `json:"cidadao_id"`
+	UnidadeID    uuid.UUID `json:"unidade_id"`
+	Tipo         string    `json:"tipo"`
+	NomeOriginal string    `json:"nome_original"`
+	ObjectKey    string    `json:"object_key"`
+	ContentType  string    `json:"content_type"`
+	SizeBytes    int64     `json:"size_bytes"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+// NovoDocumentoCentroPop valida e monta o metadado pendente.
+func NovoDocumentoCentroPop(cidadao, unidade uuid.UUID, tipo, nomeOriginal, objectKey, contentType string) (DocumentoCentroPop, error) {
+	if !slices.Contains(tiposDocumentoCentroPop, tipo) {
+		return DocumentoCentroPop{}, invalid("tipo de documento inválido (identificacao, laudo_saude ou outro)")
+	}
+	nome, err := texto("nome do arquivo", nomeOriginal, 1, 255)
+	if err != nil {
+		return DocumentoCentroPop{}, err
+	}
+	return DocumentoCentroPop{ID: uuid.New(), CidadaoID: cidadao, UnidadeID: unidade, Tipo: tipo, NomeOriginal: nome,
 		ObjectKey: objectKey, ContentType: contentType, Status: DocumentoStatusPending}, nil
 }

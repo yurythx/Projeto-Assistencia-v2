@@ -99,12 +99,12 @@ func (r *Repository) ListUnidades(ctx context.Context, db database.DBTX, area do
 // ----------------------------------------------------------------- munícipe
 
 const cidadaoCols = `c.id, c.nome, c.nome_social, COALESCE(c.cpf, ''), COALESCE(c.nis, ''),
-	COALESCE(to_char(c.data_nascimento, 'YYYY-MM-DD'), ''), c.nome_mae, c.telefone, c.endereco, c.created_at, c.updated_at`
+	COALESCE(to_char(c.data_nascimento, 'YYYY-MM-DD'), ''), c.nome_mae, c.telefone, c.endereco, c.anonimo, c.created_at, c.updated_at`
 
 func scanCidadao(row pgx.Row) (domain.Cidadao, error) {
 	var c domain.Cidadao
 	err := row.Scan(&c.ID, &c.Nome, &c.NomeSocial, &c.CPF, &c.NIS, &c.DataNascimento, &c.NomeMae, &c.Telefone,
-		&c.Endereco, &c.CreatedAt, &c.UpdatedAt)
+		&c.Endereco, &c.Anonimo, &c.CreatedAt, &c.UpdatedAt)
 	return c, err
 }
 
@@ -117,9 +117,9 @@ func documentoDuplicado(err error) bool {
 // InsertCidadao grava o cadastro (CPF/NIS repetido = ErrDocumentoDuplicado).
 func (r *Repository) InsertCidadao(ctx context.Context, db database.DBTX, c domain.Cidadao, autor uuid.UUID) error {
 	_, err := db.Exec(ctx, `INSERT INTO sempras_cidadaos
-		(id, nome, nome_social, cpf, nis, data_nascimento, nome_mae, telefone, endereco, created_by, created_at, updated_at)
-		VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, '')::date, $7, $8, $9, $10, $11, $11)`,
-		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, autor, c.CreatedAt)
+		(id, nome, nome_social, cpf, nis, data_nascimento, nome_mae, telefone, endereco, anonimo, created_by, created_at, updated_at)
+		VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, '')::date, $7, $8, $9, $10, $11, $12, $12)`,
+		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo, autor, c.CreatedAt)
 	if documentoDuplicado(err) {
 		return domain.ErrDocumentoDuplicado
 	}
@@ -132,9 +132,9 @@ func (r *Repository) InsertCidadao(ctx context.Context, db database.DBTX, c doma
 // UpdateCidadao regrava os campos editáveis.
 func (r *Repository) UpdateCidadao(ctx context.Context, db database.DBTX, c domain.Cidadao) error {
 	_, err := db.Exec(ctx, `UPDATE sempras_cidadaos SET nome = $2, nome_social = $3, cpf = NULLIF($4, ''),
-		nis = NULLIF($5, ''), data_nascimento = NULLIF($6, '')::date, nome_mae = $7, telefone = $8, endereco = $9
+		nis = NULLIF($5, ''), data_nascimento = NULLIF($6, '')::date, nome_mae = $7, telefone = $8, endereco = $9, anonimo = $10
 		WHERE id = $1`,
-		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco)
+		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo)
 	if documentoDuplicado(err) {
 		return domain.ErrDocumentoDuplicado
 	}
@@ -1700,6 +1700,166 @@ func (r *Repository) ListDocumentos(ctx context.Context, db database.DBTX, acolh
 func (r *Repository) DeleteDocumento(ctx context.Context, db database.DBTX, id uuid.UUID) error {
 	if _, err := db.Exec(ctx, `DELETE FROM sempras_casa_abrigo_documentos WHERE id = $1`, id); err != nil {
 		return wrap("DeleteDocumento", err)
+	}
+	return nil
+}
+
+// ------------------------------------------------------------------- Centro POP
+
+const centroPopPerfilCols = `p.cidadao_id, p.situacao, p.tempo_rua_anos, p.motivo_vulnerabilidade, p.possui_doenca,
+	p.doenca_descricao, p.usa_medicacao, p.medicacao_descricao, p.uso_drogas, p.drogas_descricao, p.atualizado_por, p.atualizado_em`
+
+func scanCentroPopPerfil(row pgx.Row) (domain.CentroPopPerfil, error) {
+	var p domain.CentroPopPerfil
+	err := row.Scan(&p.CidadaoID, &p.Situacao, &p.TempoRuaAnos, &p.MotivoVulnerabilidade, &p.PossuiDoenca,
+		&p.DoencaDescricao, &p.UsaMedicacao, &p.MedicacaoDescricao, &p.UsoDrogas, &p.DrogasDescricao, &p.AtualizadoPor, &p.AtualizadoEm)
+	return p, err
+}
+
+// UpsertCentroPopPerfil grava o perfil de rua (um por cidadão).
+func (r *Repository) UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p domain.CentroPopPerfil, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_centro_pop_perfis
+		(cidadao_id, situacao, tempo_rua_anos, motivo_vulnerabilidade, possui_doenca, doenca_descricao,
+		 usa_medicacao, medicacao_descricao, uso_drogas, drogas_descricao, atualizado_por, atualizado_em)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		ON CONFLICT (cidadao_id) DO UPDATE SET situacao = EXCLUDED.situacao, tempo_rua_anos = EXCLUDED.tempo_rua_anos,
+			motivo_vulnerabilidade = EXCLUDED.motivo_vulnerabilidade, possui_doenca = EXCLUDED.possui_doenca,
+			doenca_descricao = EXCLUDED.doenca_descricao, usa_medicacao = EXCLUDED.usa_medicacao,
+			medicacao_descricao = EXCLUDED.medicacao_descricao, uso_drogas = EXCLUDED.uso_drogas,
+			drogas_descricao = EXCLUDED.drogas_descricao, atualizado_por = EXCLUDED.atualizado_por, atualizado_em = EXCLUDED.atualizado_em`,
+		p.CidadaoID, p.Situacao, p.TempoRuaAnos, p.MotivoVulnerabilidade, p.PossuiDoenca, p.DoencaDescricao,
+		p.UsaMedicacao, p.MedicacaoDescricao, p.UsoDrogas, p.DrogasDescricao, autor, p.AtualizadoEm); err != nil {
+		return wrap("UpsertCentroPopPerfil", err)
+	}
+	return nil
+}
+
+// GetCentroPopPerfil busca o perfil de rua (ErrNotFound se ainda não foi preenchido).
+func (r *Repository) GetCentroPopPerfil(ctx context.Context, db database.DBTX, cidadao uuid.UUID) (domain.CentroPopPerfil, error) {
+	p, err := scanCentroPopPerfil(db.QueryRow(ctx, `SELECT `+centroPopPerfilCols+` FROM sempras_centro_pop_perfis p WHERE p.cidadao_id = $1`, cidadao))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.CentroPopPerfil{}, domain.ErrNotFound
+	}
+	if err != nil {
+		return domain.CentroPopPerfil{}, wrap("GetCentroPopPerfil", err)
+	}
+	return p, nil
+}
+
+const encaminhamentoExternoCols = `e.id, e.cidadao_id, e.unidade_id, e.destino, e.prioridade, e.motivo, e.status,
+	e.observacoes, e.tecnico_id, e.created_at, e.atualizado_em`
+
+func scanEncaminhamentoExterno(row pgx.Row) (domain.EncaminhamentoExterno, error) {
+	var e domain.EncaminhamentoExterno
+	err := row.Scan(&e.ID, &e.CidadaoID, &e.UnidadeID, &e.Destino, &e.Prioridade, &e.Motivo, &e.Status,
+		&e.Observacoes, &e.TecnicoID, &e.CreatedAt, &e.AtualizadoEm)
+	return e, err
+}
+
+// InsertEncaminhamentoExterno grava um encaminhamento pra fora do sistema (nasce 'pendente').
+func (r *Repository) InsertEncaminhamentoExterno(ctx context.Context, db database.DBTX, e domain.EncaminhamentoExterno, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_encaminhamentos_externos
+		(id, cidadao_id, unidade_id, destino, prioridade, motivo, status, registrado_por)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		e.ID, e.CidadaoID, e.UnidadeID, e.Destino, e.Prioridade, e.Motivo, e.Status, autor); err != nil {
+		return wrap("InsertEncaminhamentoExterno", err)
+	}
+	return nil
+}
+
+// GetEncaminhamentoExterno busca o encaminhamento (forUpdate trava a linha na transição).
+func (r *Repository) GetEncaminhamentoExterno(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.EncaminhamentoExterno, error) {
+	q := `SELECT ` + encaminhamentoExternoCols + ` FROM sempras_encaminhamentos_externos e WHERE e.id = $1`
+	if forUpdate {
+		q += ` FOR UPDATE`
+	}
+	e, err := scanEncaminhamentoExterno(db.QueryRow(ctx, q, id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.EncaminhamentoExterno{}, domain.ErrNotFound
+	}
+	if err != nil {
+		return domain.EncaminhamentoExterno{}, wrap("GetEncaminhamentoExterno", err)
+	}
+	return e, nil
+}
+
+// UpdateEncaminhamentoExterno grava a transição de status.
+func (r *Repository) UpdateEncaminhamentoExterno(ctx context.Context, db database.DBTX, e domain.EncaminhamentoExterno) error {
+	if _, err := db.Exec(ctx, `UPDATE sempras_encaminhamentos_externos SET status = $2, observacoes = $3,
+		tecnico_id = $4, atualizado_em = $5 WHERE id = $1`,
+		e.ID, e.Status, e.Observacoes, e.TecnicoID, e.AtualizadoEm); err != nil {
+		return wrap("UpdateEncaminhamentoExterno", err)
+	}
+	return nil
+}
+
+// EncaminhamentosExternosNaArea lista os encaminhamentos externos de um cidadão nas unidades da área.
+func (r *Repository) EncaminhamentosExternosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.EncaminhamentoExterno, error) {
+	rows, err := db.Query(ctx, `SELECT `+encaminhamentoExternoCols+` FROM sempras_encaminhamentos_externos e JOIN unidades u ON u.id = e.unidade_id
+		WHERE e.cidadao_id = $4 AND `+areaSQL(1, 2, 3)+`
+		ORDER BY e.created_at DESC LIMIT 200`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("EncaminhamentosExternosNaArea", err)
+	}
+	return collect(rows, "EncaminhamentosExternosNaArea", scanEncaminhamentoExterno)
+}
+
+const documentoCentroPopCols = `d.id, d.cidadao_id, d.unidade_id, d.tipo, d.nome_original, d.object_key, d.content_type, d.size_bytes,
+	d.status, d.created_at`
+
+func scanDocumentoCentroPop(row pgx.Row) (domain.DocumentoCentroPop, error) {
+	var d domain.DocumentoCentroPop
+	err := row.Scan(&d.ID, &d.CidadaoID, &d.UnidadeID, &d.Tipo, &d.NomeOriginal, &d.ObjectKey, &d.ContentType, &d.SizeBytes,
+		&d.Status, &d.CreatedAt)
+	return d, err
+}
+
+// InsertDocumentoCentroPop grava o metadado pendente.
+func (r *Repository) InsertDocumentoCentroPop(ctx context.Context, db database.DBTX, d domain.DocumentoCentroPop, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_centro_pop_documentos
+		(id, cidadao_id, unidade_id, tipo, nome_original, object_key, content_type, size_bytes, status, registrado_por, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		d.ID, d.CidadaoID, d.UnidadeID, d.Tipo, d.NomeOriginal, d.ObjectKey, d.ContentType, d.SizeBytes, d.Status, autor, d.CreatedAt); err != nil {
+		return wrap("InsertDocumentoCentroPop", err)
+	}
+	return nil
+}
+
+// GetDocumentoCentroPop busca o documento.
+func (r *Repository) GetDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) (domain.DocumentoCentroPop, error) {
+	d, err := scanDocumentoCentroPop(db.QueryRow(ctx, `SELECT `+documentoCentroPopCols+` FROM sempras_centro_pop_documentos d WHERE d.id = $1`, id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.DocumentoCentroPop{}, domain.ErrNotFound
+	}
+	if err != nil {
+		return domain.DocumentoCentroPop{}, wrap("GetDocumentoCentroPop", err)
+	}
+	return d, nil
+}
+
+// UpdateDocumentoCentroPopStatus grava a confirmação do upload.
+func (r *Repository) UpdateDocumentoCentroPopStatus(ctx context.Context, db database.DBTX, id uuid.UUID, status string, sizeBytes int64, contentType string) error {
+	if _, err := db.Exec(ctx, `UPDATE sempras_centro_pop_documentos SET status = $2, size_bytes = $3, content_type = $4 WHERE id = $1`,
+		id, status, sizeBytes, contentType); err != nil {
+		return wrap("UpdateDocumentoCentroPopStatus", err)
+	}
+	return nil
+}
+
+// ListDocumentosCentroPop lista os documentos de um cidadão.
+func (r *Repository) ListDocumentosCentroPop(ctx context.Context, db database.DBTX, cidadao uuid.UUID) ([]domain.DocumentoCentroPop, error) {
+	rows, err := db.Query(ctx, `SELECT `+documentoCentroPopCols+` FROM sempras_centro_pop_documentos d
+		WHERE d.cidadao_id = $1 ORDER BY d.created_at DESC`, cidadao)
+	if err != nil {
+		return nil, wrap("ListDocumentosCentroPop", err)
+	}
+	return collect(rows, "ListDocumentosCentroPop", scanDocumentoCentroPop)
+}
+
+// DeleteDocumentoCentroPop remove o metadado.
+func (r *Repository) DeleteDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) error {
+	if _, err := db.Exec(ctx, `DELETE FROM sempras_centro_pop_documentos WHERE id = $1`, id); err != nil {
+		return wrap("DeleteDocumentoCentroPop", err)
 	}
 	return nil
 }

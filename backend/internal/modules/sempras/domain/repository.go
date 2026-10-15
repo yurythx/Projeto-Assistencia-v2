@@ -139,4 +139,17 @@ type Repository interface {
 	UpdateDocumentoStatus(ctx context.Context, db database.DBTX, id uuid.UUID, status string, sizeBytes int64, contentType string) error
 	ListDocumentos(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]DocumentoCasaAbrigo, error)
 	DeleteDocumento(ctx context.Context, db database.DBTX, id uuid.UUID) error
+
+	// Centro POP
+	UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p CentroPopPerfil, autor uuid.UUID) error
+	GetCentroPopPerfil(ctx context.Context, db database.DBTX, cidadao uuid.UUID) (CentroPopPerfil, error)
+	InsertEncaminhamentoExterno(ctx context.Context, db database.DBTX, e EncaminhamentoExterno, autor uuid.UUID) error
+	GetEncaminhamentoExterno(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (EncaminhamentoExterno, error)
+	UpdateEncaminhamentoExterno(ctx context.Context, db database.DBTX, e EncaminhamentoExterno) error
+	EncaminhamentosExternosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]EncaminhamentoExterno, error)
+	InsertDocumentoCentroPop(ctx context.Context, db database.DBTX, d DocumentoCentroPop, autor uuid.UUID) error
+	GetDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) (DocumentoCentroPop, error)
+	UpdateDocumentoCentroPopStatus(ctx context.Context, db database.DBTX, id uuid.UUID, status string, sizeBytes int64, contentType string) error
+	ListDocumentosCentroPop(ctx context.Context, db database.DBTX, cidadao uuid.UUID) ([]DocumentoCentroPop, error)
+	DeleteDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) error
 }

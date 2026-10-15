@@ -860,3 +860,96 @@ func (fr *faultRepo) DeleteDocumento(ctx context.Context, db database.DBTX, id u
 	defer fr.post(ctx, db)
 	return fr.inner.DeleteDocumento(ctx, db, id)
 }
+
+func (fr *faultRepo) UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p domain.CentroPopPerfil, autor uuid.UUID) error {
+	if err := fr.hook("UpsertCentroPopPerfil"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpsertCentroPopPerfil(ctx, db, p, autor)
+}
+
+func (fr *faultRepo) GetCentroPopPerfil(ctx context.Context, db database.DBTX, cidadao uuid.UUID) (domain.CentroPopPerfil, error) {
+	if err := fr.hook("GetCentroPopPerfil"); err != nil {
+		var z0 domain.CentroPopPerfil
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetCentroPopPerfil(ctx, db, cidadao)
+}
+
+func (fr *faultRepo) InsertEncaminhamentoExterno(ctx context.Context, db database.DBTX, e domain.EncaminhamentoExterno, autor uuid.UUID) error {
+	if err := fr.hook("InsertEncaminhamentoExterno"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertEncaminhamentoExterno(ctx, db, e, autor)
+}
+
+func (fr *faultRepo) GetEncaminhamentoExterno(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.EncaminhamentoExterno, error) {
+	if err := fr.hook("GetEncaminhamentoExterno"); err != nil {
+		var z0 domain.EncaminhamentoExterno
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetEncaminhamentoExterno(ctx, db, id, forUpdate)
+}
+
+func (fr *faultRepo) UpdateEncaminhamentoExterno(ctx context.Context, db database.DBTX, e domain.EncaminhamentoExterno) error {
+	if err := fr.hook("UpdateEncaminhamentoExterno"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateEncaminhamentoExterno(ctx, db, e)
+}
+
+func (fr *faultRepo) EncaminhamentosExternosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.EncaminhamentoExterno, error) {
+	if err := fr.hook("EncaminhamentosExternosNaArea"); err != nil {
+		var z0 []domain.EncaminhamentoExterno
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.EncaminhamentosExternosNaArea(ctx, db, cidadao, area)
+}
+
+func (fr *faultRepo) InsertDocumentoCentroPop(ctx context.Context, db database.DBTX, d domain.DocumentoCentroPop, autor uuid.UUID) error {
+	if err := fr.hook("InsertDocumentoCentroPop"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertDocumentoCentroPop(ctx, db, d, autor)
+}
+
+func (fr *faultRepo) GetDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) (domain.DocumentoCentroPop, error) {
+	if err := fr.hook("GetDocumentoCentroPop"); err != nil {
+		var z0 domain.DocumentoCentroPop
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetDocumentoCentroPop(ctx, db, id)
+}
+
+func (fr *faultRepo) UpdateDocumentoCentroPopStatus(ctx context.Context, db database.DBTX, id uuid.UUID, status string, sizeBytes int64, contentType string) error {
+	if err := fr.hook("UpdateDocumentoCentroPopStatus"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateDocumentoCentroPopStatus(ctx, db, id, status, sizeBytes, contentType)
+}
+
+func (fr *faultRepo) ListDocumentosCentroPop(ctx context.Context, db database.DBTX, cidadao uuid.UUID) ([]domain.DocumentoCentroPop, error) {
+	if err := fr.hook("ListDocumentosCentroPop"); err != nil {
+		var z0 []domain.DocumentoCentroPop
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListDocumentosCentroPop(ctx, db, cidadao)
+}
+
+func (fr *faultRepo) DeleteDocumentoCentroPop(ctx context.Context, db database.DBTX, id uuid.UUID) error {
+	if err := fr.hook("DeleteDocumentoCentroPop"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.DeleteDocumentoCentroPop(ctx, db, id)
+}

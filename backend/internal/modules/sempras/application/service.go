@@ -310,6 +310,20 @@ func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth
 	if p.OficiosCras, err = s.repo.OficiosCrasNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
+	switch perfil, err := s.repo.GetCentroPopPerfil(ctx, tx, id); {
+	case errors.Is(err, domain.ErrNotFound):
+		// perfil ainda não preenchido — fica nil, não é erro.
+	case err != nil:
+		return domain.Prontuario{}, err
+	default:
+		p.CentroPopPerfil = &perfil
+	}
+	if p.EncaminhamentosExternos, err = s.repo.EncaminhamentosExternosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.CentroPopDocumentos, err = s.repo.ListDocumentosCentroPop(ctx, tx, id); err != nil {
+		return domain.Prontuario{}, err
+	}
 	if p.CasaAbrigoAcolhimentos, err = s.repo.AcolhimentosNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
@@ -950,6 +964,229 @@ func (s *Service) RemoverDocumento(ctx context.Context, identity auth.Identity, 
 		}
 		e := audit.Meta(ctx, "sempras.casa_abrigo.documento_removido", "sempras_casa_abrigo_documento", id.String(), nil,
 			map[string]any{"acolhimento_id": d.AcolhimentoID})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err == nil {
+		s.removeObjetos(ctx, []string{key})
+	}
+	return err
+}
+
+// --------------------------------------------------------------- Centro POP
+
+// AtualizarCentroPopPerfil grava (upsert) o perfil de rua do munícipe —
+// um por cidadão.
+func (s *Service) AtualizarCentroPopPerfil(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID,
+	situacao string, tempoRuaAnos *float64, motivo string, possuiDoenca bool, doencaDescricao string,
+	usaMedicacao bool, medicacaoDescricao string, usoDrogas bool, drogasDescricao string) (domain.CentroPopPerfil, error) {
+	p, err := domain.NovoCentroPopPerfil(cidadao, situacao, tempoRuaAnos, motivo, possuiDoenca, doencaDescricao,
+		usaMedicacao, medicacaoDescricao, usoDrogas, drogasDescricao)
+	if err != nil {
+		return domain.CentroPopPerfil{}, err
+	}
+	p.AtualizadoEm = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.UpsertCentroPopPerfil(ctx, tx, p, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.centro_pop.perfil_atualizado", "sempras_centro_pop_perfil", cidadao.String(), nil,
+			map[string]any{"situacao": situacao, "motivo_vulnerabilidade": motivo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.CentroPopPerfil{}, err
+	}
+	return p, nil
+}
+
+// RegistrarEncaminhamentoExterno registra que o munícipe foi encaminhado
+// pra fora do sistema (CAPS AD, albergue, saúde, polícia etc.).
+func (s *Service) RegistrarEncaminhamentoExterno(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, destino, prioridade, motivo string) (domain.EncaminhamentoExterno, error) {
+	e, err := domain.NovoEncaminhamentoExterno(cidadao, unidade, destino, prioridade, motivo)
+	if err != nil {
+		return domain.EncaminhamentoExterno{}, err
+	}
+	e.CreatedAt, e.AtualizadoEm = s.now(), s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertEncaminhamentoExterno(ctx, tx, e, identity.UserID); err != nil {
+			return err
+		}
+		ev := audit.Meta(ctx, "sempras.encaminhamento_externo.registrado", "sempras_encaminhamento_externo", e.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade, "destino": destino, "prioridade": prioridade})
+		return audit.NewWriter(tx).Record(ctx, ev)
+	})
+	if err != nil {
+		return domain.EncaminhamentoExterno{}, err
+	}
+	return e, nil
+}
+
+// TransitarEncaminhamentoExterno muda o status (gerenciado por quem
+// atende, sem fluxo de aceite — ver domain.EncaminhamentoExterno).
+func (s *Service) TransitarEncaminhamentoExterno(ctx context.Context, identity auth.Identity, id uuid.UUID, status, observacoes string) (domain.EncaminhamentoExterno, error) {
+	var e domain.EncaminhamentoExterno
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if e, err = s.repo.GetEncaminhamentoExterno(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, e.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := e.Status
+		if err := e.Transitar(status, observacoes, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateEncaminhamentoExterno(ctx, tx, e); err != nil {
+			return err
+		}
+		ev := audit.Meta(ctx, "sempras.encaminhamento_externo.transitado", "sempras_encaminhamento_externo", id.String(),
+			map[string]any{"status": antes}, map[string]any{"status": e.Status})
+		return audit.NewWriter(tx).Record(ctx, ev)
+	})
+	if err != nil {
+		return domain.EncaminhamentoExterno{}, err
+	}
+	return e, nil
+}
+
+// documentoCentroPopPrefix é o prefixo dos objetos no bucket — um
+// "subdiretório" por cidadão (mesmo padrão dos documentos da Casa Abrigo).
+func documentoCentroPopPrefix(cidadao uuid.UUID) string {
+	return "sempras/centro-pop/" + cidadao.String()
+}
+
+// UploadDocumentoCentroPopResult é o ticket de upload + o metadado pendente.
+type UploadDocumentoCentroPopResult struct {
+	Documento domain.DocumentoCentroPop `json:"documento"`
+	Upload    modkit.UploadTicket       `json:"upload"`
+}
+
+// StartUploadDocumentoCentroPop cria o metadado pendente e a URL de
+// upload direto ao object storage.
+func (s *Service) StartUploadDocumentoCentroPop(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, tipo, filename, contentType string, size int64) (UploadDocumentoCentroPopResult, error) {
+	if size <= 0 || size > s.maxDocBytes {
+		return UploadDocumentoCentroPopResult{}, &domain.ValidationError{Msg: "tamanho de arquivo acima do limite permitido"}
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+		return UploadDocumentoCentroPopResult{}, err
+	}
+	if _, err := s.repo.GetCidadao(ctx, s.pool, cidadao, false); err != nil {
+		return UploadDocumentoCentroPopResult{}, err
+	}
+	ticket, err := modkit.NewUpload(ctx, s.store, s.bucket, documentoCentroPopPrefix(cidadao), filename, contentType, documentoTypes, s.uploadExpiry)
+	if err != nil {
+		return UploadDocumentoCentroPopResult{}, err
+	}
+	d, err := domain.NovoDocumentoCentroPop(cidadao, unidade, tipo, filename, ticket.ObjectKey, ticket.Headers["Content-Type"])
+	if err != nil {
+		return UploadDocumentoCentroPopResult{}, err
+	}
+	d.CreatedAt = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if err := s.repo.InsertDocumentoCentroPop(ctx, tx, d, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.centro_pop.documento_upload_iniciado", "sempras_centro_pop_documento", d.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "tipo": tipo})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return UploadDocumentoCentroPopResult{}, err
+	}
+	return UploadDocumentoCentroPopResult{Documento: d, Upload: ticket}, nil
+}
+
+// ConfirmUploadDocumentoCentroPop confere o objeto enviado e publica o documento.
+func (s *Service) ConfirmUploadDocumentoCentroPop(ctx context.Context, identity auth.Identity, id uuid.UUID) (domain.DocumentoCentroPop, error) {
+	d, err := s.repo.GetDocumentoCentroPop(ctx, s.pool, id)
+	if err != nil {
+		return domain.DocumentoCentroPop{}, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		return domain.DocumentoCentroPop{}, err
+	}
+	if d.Status == domain.DocumentoStatusReady {
+		return d, nil
+	}
+	info, err := modkit.ConfirmUpload(ctx, s.store, s.bucket, d.ObjectKey, documentoCentroPopPrefix(d.CidadaoID), s.maxDocBytes, documentoTypes)
+	if err != nil {
+		return domain.DocumentoCentroPop{}, err
+	}
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		if err := s.repo.UpdateDocumentoCentroPopStatus(ctx, tx, id, domain.DocumentoStatusReady, info.Size, info.ContentType); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.centro_pop.documento_confirmado", "sempras_centro_pop_documento", id.String(), nil,
+			map[string]any{"cidadao_id": d.CidadaoID, "size_bytes": info.Size})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.DocumentoCentroPop{}, err
+	}
+	d.Status, d.SizeBytes, d.ContentType = domain.DocumentoStatusReady, info.Size, info.ContentType
+	return d, nil
+}
+
+// DownloadURLDocumentoCentroPop devolve uma URL pré-assinada de leitura (curta).
+func (s *Service) DownloadURLDocumentoCentroPop(ctx context.Context, identity auth.Identity, id uuid.UUID) (string, domain.DocumentoCentroPop, error) {
+	d, err := s.repo.GetDocumentoCentroPop(ctx, s.pool, id)
+	if err != nil {
+		return "", domain.DocumentoCentroPop{}, err
+	}
+	if d.Status != domain.DocumentoStatusReady {
+		return "", domain.DocumentoCentroPop{}, domain.ErrNotFound
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		return "", domain.DocumentoCentroPop{}, err
+	}
+	url, err := s.store.PresignedGetURL(ctx, s.bucket, d.ObjectKey, 5*time.Minute)
+	if err != nil {
+		return "", domain.DocumentoCentroPop{}, apperrors.DependencyUnavailable("armazenamento indisponível").WithCause(err)
+	}
+	e := audit.Meta(ctx, "sempras.centro_pop.documento_baixado", "sempras_centro_pop_documento", id.String(), nil, nil)
+	_ = audit.NewWriter(s.pool).Record(ctx, e)
+	return url, d, nil
+}
+
+// RemoverDocumentoCentroPop remove o metadado e, fora da transação, o objeto no storage.
+func (s *Service) RemoverDocumentoCentroPop(ctx context.Context, identity auth.Identity, id uuid.UUID) error {
+	var key string
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		d, err := s.repo.GetDocumentoCentroPop(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		key = d.ObjectKey
+		if err := s.repo.DeleteDocumentoCentroPop(ctx, tx, id); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.centro_pop.documento_removido", "sempras_centro_pop_documento", id.String(), nil,
+			map[string]any{"cidadao_id": d.CidadaoID})
 		return audit.NewWriter(tx).Record(ctx, e)
 	})
 	if err == nil {

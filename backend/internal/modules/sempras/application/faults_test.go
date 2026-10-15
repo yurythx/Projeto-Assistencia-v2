@@ -303,6 +303,36 @@ func (c cenario) documento(t *testing.T) domain.DocumentoCasaAbrigo {
 	return d
 }
 
+// encaminhamentoExterno cadastra um munícipe e um encaminhamento
+// externo pendente dele (fora da transação sob teste).
+func (c cenario) encaminhamentoExterno(t *testing.T) domain.EncaminhamentoExterno {
+	t.Helper()
+	e, err := c.limpo().RegistrarEncaminhamentoExterno(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, "caps_ad", "media", "motivo válido")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return e
+}
+
+// documentoCentroPop cadastra um munícipe e um documento confirmado
+// dele (fora da transação sob teste) — mesmo padrão de documento().
+func (c cenario) documentoCentroPop(t *testing.T) domain.DocumentoCentroPop {
+	t.Helper()
+	svc := c.limpo()
+	res, err := svc.StartUploadDocumentoCentroPop(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.store.Put(context.Background(), bucket, res.Upload.ObjectKey, strings.NewReader("%PDF-1.4"), 8, "application/pdf"); err != nil {
+		t.Fatal(err)
+	}
+	d, err := svc.ConfirmUploadDocumentoCentroPop(context.Background(), c.identity, res.Documento.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return d
+}
+
 // globalGestao tem sempras:gestao sem escopo — decidir um pedido do
 // titular exige cobertura TOTAL (§8), não uma unidade só.
 func (c cenario) globalGestao() auth.Identity {
@@ -577,6 +607,40 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 		},
 		"RemoverDocumento": func(t *testing.T, s *application.Service) error {
 			return s.RemoverDocumento(ctx, id, c.documento(t).ID)
+		},
+		"AtualizarCentroPopPerfil": func(t *testing.T, s *application.Service) error {
+			_, err := s.AtualizarCentroPopPerfil(ctx, id, c.cadastrar(t).ID, c.unidade, "situacao_rua", nil, "outro", false, "", false, "", false, "")
+			return err
+		},
+		"RegistrarEncaminhamentoExterno": func(t *testing.T, s *application.Service) error {
+			_, err := s.RegistrarEncaminhamentoExterno(ctx, id, c.cadastrar(t).ID, c.unidade, "caps_ad", "media", "motivo válido")
+			return err
+		},
+		"TransitarEncaminhamentoExterno": func(t *testing.T, s *application.Service) error {
+			_, err := s.TransitarEncaminhamentoExterno(ctx, id, c.encaminhamentoExterno(t).ID, "concluido", "")
+			return err
+		},
+		"StartUploadDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
+			_, err := s.StartUploadDocumentoCentroPop(ctx, id, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+			return err
+		},
+		"ConfirmUploadDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
+			res, err := c.limpo().StartUploadDocumentoCentroPop(ctx, c.identity, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := c.store.Put(ctx, bucket, res.Upload.ObjectKey, strings.NewReader("%PDF-1.4"), 8, "application/pdf"); err != nil {
+				t.Fatal(err)
+			}
+			_, err = s.ConfirmUploadDocumentoCentroPop(ctx, id, res.Documento.ID)
+			return err
+		},
+		"DownloadURLDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
+			_, _, err := s.DownloadURLDocumentoCentroPop(ctx, id, c.documentoCentroPop(t).ID)
+			return err
+		},
+		"RemoverDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
+			return s.RemoverDocumentoCentroPop(ctx, id, c.documentoCentroPop(t).ID)
 		},
 	}
 	for name, op := range ops {
@@ -1067,6 +1131,82 @@ func TestRegrasDoServico(t *testing.T) {
 	if err := s.RemoverDocumento(ctx, c.identity, up2.Documento.ID); err != nil {
 		t.Errorf("remover documento: %v", err)
 	}
+
+	// Centro POP.
+	semIdentificacao, err := s.Cadastrar(ctx, c.identity, domain.CidadaoInput{Nome: "Cidadão não identificado", Anonimo: true})
+	if err != nil {
+		t.Fatalf("cadastro anônimo (Centro POP): %v", err)
+	}
+
+	if _, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "invalida", nil, "outro", false, "", false, "", false, ""); err == nil {
+		t.Error("situação inválida")
+	}
+	if _, err := s.AtualizarCentroPopPerfil(ctx, recepcao, semIdentificacao.ID, c.unidade, "situacao_rua", nil, "outro", false, "", false, "", false, ""); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não atualiza perfil de rua: %v", err)
+	}
+	tempoRua := 3.0
+	perfil, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "situacao_rua", &tempoRua,
+		"uso_de_drogas", true, "hipertensão", false, "", true, "uso de crack")
+	if err != nil || perfil.Situacao != "situacao_rua" || !perfil.UsoDrogas {
+		t.Errorf("atualizar perfil de rua: %+v, %v", perfil, err)
+	}
+	// upsert: atualizar de novo continua um perfil só.
+	perfil2, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "albergado", nil,
+		"desemprego", false, "", false, "", false, "")
+	if err != nil || perfil2.Situacao != "albergado" {
+		t.Errorf("atualizar perfil de rua de novo: %+v, %v", perfil2, err)
+	}
+
+	if _, err := s.RegistrarEncaminhamentoExterno(ctx, recepcao, semIdentificacao.ID, c.unidade, "caps_ad", "alta", "motivo válido"); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não registra encaminhamento externo: %v", err)
+	}
+	encExterno, err := s.RegistrarEncaminhamentoExterno(ctx, c.identity, semIdentificacao.ID, c.unidade, "caps_ad", "alta", "uso abusivo de substâncias")
+	if err != nil || encExterno.Status != domain.EncaminhamentoExternoStatusPendente {
+		t.Errorf("registrar encaminhamento externo: %+v, %v", encExterno, err)
+	}
+	encTransitado, err := s.TransitarEncaminhamentoExterno(ctx, c.identity, encExterno.ID, domain.EncaminhamentoExternoStatusEmAtendimento, "aguardando vaga")
+	if err != nil || encTransitado.Status != domain.EncaminhamentoExternoStatusEmAtendimento {
+		t.Errorf("transitar encaminhamento externo: %+v, %v", encTransitado, err)
+	}
+	// diferente de Encaminhamento (entre unidades), não há trava de "já
+	// decidido" — quem atende pode mudar o status de novo.
+	encConcluido, err := s.TransitarEncaminhamentoExterno(ctx, c.identity, encExterno.ID, domain.EncaminhamentoExternoStatusConcluido, "atendido pelo CAPS AD")
+	if err != nil || encConcluido.Status != domain.EncaminhamentoExternoStatusConcluido {
+		t.Errorf("concluir encaminhamento externo: %+v, %v", encConcluido, err)
+	}
+
+	// Documentos do Centro POP — mesma regra de tipo real conferido no storage.
+	if _, err := s.StartUploadDocumentoCentroPop(ctx, recepcao, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não envia documento do Centro POP: %v", err)
+	}
+	upCp, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "laudo.pdf", "application/pdf", 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.store.Put(ctx, bucket, upCp.Upload.ObjectKey, strings.NewReader("não é pdf"), 9, "text/plain"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.ConfirmUploadDocumentoCentroPop(ctx, c.identity, upCp.Documento.ID); err == nil {
+		t.Error("tipo real diferente de PDF deveria ser recusado")
+	}
+	upCp2, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopIdentificacao, "doc.pdf", "application/pdf", 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.store.Put(ctx, bucket, upCp2.Upload.ObjectKey, strings.NewReader("%PDF-1.4"), 8, "application/pdf"); err != nil {
+		t.Fatal(err)
+	}
+	confirmadoCp, err := s.ConfirmUploadDocumentoCentroPop(ctx, c.identity, upCp2.Documento.ID)
+	if err != nil || confirmadoCp.Status != domain.DocumentoStatusReady {
+		t.Errorf("confirmar documento do Centro POP: %+v, %v", confirmadoCp, err)
+	}
+	urlCp, _, err := s.DownloadURLDocumentoCentroPop(ctx, c.identity, upCp2.Documento.ID)
+	if err != nil || urlCp == "" {
+		t.Errorf("baixar documento do Centro POP: %q, %v", urlCp, err)
+	}
+	if err := s.RemoverDocumentoCentroPop(ctx, c.identity, upCp2.Documento.ID); err != nil {
+		t.Errorf("remover documento do Centro POP: %v", err)
+	}
 }
 
 // Os handlers devolvem 4xx em entrada ruim e 500 (sem vazar o erro) quando
@@ -1228,6 +1368,23 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodGet, "/sempras/casa-abrigo-documentos/zz/download", "", 400},
 		{http.MethodDelete, "/sempras/casa-abrigo-documentos/" + x, "", 500},
 		{http.MethodDelete, "/sempras/casa-abrigo-documentos/zz", "", 400},
+		{http.MethodPut, "/sempras/cidadaos/" + x + "/centro-pop-perfil", `{"unidade_id":"` + u + `","situacao":"situacao_rua","motivo_vulnerabilidade":"outro"}`, 500},
+		{http.MethodPut, "/sempras/cidadaos/zz/centro-pop-perfil", `{}`, 400},
+		{http.MethodPut, "/sempras/cidadaos/" + x + "/centro-pop-perfil", `{`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/encaminhamentos-externos", `{"unidade_id":"` + u + `","destino":"caps_ad","prioridade":"media","motivo":"motivo válido"}`, 500},
+		{http.MethodPost, "/sempras/cidadaos/zz/encaminhamentos-externos", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/encaminhamentos-externos", `{`, 400},
+		{http.MethodPost, "/sempras/encaminhamentos-externos/" + x + "/transitar", `{"status":"concluido"}`, 500},
+		{http.MethodPost, "/sempras/encaminhamentos-externos/zz/transitar", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/centro-pop-documentos/uploads", `{"unidade_id":"` + u + `","tipo":"laudo_saude","filename":"doc.pdf","content_type":"application/pdf","size":8}`, 500},
+		{http.MethodPost, "/sempras/cidadaos/zz/centro-pop-documentos/uploads", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/centro-pop-documentos/uploads", `{`, 400},
+		{http.MethodPost, "/sempras/centro-pop-documentos/" + x + "/confirm", "", 500},
+		{http.MethodPost, "/sempras/centro-pop-documentos/zz/confirm", "", 400},
+		{http.MethodGet, "/sempras/centro-pop-documentos/" + x + "/download", "", 500},
+		{http.MethodGet, "/sempras/centro-pop-documentos/zz/download", "", 400},
+		{http.MethodDelete, "/sempras/centro-pop-documentos/" + x, "", 500},
+		{http.MethodDelete, "/sempras/centro-pop-documentos/zz", "", 400},
 	} {
 		down.calls = 0
 		rec := httptest.NewRecorder()
