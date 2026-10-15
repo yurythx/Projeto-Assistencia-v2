@@ -176,6 +176,43 @@ presencialmente, numa tabela própria (`sempras_pedidos_titular`, migração
   `audit_logs`/tramitações. A decisão é definitiva (trigger de
   imutabilidade): nem a gestão desfaz uma anonimização aprovada.
 
+### 9. Paridade com o `protocolo_digital` (Fase 8.1)
+
+Uma comparação file-a-file entre o legado de referência e o módulo achou,
+além da diferença esperada de navegação (abas/modal do legado → rotas e
+cards aqui, já decidida nas seções 1 e 4), dois módulos sem nenhuma tela
+equivalente:
+
+- **Ofícios do CRAS** (`sempras_cras_oficios`, migração 000158): o legado
+  tem esse controle só pro CRAS; o módulo já tinha o equivalente pro
+  CREAS (`sempras_creas_notificacoes`, Fase 8). É uma tabela própria, não uma
+  extensão da notificação do CREAS — o legado guarda campos que a
+  notificação não tem (nº do ofício, data de emissão, nº da resposta),
+  mesmo padrão já usado em Casa Abrigo (uma tabela por conceito, não uma
+  genérica).
+- **Atendimentos Coletivos / SCFV** (`sempras_atendimentos_coletivos`,
+  migração 000159): evento de grupo da unidade, não é por munícipe. O
+  legado guarda a categoria como texto livre e soma por `ILIKE` no
+  relatório — um erro de digitação some do número sem avisar. Aqui a
+  categoria é um `CHECK` fechado (as 8 categorias do Bloco III do
+  RMA/MDS), mesma filosofia já aplicada a `PaifVinculo`/`Beneficio`
+  (campo real, não texto casado por substring). Alimenta 8 novos campos
+  de `RmaUnidade` e a nova página `/sempras/coletivos`.
+
+Também apareceram campos do legado sem equivalente em formulários já
+existentes — adicionados sem mudar a tabela-conceito: `forma_acesso` e os
+tipos `aluguel_social`/`outro` em `Beneficio` (migração 000156),
+`tipo_atendimento` (particularizado/coletivo/ambos) em `PaifVinculo`
+(migração 000157), e o campo `prazo_resposta` de `NotificacaoCreas` — que
+já existia de ponta a ponta no backend desde a Fase 8, só faltava no
+formulário do frontend.
+
+Ficou fora: o **Centro POP** (atendimento à população em situação de rua
+— `SocialAssistance.js` no legado, 8 entidades, RBAC de 4 papéis com
+mascaramento LGPD pra recepcionista, fila própria). É do tamanho de toda
+a Fase 8 somada; a especificação já foi extraída e fica para um ADR
+próprio quando for priorizado (roadmap, Fase 9).
+
 ## Consequências
 
 - **Reuso:** Kernel, `auth.Can` e `CoverageOf`, auditoria encadeada,
