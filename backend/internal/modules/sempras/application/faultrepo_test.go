@@ -539,6 +539,57 @@ func (fr *faultRepo) NotificacoesCreasNaArea(ctx context.Context, db database.DB
 	return fr.inner.NotificacoesCreasNaArea(ctx, db, vitima, area)
 }
 
+func (fr *faultRepo) InsertOficioCras(ctx context.Context, db database.DBTX, o domain.OficioCras, autor uuid.UUID) error {
+	if err := fr.hook("InsertOficioCras"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertOficioCras(ctx, db, o, autor)
+}
+
+func (fr *faultRepo) GetOficioCras(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.OficioCras, error) {
+	if err := fr.hook("GetOficioCras"); err != nil {
+		var z0 domain.OficioCras
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetOficioCras(ctx, db, id, forUpdate)
+}
+
+func (fr *faultRepo) UpdateOficioCras(ctx context.Context, db database.DBTX, o domain.OficioCras) error {
+	if err := fr.hook("UpdateOficioCras"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateOficioCras(ctx, db, o)
+}
+
+func (fr *faultRepo) OficiosCrasNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.OficioCras, error) {
+	if err := fr.hook("OficiosCrasNaArea"); err != nil {
+		var z0 []domain.OficioCras
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.OficiosCrasNaArea(ctx, db, cidadao, area)
+}
+
+func (fr *faultRepo) InsertAtendimentoColetivo(ctx context.Context, db database.DBTX, a domain.AtendimentoColetivo, autor uuid.UUID) error {
+	if err := fr.hook("InsertAtendimentoColetivo"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertAtendimentoColetivo(ctx, db, a, autor)
+}
+
+func (fr *faultRepo) ListAtendimentosColetivos(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio time.Time, fim time.Time) ([]domain.AtendimentoColetivo, error) {
+	if err := fr.hook("ListAtendimentosColetivos"); err != nil {
+		var z0 []domain.AtendimentoColetivo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListAtendimentosColetivos(ctx, db, unidade, inicio, fim)
+}
+
 func (fr *faultRepo) InsertAcolhimento(ctx context.Context, db database.DBTX, a domain.Acolhimento, autor uuid.UUID) error {
 	if err := fr.hook("InsertAcolhimento"); err != nil {
 		return err

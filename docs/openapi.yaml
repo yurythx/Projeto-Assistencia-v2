@@ -4394,6 +4394,64 @@ components:
                 - unidade_id
             type: object
             x-nexus-generated: true
+        SemprasAtendimentoColetivo:
+            properties:
+                categoria:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                data_evento:
+                    format: date-time
+                    type: string
+                descricao:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                participantes:
+                    type: integer
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - categoria
+                - created_at
+                - data_evento
+                - descricao
+                - id
+                - participantes
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasAtendimentoColetivoRequest:
+            properties:
+                categoria:
+                    enum:
+                        - paif_familias
+                        - scfv_0_6
+                        - scfv_7_14
+                        - scfv_15_17
+                        - scfv_18_59
+                        - scfv_idosos
+                        - palestras_nao_continuado
+                        - pcd
+                    type: string
+                data_evento:
+                    format: date-time
+                    type: string
+                descricao:
+                    maxLength: 2000
+                    type: string
+                participantes:
+                    maximum: 1000
+                    minimum: 0
+                    type: integer
+            required:
+                - categoria
+                - data_evento
+            type: object
+            x-nexus-generated: true
         SemprasBeneficio:
             properties:
                 beneficiario_id:
@@ -4405,6 +4463,8 @@ components:
                     type: string
                 data_solicitacao:
                     format: date-time
+                    type: string
+                forma_acesso:
                     type: string
                 id:
                     format: uuid
@@ -4434,6 +4494,7 @@ components:
                 - beneficiario_id
                 - data_decisao
                 - data_solicitacao
+                - forma_acesso
                 - id
                 - motivo_decisao
                 - observacao
@@ -4447,6 +4508,13 @@ components:
             x-nexus-generated: true
         SemprasBeneficioRequest:
             properties:
+                forma_acesso:
+                    enum:
+                        - demanda_espontanea
+                        - busca_ativa
+                        - encaminhamento_rede_socioassistencial
+                        - encaminhamento_sistema_garantia_direitos
+                    type: string
                 observacao:
                     maxLength: 2000
                     type: string
@@ -4464,11 +4532,14 @@ components:
                         - funeral
                         - cesta_basica
                         - passagem
+                        - aluguel_social
+                        - outro
                     type: string
                 unidade_id:
                     format: uuid
                     type: string
             required:
+                - forma_acesso
                 - quantidade
                 - tipo
                 - unidade_id
@@ -5233,6 +5304,82 @@ components:
                 - unidade_id
             type: object
             x-nexus-generated: true
+        SemprasOficioCras:
+            properties:
+                assunto:
+                    type: string
+                cidadao_id:
+                    format: uuid
+                    type: string
+                data_oficio:
+                    format: date-time
+                    nullable: true
+                    type: string
+                data_recebimento:
+                    format: date-time
+                    type: string
+                data_resposta:
+                    format: date-time
+                    nullable: true
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                numero_oficio:
+                    type: string
+                numero_resposta:
+                    type: string
+                orgao_emissor:
+                    type: string
+                status:
+                    type: string
+                tecnico_responsavel_id:
+                    format: uuid
+                    nullable: true
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - assunto
+                - cidadao_id
+                - data_oficio
+                - data_recebimento
+                - data_resposta
+                - id
+                - numero_oficio
+                - numero_resposta
+                - orgao_emissor
+                - status
+                - tecnico_responsavel_id
+                - unidade_id
+            type: object
+            x-nexus-generated: true
+        SemprasOficioCrasRequest:
+            properties:
+                assunto:
+                    maxLength: 2000
+                    type: string
+                data_oficio:
+                    format: date-time
+                    nullable: true
+                    type: string
+                numero_oficio:
+                    maxLength: 100
+                    type: string
+                orgao_emissor:
+                    maxLength: 200
+                    minLength: 3
+                    type: string
+                unidade_id:
+                    format: uuid
+                    type: string
+            required:
+                - numero_oficio
+                - orgao_emissor
+                - unidade_id
+            type: object
+            x-nexus-generated: true
         SemprasPaefiCaso:
             properties:
                 caso_codigo:
@@ -5320,10 +5467,17 @@ components:
                     maximum: 50
                     minimum: 0
                     type: integer
+                tipo_atendimento:
+                    enum:
+                        - particularizado
+                        - coletivo
+                        - ambos
+                    type: string
                 unidade_id:
                     format: uuid
                     type: string
             required:
+                - tipo_atendimento
                 - unidade_id
             type: object
             x-nexus-generated: true
@@ -5362,6 +5516,8 @@ components:
                     type: integer
                 status:
                     type: string
+                tipo_atendimento:
+                    type: string
                 unidade_id:
                     format: uuid
                     type: string
@@ -5378,6 +5534,7 @@ components:
                 - motivo_exclusao
                 - scfv_participantes
                 - status
+                - tipo_atendimento
                 - unidade_id
             type: object
             x-nexus-generated: true
@@ -5671,6 +5828,10 @@ components:
                     items:
                         $ref: '#/components/schemas/SemprasNotificacaoCreas'
                     type: array
+                oficios_cras:
+                    items:
+                        $ref: '#/components/schemas/SemprasOficioCras'
+                    type: array
                 paefi_casos:
                     items:
                         $ref: '#/components/schemas/SemprasPaefiCaso'
@@ -5696,6 +5857,7 @@ components:
                 - encaminhamentos
                 - mse_medidas
                 - notificacoes_creas
+                - oficios_cras
                 - paefi_casos
                 - paif_vinculos
                 - rede_apoio
@@ -5768,6 +5930,15 @@ components:
                 - unidade_id
             type: object
             x-nexus-generated: true
+        SemprasResponderOficioRequest:
+            properties:
+                numero_resposta:
+                    maxLength: 100
+                    type: string
+            required:
+                - numero_resposta
+            type: object
+            x-nexus-generated: true
         SemprasResumo:
             properties:
                 atendimentos_na_area:
@@ -5811,6 +5982,24 @@ components:
                     type: integer
                 casa_abrigo_entradas_no_mes:
                     type: integer
+                coletivo_paif_familias_no_mes:
+                    type: integer
+                coletivo_palestras_no_mes:
+                    type: integer
+                coletivo_pcd_no_mes:
+                    type: integer
+                coletivo_scfv_0_6_no_mes:
+                    type: integer
+                coletivo_scfv_7_14_no_mes:
+                    type: integer
+                coletivo_scfv_15_17_no_mes:
+                    type: integer
+                coletivo_scfv_18_59_no_mes:
+                    type: integer
+                coletivo_scfv_idosos_no_mes:
+                    type: integer
+                coletivo_total_no_mes:
+                    type: integer
                 conselho_atendimentos_no_mes:
                     type: integer
                 creas_notificacoes_recebidas_no_mes:
@@ -5822,6 +6011,10 @@ components:
                 mse_ativas:
                     type: integer
                 mse_concluidas_no_mes:
+                    type: integer
+                oficios_cras_recebidos_no_mes:
+                    type: integer
+                oficios_cras_respondidos_no_mes:
                     type: integer
                 paefi_casos_abertos_no_mes:
                     type: integer
@@ -5847,12 +6040,23 @@ components:
                 - casa_abrigo_acolhidos_ativos
                 - casa_abrigo_desligamentos_no_mes
                 - casa_abrigo_entradas_no_mes
+                - coletivo_paif_familias_no_mes
+                - coletivo_palestras_no_mes
+                - coletivo_pcd_no_mes
+                - coletivo_scfv_0_6_no_mes
+                - coletivo_scfv_15_17_no_mes
+                - coletivo_scfv_18_59_no_mes
+                - coletivo_scfv_7_14_no_mes
+                - coletivo_scfv_idosos_no_mes
+                - coletivo_total_no_mes
                 - conselho_atendimentos_no_mes
                 - creas_notificacoes_recebidas_no_mes
                 - creas_notificacoes_respondidas_no_mes
                 - encaminhamentos_enviados_no_mes
                 - mse_ativas
                 - mse_concluidas_no_mes
+                - oficios_cras_recebidos_no_mes
+                - oficios_cras_respondidos_no_mes
                 - paefi_casos_abertos_no_mes
                 - paefi_casos_ativos
                 - paif_ativos
@@ -15119,6 +15323,49 @@ paths:
             summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/mse
             tags:
                 - sempras
+    /api/v1/sempras/cidadaos/{id}/oficios-cras:
+        post:
+            operationId: postSemprasCidadaosIdOficiosCras
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasOficioCrasRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasOficioCras'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/cidadaos/{id}/oficios-cras
+            tags:
+                - sempras
     /api/v1/sempras/cidadaos/{id}/paefi:
         post:
             description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
@@ -15604,6 +15851,49 @@ paths:
             summary: SEMPRAS — Executar ação /sempras/mse/{id}/concluir
             tags:
                 - sempras
+    /api/v1/sempras/oficios-cras/{id}/responder:
+        post:
+            operationId: postSemprasOficiosCrasIdResponder
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasResponderOficioRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasOficioCras'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/oficios-cras/{id}/responder
+            tags:
+                - sempras
     /api/v1/sempras/paefi/{id}/encerrar:
         post:
             description: Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
@@ -15951,6 +16241,92 @@ paths:
             security:
                 - bearerAuth: []
             summary: SEMPRAS — Listar/consultar /sempras/unidades
+            tags:
+                - sempras
+    /api/v1/sempras/unidades/{id}/coletivos:
+        get:
+            operationId: getSemprasUnidadesIdColetivos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: mes
+                  required: false
+                  schema:
+                    maxLength: 10
+                    type: string
+                  x-nexus-generated: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            items:
+                                                $ref: '#/components/schemas/SemprasAtendimentoColetivo'
+                                            type: array
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/unidades/{id}/coletivos
+            tags:
+                - sempras
+        post:
+            operationId: postSemprasUnidadesIdColetivos
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/IdempotencyKey'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SemprasAtendimentoColetivoRequest'
+                required: true
+                x-nexus-generated: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            $ref: '#/components/schemas/SemprasAtendimentoColetivo'
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Executar ação /sempras/unidades/{id}/coletivos
             tags:
                 - sempras
     /api/v1/sempras/unidades/{id}/encaminhamentos:

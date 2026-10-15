@@ -127,7 +127,7 @@ func (c cenario) contatoRedeApoio(t *testing.T) uuid.UUID {
 // ele (fora da transação sob teste).
 func (c cenario) beneficio(t *testing.T) domain.Beneficio {
 	t.Helper()
-	b, err := c.limpo().SolicitarBeneficio(context.Background(), c.identity, c.cadastrar(t).ID, nil, c.unidade, domain.BeneficioCestaBasica, 1, "")
+	b, err := c.limpo().SolicitarBeneficio(context.Background(), c.identity, c.cadastrar(t).ID, nil, c.unidade, domain.BeneficioCestaBasica, domain.FormaAcessoDemandaEspontanea, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func (c cenario) encaminhamento(t *testing.T) domain.Encaminhamento {
 // transação sob teste).
 func (c cenario) paif(t *testing.T) domain.PaifVinculo {
 	t.Helper()
-	v, err := c.limpo().IncluirPaif(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, true, false, false, 2)
+	v, err := c.limpo().IncluirPaif(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, domain.PaifAtendimentoParticularizado, true, false, false, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,6 +202,18 @@ func (c cenario) notificacaoCreas(t *testing.T) domain.NotificacaoCreas {
 		t.Fatal(err)
 	}
 	return n
+}
+
+// oficioCras cadastra um munícipe e um ofício do CRAS pendente (fora da
+// transação sob teste).
+func (c cenario) oficioCras(t *testing.T) domain.OficioCras {
+	t.Helper()
+	o, err := c.limpo().RegistrarOficioCras(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+		"Conselho Tutelar", "123/2026", nil, "acompanhamento da família")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return o
 }
 
 // acolhimento cadastra uma criança e um acolhimento dela na Casa Abrigo
@@ -401,7 +413,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return s.RemoverContatoRedeApoio(ctx, id, c.contatoRedeApoio(t))
 		},
 		"SolicitarBeneficio": func(t *testing.T, s *application.Service) error {
-			_, err := s.SolicitarBeneficio(ctx, id, c.cadastrar(t).ID, nil, c.unidade, domain.BeneficioCestaBasica, 1, "")
+			_, err := s.SolicitarBeneficio(ctx, id, c.cadastrar(t).ID, nil, c.unidade, domain.BeneficioCestaBasica, domain.FormaAcessoDemandaEspontanea, 1, "")
 			return err
 		},
 		"DecidirBeneficio": func(t *testing.T, s *application.Service) error {
@@ -422,7 +434,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"IncluirPaif": func(t *testing.T, s *application.Service) error {
-			_, err := s.IncluirPaif(ctx, id, c.cadastrar(t).ID, c.unidade, true, false, false, 2)
+			_, err := s.IncluirPaif(ctx, id, c.cadastrar(t).ID, c.unidade, domain.PaifAtendimentoParticularizado, true, false, false, 2)
 			return err
 		},
 		"ExcluirPaif": func(t *testing.T, s *application.Service) error {
@@ -465,6 +477,22 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 		},
 		"TransitarNotificacaoCreas": func(t *testing.T, s *application.Service) error {
 			_, err := s.TransitarNotificacaoCreas(ctx, id, c.notificacaoCreas(t).ID, "iniciar_diligencia", "")
+			return err
+		},
+		"RegistrarOficioCras": func(t *testing.T, s *application.Service) error {
+			_, err := s.RegistrarOficioCras(ctx, id, c.cadastrar(t).ID, c.unidade, "Conselho Tutelar", "123/2026", nil, "")
+			return err
+		},
+		"ResponderOficioCras": func(t *testing.T, s *application.Service) error {
+			_, err := s.ResponderOficioCras(ctx, id, c.oficioCras(t).ID, "456/2026")
+			return err
+		},
+		"RegistrarAtendimentoColetivo": func(_ *testing.T, s *application.Service) error {
+			_, err := s.RegistrarAtendimentoColetivo(ctx, id, c.unidade, time.Now(), domain.ColetivoSCFV0a6, 10, "")
+			return err
+		},
+		"ListarAtendimentosColetivos": func(_ *testing.T, s *application.Service) error {
+			_, err := s.ListarAtendimentosColetivos(ctx, id, c.unidade, "2026-10")
 			return err
 		},
 		"RegistrarAcolhimento": func(t *testing.T, s *application.Service) error {
@@ -712,10 +740,13 @@ func TestRegrasDoServico(t *testing.T) {
 	}
 
 	// Benefícios eventuais.
-	if _, err := s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unidade, "invalido", 1, ""); err == nil {
+	if _, err := s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unidade, "invalido", domain.FormaAcessoDemandaEspontanea, 1, ""); err == nil {
 		t.Error("tipo de benefício inválido")
 	}
-	beneficio, err := s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unidade, domain.BeneficioNatalidade, 1, "")
+	if _, err := s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unidade, domain.BeneficioNatalidade, "invalida", 1, ""); err == nil {
+		t.Error("forma de acesso inválida")
+	}
+	beneficio, err := s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unidade, domain.BeneficioNatalidade, domain.FormaAcessoDemandaEspontanea, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -762,11 +793,11 @@ func TestRegrasDoServico(t *testing.T) {
 	}
 
 	// PAIF.
-	vinculo, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, true, false, false, 3)
+	vinculo, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, domain.PaifAtendimentoParticularizado, true, false, false, 3)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, true, false, false, 3); !errors.Is(err, domain.ErrPaifJaAtivo) {
+	if _, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, domain.PaifAtendimentoParticularizado, true, false, false, 3); !errors.Is(err, domain.ErrPaifJaAtivo) {
 		t.Errorf("já ativo: %v", err)
 	}
 	if _, err := s.ExcluirPaif(ctx, c.identity, vinculo.ID, ""); err == nil {
@@ -780,7 +811,7 @@ func TestRegrasDoServico(t *testing.T) {
 		t.Errorf("já excluído: %v", err)
 	}
 	// depois de excluída, a família pode ser reincluída (novo vínculo).
-	if _, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, true, false, false, 3); err != nil {
+	if _, err := s.IncluirPaif(ctx, c.identity, cid, c.unidade, domain.PaifAtendimentoParticularizado, true, false, false, 3); err != nil {
 		t.Errorf("reincluir após exclusão: %v", err)
 	}
 
@@ -1097,7 +1128,7 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/rede-apoio", `{`, 400},
 		{http.MethodDelete, "/sempras/rede-apoio/" + x, "", 500},
 		{http.MethodDelete, "/sempras/rede-apoio/zz", "", 400},
-		{http.MethodPost, "/sempras/cidadaos/" + x + "/beneficios", `{"unidade_id":"` + u + `","tipo":"cesta_basica","quantidade":1}`, 500},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/beneficios", `{"unidade_id":"` + u + `","tipo":"cesta_basica","forma_acesso":"demanda_espontanea","quantidade":1}`, 500},
 		{http.MethodPost, "/sempras/cidadaos/zz/beneficios", `{}`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/beneficios", `{`, 400},
 		{http.MethodPost, "/sempras/beneficios/" + x + "/decidir", `{"acao":"conceder"}`, 500},
@@ -1109,7 +1140,7 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodGet, "/sempras/unidades/zz/encaminhamentos", "", 400},
 		{http.MethodPost, "/sempras/encaminhamentos/" + x + "/decidir", `{"aceitar":true}`, 500},
 		{http.MethodPost, "/sempras/encaminhamentos/zz/decidir", `{`, 400},
-		{http.MethodPost, "/sempras/cidadaos/" + x + "/paif", `{"unidade_id":"` + u + `"}`, 500},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/paif", `{"unidade_id":"` + u + `","tipo_atendimento":"particularizado"}`, 500},
 		{http.MethodPost, "/sempras/cidadaos/zz/paif", `{}`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/paif", `{`, 400},
 		{http.MethodPost, "/sempras/paif/" + x + "/excluir", `{"motivo":"família se mudou"}`, 500},
@@ -1138,6 +1169,12 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/creas-notificacoes", `{`, 400},
 		{http.MethodPost, "/sempras/creas-notificacoes/" + x + "/transitar", `{"acao":"iniciar_diligencia"}`, 500},
 		{http.MethodPost, "/sempras/creas-notificacoes/zz/transitar", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/oficios-cras", `{"unidade_id":"` + u + `","orgao_emissor":"Conselho Tutelar","numero_oficio":"123/2026"}`, 500},
+		{http.MethodPost, "/sempras/cidadaos/zz/oficios-cras", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/oficios-cras", `{`, 400},
+		{http.MethodPost, "/sempras/oficios-cras/" + x + "/responder", `{"numero_resposta":"456/2026"}`, 500},
+		{http.MethodPost, "/sempras/oficios-cras/zz/responder", `{}`, 400},
+		{http.MethodPost, "/sempras/oficios-cras/" + x + "/responder", `{`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-abrigo", `{"unidade_id":"` + u + `","sexo":"masculino","motivos":["negligencia_abandono"]}`, 500},
 		{http.MethodPost, "/sempras/cidadaos/zz/casa-abrigo", `{}`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-abrigo", `{`, 400},
@@ -1158,6 +1195,11 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodDelete, "/sempras/casa-abrigo-diagnosticos/" + x, "", 500},
 		{http.MethodDelete, "/sempras/casa-abrigo-diagnosticos/zz", "", 400},
 		{http.MethodGet, "/sempras/relatorios/rma?competencia=2026-10", "", 500},
+		{http.MethodPost, "/sempras/unidades/" + u + "/coletivos", `{"data_evento":"2026-10-10T00:00:00Z","categoria":"scfv_0_6","participantes":5}`, 500},
+		{http.MethodPost, "/sempras/unidades/zz/coletivos", `{}`, 400},
+		{http.MethodPost, "/sempras/unidades/" + u + "/coletivos", `{`, 400},
+		{http.MethodGet, "/sempras/unidades/" + u + "/coletivos?mes=2026-10", "", 500},
+		{http.MethodGet, "/sempras/unidades/zz/coletivos", "", 400},
 		{http.MethodPost, "/sempras/casa-abrigo/" + x + "/visitantes", `{"nome_visitante":"Maria","data_visita":"2026-10-10T00:00:00Z"}`, 500},
 		{http.MethodPost, "/sempras/casa-abrigo/zz/visitantes", `{}`, 400},
 		{http.MethodPost, "/sempras/casa-abrigo/" + x + "/visitantes", `{`, 400},

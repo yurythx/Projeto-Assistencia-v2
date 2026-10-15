@@ -39,6 +39,7 @@ var (
 	ErrMseEstado              = errors.New("sempras: a medida socioeducativa não está no estado que a ação exige")
 	ErrNotificacaoEstado      = errors.New("sempras: a notificação não está no estado que a ação exige")
 	ErrAcolhimentoEstado      = errors.New("sempras: o acolhimento não está no estado que a ação exige")
+	ErrOficioRespondido       = errors.New("sempras: este ofício já foi respondido")
 )
 
 // ValidationError é um dado de entrada inválido (422), com a explicação.
@@ -407,6 +408,7 @@ type Prontuario struct {
 	PaefiCasos             []PaefiCaso           `json:"paefi_casos"`
 	MseMedidas             []MseMedida           `json:"mse_medidas"`
 	NotificacoesCreas      []NotificacaoCreas    `json:"notificacoes_creas"`
+	OficiosCras            []OficioCras          `json:"oficios_cras"`
 	CasaAbrigoAcolhimentos []Acolhimento         `json:"casa_abrigo_acolhimentos"`
 }
 
@@ -476,6 +478,17 @@ type RmaUnidade struct {
 	CasaAbrigoEntradasNoMes           int     `json:"casa_abrigo_entradas_no_mes"`
 	CasaAbrigoDesligamentosNoMes      int     `json:"casa_abrigo_desligamentos_no_mes"`
 	EncaminhamentosEnviadosNoMes      int     `json:"encaminhamentos_enviados_no_mes"`
+	OficiosCrasRecebidosNoMes         int     `json:"oficios_cras_recebidos_no_mes"`
+	OficiosCrasRespondidosNoMes       int     `json:"oficios_cras_respondidos_no_mes"`
+	ColetivoPaifFamiliasNoMes         int     `json:"coletivo_paif_familias_no_mes"`
+	ColetivoSCFV0a6NoMes              int     `json:"coletivo_scfv_0_6_no_mes"`
+	ColetivoSCFV7a14NoMes             int     `json:"coletivo_scfv_7_14_no_mes"`
+	ColetivoSCFV15a17NoMes            int     `json:"coletivo_scfv_15_17_no_mes"`
+	ColetivoSCFV18a59NoMes            int     `json:"coletivo_scfv_18_59_no_mes"`
+	ColetivoSCFVIdososNoMes           int     `json:"coletivo_scfv_idosos_no_mes"`
+	ColetivoPalestrasNoMes            int     `json:"coletivo_palestras_no_mes"`
+	ColetivoPCDNoMes                  int     `json:"coletivo_pcd_no_mes"`
+	ColetivoTotalNoMes                int     `json:"coletivo_total_no_mes"`
 }
 
 // ------------------------------------- Casa Abrigo: visitantes e termos
@@ -747,13 +760,28 @@ func JustificativaDecisaoValida(justificativa string, exigida bool) (string, err
 
 // Tipos de benefício eventual (LOAS art. 22; Decreto 6.307/2007).
 const (
-	BeneficioNatalidade  = "natalidade"
-	BeneficioFuneral     = "funeral"
-	BeneficioCestaBasica = "cesta_basica"
-	BeneficioPassagem    = "passagem"
+	BeneficioNatalidade    = "natalidade"
+	BeneficioFuneral       = "funeral"
+	BeneficioCestaBasica   = "cesta_basica"
+	BeneficioPassagem      = "passagem"
+	BeneficioAluguelSocial = "aluguel_social"
+	BeneficioOutro         = "outro"
 )
 
-var tiposBeneficio = []string{BeneficioNatalidade, BeneficioFuneral, BeneficioCestaBasica, BeneficioPassagem}
+// Formas de acesso de um benefício eventual — como a demanda chegou até a
+// unidade (NOB-SUAS), usado no RMA/MDS.
+const (
+	FormaAcessoDemandaEspontanea             = "demanda_espontanea"
+	FormaAcessoBuscaAtiva                    = "busca_ativa"
+	FormaAcessoEncaminhamentoRedeSocioass    = "encaminhamento_rede_socioassistencial"
+	FormaAcessoEncaminhamentoSistemaGarantia = "encaminhamento_sistema_garantia_direitos"
+)
+
+var formasAcessoBeneficio = []string{FormaAcessoDemandaEspontanea, FormaAcessoBuscaAtiva,
+	FormaAcessoEncaminhamentoRedeSocioass, FormaAcessoEncaminhamentoSistemaGarantia}
+
+var tiposBeneficio = []string{BeneficioNatalidade, BeneficioFuneral, BeneficioCestaBasica, BeneficioPassagem,
+	BeneficioAluguelSocial, BeneficioOutro}
 
 // Estados de um benefício: solicitado → concedido (entregue) ou negado;
 // concedido → suspenso, se a condição que o justificava deixar de valer.
@@ -782,6 +810,7 @@ type Beneficio struct {
 	SolicitanteID    *uuid.UUID `json:"solicitante_id"`
 	UnidadeID        uuid.UUID  `json:"unidade_id"`
 	Tipo             string     `json:"tipo"`
+	FormaAcesso      string     `json:"forma_acesso"`
 	Quantidade       int        `json:"quantidade"`
 	Status           string     `json:"status"`
 	Observacao       string     `json:"observacao"`
@@ -792,9 +821,12 @@ type Beneficio struct {
 }
 
 // NovoBeneficio valida e monta um pedido de benefício eventual.
-func NovoBeneficio(beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.UUID, tipo string, quantidade int, observacao string) (Beneficio, error) {
+func NovoBeneficio(beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.UUID, tipo, formaAcesso string, quantidade int, observacao string) (Beneficio, error) {
 	if !slices.Contains(tiposBeneficio, tipo) {
-		return Beneficio{}, invalid("tipo de benefício inválido (natalidade, funeral, cesta_basica ou passagem)")
+		return Beneficio{}, invalid("tipo de benefício inválido (natalidade, funeral, cesta_basica, passagem, aluguel_social ou outro)")
+	}
+	if !slices.Contains(formasAcessoBeneficio, formaAcesso) {
+		return Beneficio{}, invalid("forma de acesso inválida (demanda_espontanea, busca_ativa, encaminhamento_rede_socioassistencial ou encaminhamento_sistema_garantia_direitos)")
 	}
 	if quantidade < 1 || quantidade > 100 {
 		return Beneficio{}, invalid("quantidade: entre 1 e 100")
@@ -804,7 +836,7 @@ func NovoBeneficio(beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.
 		return Beneficio{}, err
 	}
 	return Beneficio{ID: uuid.New(), BeneficiarioID: beneficiario, SolicitanteID: solicitante, UnidadeID: unidade,
-		Tipo: tipo, Quantidade: quantidade, Status: BeneficioStatusSolicitado, Observacao: obs}, nil
+		Tipo: tipo, FormaAcesso: formaAcesso, Quantidade: quantidade, Status: BeneficioStatusSolicitado, Observacao: obs}, nil
 }
 
 // Decidir aplica conceder/negar/suspender — negar e suspender exigem
@@ -888,6 +920,15 @@ const (
 	PaifStatusExcluido = "excluido"
 )
 
+// Tipos de atendimento de um vínculo PAIF.
+const (
+	PaifAtendimentoParticularizado = "particularizado"
+	PaifAtendimentoColetivo        = "coletivo"
+	PaifAtendimentoAmbos           = "ambos"
+)
+
+var tiposAtendimentoPaif = []string{PaifAtendimentoParticularizado, PaifAtendimentoColetivo, PaifAtendimentoAmbos}
+
 // PaifVinculo é o vínculo de uma família ao Serviço de Proteção e
 // Atendimento Integral à Família de um CRAS. ExtremaPobreza/BolsaFamilia/
 // BPC são os indicadores de público prioritário do RMA/MDS — flags reais,
@@ -898,6 +939,7 @@ type PaifVinculo struct {
 	CidadaoID         uuid.UUID  `json:"cidadao_id"`
 	UnidadeID         uuid.UUID  `json:"unidade_id"`
 	Status            string     `json:"status"`
+	TipoAtendimento   string     `json:"tipo_atendimento"`
 	ExtremaPobreza    bool       `json:"extrema_pobreza"`
 	BolsaFamilia      bool       `json:"bolsa_familia"`
 	BPC               bool       `json:"bpc"`
@@ -910,11 +952,14 @@ type PaifVinculo struct {
 }
 
 // NovoPaifVinculo valida e monta uma inclusão no PAIF (nasce 'ativo').
-func NovoPaifVinculo(cidadao, unidade uuid.UUID, extremaPobreza, bolsaFamilia, bpc bool, scfv int) (PaifVinculo, error) {
+func NovoPaifVinculo(cidadao, unidade uuid.UUID, tipoAtendimento string, extremaPobreza, bolsaFamilia, bpc bool, scfv int) (PaifVinculo, error) {
+	if !slices.Contains(tiposAtendimentoPaif, tipoAtendimento) {
+		return PaifVinculo{}, invalid("tipo de atendimento inválido (particularizado, coletivo ou ambos)")
+	}
 	if scfv < 0 || scfv > 50 {
 		return PaifVinculo{}, invalid("participantes do SCFV: entre 0 e 50")
 	}
-	return PaifVinculo{ID: uuid.New(), CidadaoID: cidadao, UnidadeID: unidade, Status: PaifStatusAtivo,
+	return PaifVinculo{ID: uuid.New(), CidadaoID: cidadao, UnidadeID: unidade, Status: PaifStatusAtivo, TipoAtendimento: tipoAtendimento,
 		ExtremaPobreza: extremaPobreza, BolsaFamilia: bolsaFamilia, BPC: bpc, SCFVParticipantes: scfv}, nil
 }
 
@@ -930,6 +975,54 @@ func (p *PaifVinculo) Excluir(motivo string, tecnico uuid.UUID, agora time.Time)
 	}
 	p.Status, p.MotivoExclusao, p.ExcluidoPor, p.DataExclusao = PaifStatusExcluido, m, &tecnico, &agora
 	return nil
+}
+
+// ---------------------------------------------- Atendimentos coletivos (SCFV)
+
+// Categorias de atendimento coletivo do SCFV (Bloco III do RMA/MDS) — um
+// enum real, não texto livre casado por substring (o legado faz isso:
+// um erro de digitação em "event_type" some do relatório sem avisar).
+const (
+	ColetivoPaifFamilias           = "paif_familias"
+	ColetivoSCFV0a6                = "scfv_0_6"
+	ColetivoSCFV7a14               = "scfv_7_14"
+	ColetivoSCFV15a17              = "scfv_15_17"
+	ColetivoSCFV18a59              = "scfv_18_59"
+	ColetivoSCFVIdosos             = "scfv_idosos"
+	ColetivoPalestrasNaoContinuado = "palestras_nao_continuado"
+	ColetivoPCD                    = "pcd"
+)
+
+var CategoriasColetivo = []string{ColetivoPaifFamilias, ColetivoSCFV0a6, ColetivoSCFV7a14, ColetivoSCFV15a17,
+	ColetivoSCFV18a59, ColetivoSCFVIdosos, ColetivoPalestrasNaoContinuado, ColetivoPCD}
+
+// AtendimentoColetivo é um evento de grupo (SCFV) da unidade — não é por
+// munícipe. Sem transição de estado: é um registro de log, como no
+// legado (sem workflow, só criação).
+type AtendimentoColetivo struct {
+	ID            uuid.UUID `json:"id"`
+	UnidadeID     uuid.UUID `json:"unidade_id"`
+	DataEvento    time.Time `json:"data_evento"`
+	Categoria     string    `json:"categoria"`
+	Participantes int       `json:"participantes"`
+	Descricao     string    `json:"descricao"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+// NovoAtendimentoColetivo valida e monta o registro de um evento de grupo.
+func NovoAtendimentoColetivo(unidade uuid.UUID, dataEvento time.Time, categoria string, participantes int, descricao string) (AtendimentoColetivo, error) {
+	if !slices.Contains(CategoriasColetivo, categoria) {
+		return AtendimentoColetivo{}, invalid("categoria inválida")
+	}
+	if participantes < 0 || participantes > 1000 {
+		return AtendimentoColetivo{}, invalid("participantes: entre 0 e 1000")
+	}
+	desc, err := texto("descrição", descricao, 0, 2000)
+	if err != nil {
+		return AtendimentoColetivo{}, err
+	}
+	return AtendimentoColetivo{ID: uuid.New(), UnidadeID: unidade, DataEvento: dataEvento, Categoria: categoria,
+		Participantes: participantes, Descricao: desc}, nil
 }
 
 // ------------------------------------------------------- Conselho Tutelar
@@ -1259,6 +1352,64 @@ func (n *NotificacaoCreas) Transitar(acao, resposta string, tecnico uuid.UUID, a
 		n.Resposta, n.DataResposta = r, &agora
 	}
 	n.Status, n.TecnicoReferenciaID = t.para, &tecnico
+	return nil
+}
+
+// --------------------------------------------------------------- Ofícios (CRAS)
+
+// Estados de um ofício recebido pelo CRAS.
+const (
+	OficioStatusPendente   = "pendente"
+	OficioStatusRespondido = "respondido"
+)
+
+// OficioCras é um ofício recebido de um ente externo (Conselho Tutelar,
+// Ministério Público etc.) sobre uma família acompanhada pelo CRAS. Mesmo
+// conceito da NotificacaoCreas, mas com os campos próprios do CRAS (nº do
+// ofício, data de emissão, nº da resposta).
+type OficioCras struct {
+	ID                   uuid.UUID  `json:"id"`
+	CidadaoID            uuid.UUID  `json:"cidadao_id"`
+	UnidadeID            uuid.UUID  `json:"unidade_id"`
+	OrgaoEmissor         string     `json:"orgao_emissor"`
+	NumeroOficio         string     `json:"numero_oficio"`
+	DataOficio           *time.Time `json:"data_oficio"`
+	DataRecebimento      time.Time  `json:"data_recebimento"`
+	Assunto              string     `json:"assunto"`
+	Status               string     `json:"status"`
+	NumeroResposta       string     `json:"numero_resposta"`
+	DataResposta         *time.Time `json:"data_resposta"`
+	TecnicoResponsavelID *uuid.UUID `json:"tecnico_responsavel_id"`
+}
+
+// NovoOficioCras valida e monta um ofício recém-recebido (nasce 'pendente').
+func NovoOficioCras(cidadao, unidade uuid.UUID, orgaoEmissor, numeroOficio string, dataOficio *time.Time, assunto string) (OficioCras, error) {
+	org, err := texto("órgão emissor", orgaoEmissor, 3, 200)
+	if err != nil {
+		return OficioCras{}, err
+	}
+	num, err := texto("número do ofício", numeroOficio, 1, 100)
+	if err != nil {
+		return OficioCras{}, err
+	}
+	a, err := texto("assunto", assunto, 0, 2000)
+	if err != nil {
+		return OficioCras{}, err
+	}
+	return OficioCras{ID: uuid.New(), CidadaoID: cidadao, UnidadeID: unidade, OrgaoEmissor: org, NumeroOficio: num,
+		DataOficio: dataOficio, Assunto: a, Status: OficioStatusPendente}, nil
+}
+
+// Responder registra a resposta de um ofício pendente.
+func (o *OficioCras) Responder(numeroResposta string, dataResposta time.Time, tecnico uuid.UUID) error {
+	if o.Status != OficioStatusPendente {
+		return ErrOficioRespondido
+	}
+	num, err := texto("número da resposta", numeroResposta, 1, 100)
+	if err != nil {
+		return err
+	}
+	o.Status, o.NumeroResposta, o.DataResposta, o.TecnicoResponsavelID = OficioStatusRespondido, num, &dataResposta, &tecnico
 	return nil
 }
 

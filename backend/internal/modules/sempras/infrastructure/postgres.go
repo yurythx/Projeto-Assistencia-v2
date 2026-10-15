@@ -364,6 +364,36 @@ func (r *Repository) Painel(ctx context.Context, db database.DBTX, unidades []do
 	return out, nil
 }
 
+const atendimentoColetivoCols = `c.id, c.unidade_id, c.data_evento, c.categoria, c.participantes, c.descricao, c.created_at`
+
+func scanAtendimentoColetivo(row pgx.Row) (domain.AtendimentoColetivo, error) {
+	var a domain.AtendimentoColetivo
+	err := row.Scan(&a.ID, &a.UnidadeID, &a.DataEvento, &a.Categoria, &a.Participantes, &a.Descricao, &a.CreatedAt)
+	return a, err
+}
+
+// InsertAtendimentoColetivo grava um evento de grupo (SCFV) da unidade.
+func (r *Repository) InsertAtendimentoColetivo(ctx context.Context, db database.DBTX, a domain.AtendimentoColetivo, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_atendimentos_coletivos
+		(id, unidade_id, data_evento, categoria, participantes, descricao, registrado_por)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		a.ID, a.UnidadeID, a.DataEvento, a.Categoria, a.Participantes, a.Descricao, autor); err != nil {
+		return wrap("InsertAtendimentoColetivo", err)
+	}
+	return nil
+}
+
+// ListAtendimentosColetivos lista os eventos de uma unidade num período.
+func (r *Repository) ListAtendimentosColetivos(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio, fim time.Time) ([]domain.AtendimentoColetivo, error) {
+	rows, err := db.Query(ctx, `SELECT `+atendimentoColetivoCols+` FROM sempras_atendimentos_coletivos c
+		WHERE c.unidade_id = $1 AND c.data_evento >= $2 AND c.data_evento < $3
+		ORDER BY c.data_evento DESC LIMIT 500`, unidade, inicio, fim)
+	if err != nil {
+		return nil, wrap("ListAtendimentosColetivos", err)
+	}
+	return collect(rows, "ListAtendimentosColetivos", scanAtendimentoColetivo)
+}
+
 // rmaAgregar roda uma query agregada por unidade_id e aplica cada linha
 // num *domain.RmaUnidade do mapa (criando-o na primeira vez).
 func rmaAgregar(ctx context.Context, db database.DBTX, out map[uuid.UUID]*domain.RmaUnidade, sql string, args []any, aplicar func(row pgx.Row, m *domain.RmaUnidade) error) error {
@@ -496,6 +526,33 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			`SELECT unidade_origem_id, count(*) FILTER (WHERE created_at >= $2 AND created_at < $3)
 			 FROM sempras_encaminhamentos WHERE unidade_origem_id = ANY($1::uuid[]) GROUP BY unidade_origem_id`,
 			func(row pgx.Row, m *domain.RmaUnidade) error { return row.Scan(&m.EncaminhamentosEnviadosNoMes) },
+		},
+		{
+			`SELECT unidade_id, count(*) FILTER (WHERE data_recebimento >= $2 AND data_recebimento < $3),
+			 count(*) FILTER (WHERE data_resposta >= $2 AND data_resposta < $3)
+			 FROM sempras_cras_oficios WHERE unidade_id = ANY($1::uuid[]) GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.OficiosCrasRecebidosNoMes, &m.OficiosCrasRespondidosNoMes)
+			},
+		},
+		{
+			`SELECT unidade_id,
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'paif_familias'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'scfv_0_6'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'scfv_7_14'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'scfv_15_17'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'scfv_18_59'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'scfv_idosos'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'palestras_nao_continuado'), 0),
+			 COALESCE(sum(participantes) FILTER (WHERE categoria = 'pcd'), 0),
+			 COALESCE(sum(participantes), 0)
+			 FROM sempras_atendimentos_coletivos
+			 WHERE unidade_id = ANY($1::uuid[]) AND data_evento >= $2 AND data_evento < $3 GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.ColetivoPaifFamiliasNoMes, &m.ColetivoSCFV0a6NoMes, &m.ColetivoSCFV7a14NoMes,
+					&m.ColetivoSCFV15a17NoMes, &m.ColetivoSCFV18a59NoMes, &m.ColetivoSCFVIdososNoMes,
+					&m.ColetivoPalestrasNoMes, &m.ColetivoPCDNoMes, &m.ColetivoTotalNoMes)
+			},
 		},
 	}
 	for _, q := range queries {
@@ -686,12 +743,12 @@ func (r *Repository) DeleteContatoRedeApoio(ctx context.Context, db database.DBT
 
 // -------------------------------------------------- benefícios eventuais
 
-const beneficioCols = `b.id, b.beneficiario_id, b.solicitante_id, b.unidade_id, b.tipo, b.quantidade, b.status,
+const beneficioCols = `b.id, b.beneficiario_id, b.solicitante_id, b.unidade_id, b.tipo, b.forma_acesso, b.quantidade, b.status,
 	b.observacao, b.motivo_decisao, b.tecnico_decisao_id, b.data_solicitacao, b.data_decisao`
 
 func scanBeneficio(row pgx.Row) (domain.Beneficio, error) {
 	var b domain.Beneficio
-	err := row.Scan(&b.ID, &b.BeneficiarioID, &b.SolicitanteID, &b.UnidadeID, &b.Tipo, &b.Quantidade, &b.Status,
+	err := row.Scan(&b.ID, &b.BeneficiarioID, &b.SolicitanteID, &b.UnidadeID, &b.Tipo, &b.FormaAcesso, &b.Quantidade, &b.Status,
 		&b.Observacao, &b.MotivoDecisao, &b.TecnicoDecisaoID, &b.DataSolicitacao, &b.DataDecisao)
 	return b, err
 }
@@ -699,9 +756,9 @@ func scanBeneficio(row pgx.Row) (domain.Beneficio, error) {
 // InsertBeneficio grava um pedido de benefício eventual (nasce 'solicitado').
 func (r *Repository) InsertBeneficio(ctx context.Context, db database.DBTX, b domain.Beneficio, autor uuid.UUID) error {
 	if _, err := db.Exec(ctx, `INSERT INTO sempras_beneficios
-		(id, beneficiario_id, solicitante_id, unidade_id, tipo, quantidade, status, observacao, solicitado_por, data_solicitacao)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		b.ID, b.BeneficiarioID, b.SolicitanteID, b.UnidadeID, b.Tipo, b.Quantidade, b.Status, b.Observacao, autor, b.DataSolicitacao); err != nil {
+		(id, beneficiario_id, solicitante_id, unidade_id, tipo, forma_acesso, quantidade, status, observacao, solicitado_por, data_solicitacao)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		b.ID, b.BeneficiarioID, b.SolicitanteID, b.UnidadeID, b.Tipo, b.FormaAcesso, b.Quantidade, b.Status, b.Observacao, autor, b.DataSolicitacao); err != nil {
 		return wrap("InsertBeneficio", err)
 	}
 	return nil
@@ -825,12 +882,12 @@ func (r *Repository) ListEncaminhamentosPendentes(ctx context.Context, db databa
 
 // ------------------------------------------------------------------- PAIF
 
-const paifCols = `p.id, p.cidadao_id, p.unidade_id, p.status, p.extrema_pobreza, p.bolsa_familia, p.bpc,
+const paifCols = `p.id, p.cidadao_id, p.unidade_id, p.status, p.tipo_atendimento, p.extrema_pobreza, p.bolsa_familia, p.bpc,
 	p.scfv_participantes, p.motivo_exclusao, p.incluido_por, p.excluido_por, p.data_inclusao, p.data_exclusao`
 
 func scanPaifVinculo(row pgx.Row) (domain.PaifVinculo, error) {
 	var p domain.PaifVinculo
-	err := row.Scan(&p.ID, &p.CidadaoID, &p.UnidadeID, &p.Status, &p.ExtremaPobreza, &p.BolsaFamilia, &p.BPC,
+	err := row.Scan(&p.ID, &p.CidadaoID, &p.UnidadeID, &p.Status, &p.TipoAtendimento, &p.ExtremaPobreza, &p.BolsaFamilia, &p.BPC,
 		&p.SCFVParticipantes, &p.MotivoExclusao, &p.IncluidoPor, &p.ExcluidoPor, &p.DataInclusao, &p.DataExclusao)
 	return p, err
 }
@@ -839,9 +896,9 @@ func scanPaifVinculo(row pgx.Row) (domain.PaifVinculo, error) {
 // família no mesmo CRAS vira ErrPaifJaAtivo).
 func (r *Repository) InsertPaifVinculo(ctx context.Context, db database.DBTX, p domain.PaifVinculo, autor uuid.UUID) error {
 	_, err := db.Exec(ctx, `INSERT INTO sempras_paif_vinculos
-		(id, cidadao_id, unidade_id, status, extrema_pobreza, bolsa_familia, bpc, scfv_participantes, incluido_por, data_inclusao)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		p.ID, p.CidadaoID, p.UnidadeID, p.Status, p.ExtremaPobreza, p.BolsaFamilia, p.BPC, p.SCFVParticipantes, autor, p.DataInclusao)
+		(id, cidadao_id, unidade_id, status, tipo_atendimento, extrema_pobreza, bolsa_familia, bpc, scfv_participantes, incluido_por, data_inclusao)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		p.ID, p.CidadaoID, p.UnidadeID, p.Status, p.TipoAtendimento, p.ExtremaPobreza, p.BolsaFamilia, p.BPC, p.SCFVParticipantes, autor, p.DataInclusao)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.ConstraintName == "uq_sempras_paif_ativo" {
 		return domain.ErrPaifJaAtivo
@@ -1134,6 +1191,66 @@ func (r *Repository) NotificacoesCreasNaArea(ctx context.Context, db database.DB
 		return nil, wrap("NotificacoesCreasNaArea", err)
 	}
 	return collect(rows, "NotificacoesCreasNaArea", scanNotificacaoCreas)
+}
+
+// --------------------------------------------------------------- Ofícios (CRAS)
+
+const oficioCrasCols = `o.id, o.cidadao_id, o.unidade_id, o.orgao_emissor, o.numero_oficio, o.data_oficio, o.data_recebimento,
+	o.assunto, o.status, o.numero_resposta, o.data_resposta, o.tecnico_responsavel_id`
+
+func scanOficioCras(row pgx.Row) (domain.OficioCras, error) {
+	var o domain.OficioCras
+	err := row.Scan(&o.ID, &o.CidadaoID, &o.UnidadeID, &o.OrgaoEmissor, &o.NumeroOficio, &o.DataOficio, &o.DataRecebimento,
+		&o.Assunto, &o.Status, &o.NumeroResposta, &o.DataResposta, &o.TecnicoResponsavelID)
+	return o, err
+}
+
+// InsertOficioCras grava um ofício recém-recebido (nasce 'pendente').
+func (r *Repository) InsertOficioCras(ctx context.Context, db database.DBTX, o domain.OficioCras, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_cras_oficios
+		(id, cidadao_id, unidade_id, orgao_emissor, numero_oficio, data_oficio, assunto, status, registrado_por)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		o.ID, o.CidadaoID, o.UnidadeID, o.OrgaoEmissor, o.NumeroOficio, o.DataOficio, o.Assunto, o.Status, autor); err != nil {
+		return wrap("InsertOficioCras", err)
+	}
+	return nil
+}
+
+// GetOficioCras busca o ofício (forUpdate trava a linha ao responder).
+func (r *Repository) GetOficioCras(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.OficioCras, error) {
+	q := `SELECT ` + oficioCrasCols + ` FROM sempras_cras_oficios o WHERE o.id = $1`
+	if forUpdate {
+		q += ` FOR UPDATE`
+	}
+	o, err := scanOficioCras(db.QueryRow(ctx, q, id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.OficioCras{}, domain.ErrNotFound
+	}
+	if err != nil {
+		return domain.OficioCras{}, wrap("GetOficioCras", err)
+	}
+	return o, nil
+}
+
+// UpdateOficioCras grava a resposta do ofício.
+func (r *Repository) UpdateOficioCras(ctx context.Context, db database.DBTX, o domain.OficioCras) error {
+	if _, err := db.Exec(ctx, `UPDATE sempras_cras_oficios SET status = $2, numero_resposta = $3,
+		data_resposta = $4, tecnico_responsavel_id = $5 WHERE id = $1`,
+		o.ID, o.Status, o.NumeroResposta, o.DataResposta, o.TecnicoResponsavelID); err != nil {
+		return wrap("UpdateOficioCras", err)
+	}
+	return nil
+}
+
+// OficiosCrasNaArea lista os ofícios de um cidadão nas unidades da área.
+func (r *Repository) OficiosCrasNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.OficioCras, error) {
+	rows, err := db.Query(ctx, `SELECT `+oficioCrasCols+` FROM sempras_cras_oficios o JOIN unidades u ON u.id = o.unidade_id
+		WHERE o.cidadao_id = $4 AND `+areaSQL(1, 2, 3)+`
+		ORDER BY o.data_recebimento DESC LIMIT 200`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("OficiosCrasNaArea", err)
+	}
+	return collect(rows, "OficiosCrasNaArea", scanOficioCras)
 }
 
 // --------------------------------------------------------------- Casa Abrigo

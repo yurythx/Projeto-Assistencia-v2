@@ -500,7 +500,7 @@ func TestBeneficioRoundTrip(t *testing.T) {
 	}
 
 	b := domain.Beneficio{ID: uuid.New(), BeneficiarioID: cid, UnidadeID: un, Tipo: domain.BeneficioCestaBasica,
-		Quantidade: 2, Status: domain.BeneficioStatusSolicitado, DataSolicitacao: time.Now()}
+		FormaAcesso: domain.FormaAcessoDemandaEspontanea, Quantidade: 2, Status: domain.BeneficioStatusSolicitado, DataSolicitacao: time.Now()}
 	if err := r.InsertBeneficio(ctx, pool, b, autor); err != nil {
 		t.Fatal(err)
 	}
@@ -621,13 +621,14 @@ func TestPaifVinculoRoundTrip(t *testing.T) {
 	}
 
 	v := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
-		ExtremaPobreza: true, SCFVParticipantes: 2, DataInclusao: time.Now()}
+		TipoAtendimento: domain.PaifAtendimentoParticularizado, ExtremaPobreza: true, SCFVParticipantes: 2, DataInclusao: time.Now()}
 	if err := r.InsertPaifVinculo(ctx, pool, v, autor); err != nil {
 		t.Fatal(err)
 	}
 
 	// um segundo vínculo ativo pra mesma família+unidade é rejeitado.
-	v2 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo, DataInclusao: time.Now()}
+	v2 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
+		TipoAtendimento: domain.PaifAtendimentoParticularizado, DataInclusao: time.Now()}
 	if err := r.InsertPaifVinculo(ctx, pool, v2, autor); !errors.Is(err, domain.ErrPaifJaAtivo) {
 		t.Errorf("segundo vínculo ativo deveria ser rejeitado: %v", err)
 	}
@@ -652,7 +653,8 @@ func TestPaifVinculoRoundTrip(t *testing.T) {
 	}
 
 	// depois de excluído, um novo vínculo ativo é aceito (reinclusão).
-	v3 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo, DataInclusao: time.Now()}
+	v3 := domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
+		TipoAtendimento: domain.PaifAtendimentoParticularizado, DataInclusao: time.Now()}
 	if err := r.InsertPaifVinculo(ctx, pool, v3, autor); err != nil {
 		t.Errorf("reinclusão após exclusão deveria ser aceita: %v", err)
 	}
@@ -930,6 +932,106 @@ func TestNotificacaoCreasRoundTrip(t *testing.T) {
 	}
 }
 
+// Round-trip dos Ofícios do CRAS: grava, lista na área da família e
+// responde.
+func TestOficioCrasRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un, unOutra uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
+		t.Fatal(err)
+	}
+	cid := uuid.New()
+	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: "Família Ofício",
+		DataNascimento: "1990-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	o, err := domain.NovoOficioCras(cid, un, "Conselho Tutelar", "123/2026", nil, "acompanhamento da família")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertOficioCras(ctx, pool, o, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.GetOficioCras(ctx, pool, o.ID, false)
+	if err != nil || got.Status != domain.OficioStatusPendente || got.OrgaoEmissor != "Conselho Tutelar" {
+		t.Fatalf("GetOficioCras: %+v, %v", got, err)
+	}
+
+	lista, err := r.OficiosCrasNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || lista[0].ID != o.ID {
+		t.Fatalf("OficiosCrasNaArea: %+v, %v", lista, err)
+	}
+	foraDaArea, err := r.OficiosCrasNaArea(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{unOutra}})
+	if err != nil || len(foraDaArea) != 0 {
+		t.Fatalf("OficiosCrasNaArea fora da área: %+v, %v", foraDaArea, err)
+	}
+
+	if err := got.Responder("456/2026", time.Now(), autor); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateOficioCras(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	respondido, err := r.GetOficioCras(ctx, pool, o.ID, false)
+	if err != nil || respondido.Status != domain.OficioStatusRespondido || respondido.NumeroResposta != "456/2026" {
+		t.Fatalf("GetOficioCras após responder: %+v, %v", respondido, err)
+	}
+}
+
+// Round-trip dos Atendimentos Coletivos: grava eventos de categorias
+// diferentes e lista por unidade/mês.
+func TestAtendimentoColetivoRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	sfx := uuid.NewString()[:8]
+
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+
+	dentro := time.Date(2026, 10, 15, 0, 0, 0, 0, time.UTC)
+	fora := time.Date(2026, 9, 15, 0, 0, 0, 0, time.UTC)
+	a1, err := domain.NovoAtendimentoColetivo(un, dentro, domain.ColetivoSCFV0a6, 10, "turma manhã")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertAtendimentoColetivo(ctx, pool, a1, autor); err != nil {
+		t.Fatal(err)
+	}
+	a2, err := domain.NovoAtendimentoColetivo(un, fora, domain.ColetivoSCFV0a6, 99, "fora do mês")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertAtendimentoColetivo(ctx, pool, a2, autor); err != nil {
+		t.Fatal(err)
+	}
+
+	inicio, fim := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC)
+	lista, err := r.ListAtendimentosColetivos(ctx, pool, un, inicio, fim)
+	if err != nil || len(lista) != 1 || lista[0].ID != a1.ID || lista[0].Participantes != 10 {
+		t.Fatalf("ListAtendimentosColetivos: %+v, %v", lista, err)
+	}
+}
+
 // Round-trip da Casa Abrigo: grava o acolhimento, lista na área do
 // munícipe, adiciona irmão e diagnóstico, desliga e confirma que a
 // edição geral (Atualizar) nunca toca status/desligamento.
@@ -1083,13 +1185,14 @@ func TestRmaRoundTrip(t *testing.T) {
 
 	// PAIF: vínculo ativo (fotografia — entra mesmo tendo sido incluído fora da competência).
 	if err := r.InsertPaifVinculo(ctx, pool, domain.PaifVinculo{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.PaifStatusAtivo,
-		ExtremaPobreza: true, BolsaFamilia: true, SCFVParticipantes: 3, DataInclusao: fora}, autor); err != nil {
+		TipoAtendimento: domain.PaifAtendimentoParticularizado, ExtremaPobreza: true, BolsaFamilia: true, SCFVParticipantes: 3, DataInclusao: fora}, autor); err != nil {
 		t.Fatal(err)
 	}
 
 	// Benefício concedido dentro da competência.
 	if err := r.InsertBeneficio(ctx, pool, domain.Beneficio{ID: uuid.New(), BeneficiarioID: cid, UnidadeID: un,
-		Tipo: domain.BeneficioCestaBasica, Quantidade: 1, Status: domain.BeneficioStatusSolicitado, DataSolicitacao: dentro}, autor); err != nil {
+		Tipo: domain.BeneficioCestaBasica, FormaAcesso: domain.FormaAcessoDemandaEspontanea, Quantidade: 1,
+		Status: domain.BeneficioStatusSolicitado, DataSolicitacao: dentro}, autor); err != nil {
 		t.Fatal(err)
 	}
 	if err := pool.QueryRow(ctx, `UPDATE sempras_beneficios SET status = 'concedido', data_decisao = $2 WHERE unidade_id = $1 RETURNING id`,

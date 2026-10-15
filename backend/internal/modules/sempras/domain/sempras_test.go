@@ -229,17 +229,20 @@ func TestNovoContatoRedeApoio(t *testing.T) {
 func TestBeneficioEventual(t *testing.T) {
 	beneficiario, solicitante, unidade, tecnico := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 
-	if _, err := NovoBeneficio(beneficiario, nil, unidade, "moradia", 1, ""); err == nil {
+	if _, err := NovoBeneficio(beneficiario, nil, unidade, "casa", FormaAcessoDemandaEspontanea, 1, ""); err == nil {
 		t.Error("tipo inválido")
 	}
-	if _, err := NovoBeneficio(beneficiario, nil, unidade, BeneficioCestaBasica, 0, ""); err == nil {
+	if _, err := NovoBeneficio(beneficiario, nil, unidade, BeneficioCestaBasica, "invalida", 1, ""); err == nil {
+		t.Error("forma de acesso inválida")
+	}
+	if _, err := NovoBeneficio(beneficiario, nil, unidade, BeneficioCestaBasica, FormaAcessoDemandaEspontanea, 0, ""); err == nil {
 		t.Error("quantidade zero")
 	}
-	b, err := NovoBeneficio(beneficiario, &solicitante, unidade, BeneficioFuneral, 1, "urgente")
+	b, err := NovoBeneficio(beneficiario, &solicitante, unidade, BeneficioFuneral, FormaAcessoBuscaAtiva, 1, "urgente")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if b.Status != BeneficioStatusSolicitado || b.SolicitanteID == nil || *b.SolicitanteID != solicitante {
+	if b.Status != BeneficioStatusSolicitado || b.SolicitanteID == nil || *b.SolicitanteID != solicitante || b.FormaAcesso != FormaAcessoBuscaAtiva {
 		t.Errorf("benefício: %+v", b)
 	}
 
@@ -322,14 +325,17 @@ func TestEncaminhamento(t *testing.T) {
 func TestPaifVinculo(t *testing.T) {
 	cidadao, unidade, tecnico := uuid.New(), uuid.New(), uuid.New()
 
-	if _, err := NovoPaifVinculo(cidadao, unidade, true, false, false, 51); err == nil {
+	if _, err := NovoPaifVinculo(cidadao, unidade, "invalido", true, false, false, 3); err == nil {
+		t.Error("tipo de atendimento inválido")
+	}
+	if _, err := NovoPaifVinculo(cidadao, unidade, PaifAtendimentoParticularizado, true, false, false, 51); err == nil {
 		t.Error("scfv fora do intervalo")
 	}
-	v, err := NovoPaifVinculo(cidadao, unidade, true, true, false, 3)
+	v, err := NovoPaifVinculo(cidadao, unidade, PaifAtendimentoColetivo, true, true, false, 3)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v.Status != PaifStatusAtivo || !v.ExtremaPobreza || !v.BolsaFamilia || v.BPC || v.SCFVParticipantes != 3 {
+	if v.Status != PaifStatusAtivo || v.TipoAtendimento != PaifAtendimentoColetivo || !v.ExtremaPobreza || !v.BolsaFamilia || v.BPC || v.SCFVParticipantes != 3 {
 		t.Errorf("vínculo: %+v", v)
 	}
 
@@ -669,5 +675,54 @@ func TestDocumentoCasaAbrigo(t *testing.T) {
 	}
 	if d.Status != DocumentoStatusPending || d.Tipo != DocumentoTipoResponsavel {
 		t.Errorf("documento: %+v", d)
+	}
+}
+
+func TestOficioCras(t *testing.T) {
+	cidadao, unidade, tecnico := uuid.New(), uuid.New(), uuid.New()
+
+	if _, err := NovoOficioCras(cidadao, unidade, "CT", "123/2026", nil, ""); err == nil {
+		t.Error("órgão emissor curto demais")
+	}
+	if _, err := NovoOficioCras(cidadao, unidade, "Conselho Tutelar", "", nil, ""); err == nil {
+		t.Error("número do ofício obrigatório")
+	}
+	o, err := NovoOficioCras(cidadao, unidade, "Conselho Tutelar", "123/2026", nil, "acompanhamento da família")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if o.Status != OficioStatusPendente {
+		t.Errorf("ofício: %+v", o)
+	}
+
+	if err := o.Responder("", hoje, tecnico); err == nil {
+		t.Error("número da resposta obrigatório")
+	}
+	if err := o.Responder("456/2026", hoje, tecnico); err != nil {
+		t.Fatal(err)
+	}
+	if o.Status != OficioStatusRespondido || o.NumeroResposta != "456/2026" || o.TecnicoResponsavelID == nil {
+		t.Errorf("ofício respondido: %+v", o)
+	}
+	if err := o.Responder("outra", hoje, tecnico); !errors.Is(err, ErrOficioRespondido) {
+		t.Errorf("já respondido: %v", err)
+	}
+}
+
+func TestAtendimentoColetivo(t *testing.T) {
+	unidade := uuid.New()
+
+	if _, err := NovoAtendimentoColetivo(unidade, hoje, "invalida", 10, ""); err == nil {
+		t.Error("categoria inválida")
+	}
+	if _, err := NovoAtendimentoColetivo(unidade, hoje, ColetivoSCFV0a6, -1, ""); err == nil {
+		t.Error("participantes negativo")
+	}
+	a, err := NovoAtendimentoColetivo(unidade, hoje, ColetivoSCFV0a6, 12, "turma da tarde")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a.Categoria != ColetivoSCFV0a6 || a.Participantes != 12 {
+		t.Errorf("atendimento coletivo: %+v", a)
 	}
 }

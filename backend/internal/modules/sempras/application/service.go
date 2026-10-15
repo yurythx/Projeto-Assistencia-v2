@@ -307,6 +307,9 @@ func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth
 	if p.NotificacoesCreas, err = s.repo.NotificacoesCreasNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
+	if p.OficiosCras, err = s.repo.OficiosCrasNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
 	if p.CasaAbrigoAcolhimentos, err = s.repo.AcolhimentosNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
@@ -973,6 +976,49 @@ func (s *Service) Rma(ctx context.Context, identity auth.Identity, competencia s
 	return s.repo.Rma(ctx, s.pool, unidades, inicio, fim)
 }
 
+// ---------------------------------------------- atendimentos coletivos (SCFV)
+
+// RegistrarAtendimentoColetivo grava um evento de grupo (SCFV) da
+// unidade — não é por munícipe.
+func (s *Service) RegistrarAtendimentoColetivo(ctx context.Context, identity auth.Identity, unidade uuid.UUID, dataEvento time.Time, categoria string, participantes int, descricao string) (domain.AtendimentoColetivo, error) {
+	a, err := domain.NovoAtendimentoColetivo(unidade, dataEvento, categoria, participantes, descricao)
+	if err != nil {
+		return domain.AtendimentoColetivo{}, err
+	}
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if err := s.repo.InsertAtendimentoColetivo(ctx, tx, a, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.atendimento_coletivo.registrado", "sempras_atendimento_coletivo", a.ID.String(), nil,
+			map[string]any{"unidade_id": unidade, "categoria": a.Categoria, "participantes": a.Participantes})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.AtendimentoColetivo{}, err
+	}
+	return a, nil
+}
+
+// ListarAtendimentosColetivos lista os eventos de grupo de uma unidade
+// num mês de competência ("2026-10").
+func (s *Service) ListarAtendimentosColetivos(ctx context.Context, identity auth.Identity, unidade uuid.UUID, competencia string) ([]domain.AtendimentoColetivo, error) {
+	inicio, fim, err := domain.CompetenciaMes(competencia)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+		return nil, err
+	}
+	return s.repo.ListAtendimentosColetivos(ctx, s.pool, unidade, inicio, fim)
+}
+
 // ------------------------------------------------------- direitos do titular
 
 // camposAnonimizados nomeia os campos zerados pela anonimização — a
@@ -1161,8 +1207,8 @@ func (s *Service) RemoverContatoRedeApoio(ctx context.Context, identity auth.Ide
 
 // SolicitarBeneficio registra um pedido de benefício eventual (LOAS art.
 // 22) — o solicitante pode ser outra pessoa da família do beneficiário.
-func (s *Service) SolicitarBeneficio(ctx context.Context, identity auth.Identity, beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.UUID, tipo string, quantidade int, observacao string) (domain.Beneficio, error) {
-	b, err := domain.NovoBeneficio(beneficiario, solicitante, unidade, tipo, quantidade, observacao)
+func (s *Service) SolicitarBeneficio(ctx context.Context, identity auth.Identity, beneficiario uuid.UUID, solicitante *uuid.UUID, unidade uuid.UUID, tipo, formaAcesso string, quantidade int, observacao string) (domain.Beneficio, error) {
+	b, err := domain.NovoBeneficio(beneficiario, solicitante, unidade, tipo, formaAcesso, quantidade, observacao)
 	if err != nil {
 		return domain.Beneficio{}, err
 	}
@@ -1311,8 +1357,8 @@ func (s *Service) DecidirEncaminhamento(ctx context.Context, identity auth.Ident
 
 // IncluirPaif vincula a família ao Serviço de Proteção e Atendimento
 // Integral à Família do CRAS. ErrPaifJaAtivo se já houver vínculo ativo.
-func (s *Service) IncluirPaif(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, extremaPobreza, bolsaFamilia, bpc bool, scfv int) (domain.PaifVinculo, error) {
-	v, err := domain.NovoPaifVinculo(cidadao, unidade, extremaPobreza, bolsaFamilia, bpc, scfv)
+func (s *Service) IncluirPaif(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, tipoAtendimento string, extremaPobreza, bolsaFamilia, bpc bool, scfv int) (domain.PaifVinculo, error) {
+	v, err := domain.NovoPaifVinculo(cidadao, unidade, tipoAtendimento, extremaPobreza, bolsaFamilia, bpc, scfv)
 	if err != nil {
 		return domain.PaifVinculo{}, err
 	}
@@ -1645,6 +1691,68 @@ func (s *Service) TransitarNotificacaoCreas(ctx context.Context, identity auth.I
 		return domain.NotificacaoCreas{}, err
 	}
 	return n, nil
+}
+
+// -------------------------------------------------------- ofícios (CRAS)
+
+// RegistrarOficioCras registra um ofício recebido de um ente externo
+// sobre uma família acompanhada pelo CRAS (nasce 'pendente').
+func (s *Service) RegistrarOficioCras(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, orgaoEmissor, numeroOficio string, dataOficio *time.Time, assunto string) (domain.OficioCras, error) {
+	o, err := domain.NovoOficioCras(cidadao, unidade, orgaoEmissor, numeroOficio, dataOficio, assunto)
+	if err != nil {
+		return domain.OficioCras{}, err
+	}
+	o.DataRecebimento = s.now()
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertOficioCras(ctx, tx, o, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.cras_oficio.registrado", "sempras_cras_oficio", o.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade, "orgao_emissor": o.OrgaoEmissor, "numero_oficio": o.NumeroOficio})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.OficioCras{}, err
+	}
+	return o, nil
+}
+
+// ResponderOficioCras registra a resposta de um ofício pendente.
+func (s *Service) ResponderOficioCras(ctx context.Context, identity auth.Identity, id uuid.UUID, numeroResposta string) (domain.OficioCras, error) {
+	var o domain.OficioCras
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if o, err = s.repo.GetOficioCras(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, o.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := o.Responder(numeroResposta, now, identity.UserID); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateOficioCras(ctx, tx, o); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.cras_oficio.respondido", "sempras_cras_oficio", id.String(),
+			map[string]any{"status": domain.OficioStatusPendente}, map[string]any{"status": o.Status, "numero_resposta": o.NumeroResposta})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.OficioCras{}, err
+	}
+	return o, nil
 }
 
 // --------------------------------------------------------------- Casa Abrigo

@@ -77,6 +77,12 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/creas-notificacoes", h.RegistrarNotificacaoCreas)
 	r.With(atendimento).Post("/sempras/creas-notificacoes/{id}/transitar", h.TransitarNotificacaoCreas)
 
+	r.With(atendimento).Post("/sempras/cidadaos/{id}/oficios-cras", h.RegistrarOficioCras)
+	r.With(atendimento).Post("/sempras/oficios-cras/{id}/responder", h.ResponderOficioCras)
+
+	r.With(atendimento).Post("/sempras/unidades/{id}/coletivos", h.RegistrarAtendimentoColetivo)
+	r.With(atendimento).Get("/sempras/unidades/{id}/coletivos", h.ListarAtendimentosColetivos)
+
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/casa-abrigo", h.RegistrarAcolhimento)
 	r.With(atendimento).Put("/sempras/casa-abrigo/{id}", h.AtualizarAcolhimento)
 	r.With(atendimento).Post("/sempras/casa-abrigo/{id}/desligar", h.DesligarAcolhimento)
@@ -475,7 +481,8 @@ func (h *Handlers) RemoverContatoRedeApoio(w http.ResponseWriter, r *http.Reques
 type BeneficioRequest struct {
 	SolicitanteID *uuid.UUID `json:"solicitante_id"`
 	UnidadeID     uuid.UUID  `json:"unidade_id" validate:"required"`
-	Tipo          string     `json:"tipo" validate:"required,oneof=natalidade funeral cesta_basica passagem"`
+	Tipo          string     `json:"tipo" validate:"required,oneof=natalidade funeral cesta_basica passagem aluguel_social outro"`
+	FormaAcesso   string     `json:"forma_acesso" validate:"required,oneof=demanda_espontanea busca_ativa encaminhamento_rede_socioassistencial encaminhamento_sistema_garantia_direitos"`
 	Quantidade    int        `json:"quantidade" validate:"required,min=1,max=100"`
 	Observacao    string     `json:"observacao" validate:"max=2000"`
 }
@@ -492,7 +499,7 @@ func (h *Handlers) SolicitarBeneficio(w http.ResponseWriter, r *http.Request) {
 		h.fail(w, r, err)
 		return
 	}
-	b, err := h.svc.SolicitarBeneficio(r.Context(), identity(r), id, req.SolicitanteID, req.UnidadeID, req.Tipo, req.Quantidade, req.Observacao)
+	b, err := h.svc.SolicitarBeneficio(r.Context(), identity(r), id, req.SolicitanteID, req.UnidadeID, req.Tipo, req.FormaAcesso, req.Quantidade, req.Observacao)
 	if err != nil {
 		h.fail(w, r, err)
 		return
@@ -596,11 +603,12 @@ func (h *Handlers) DecidirEncaminhamento(w http.ResponseWriter, r *http.Request)
 
 // PaifRequest é a inclusão de uma família no PAIF.
 type PaifRequest struct {
-	UnidadeID      uuid.UUID `json:"unidade_id" validate:"required"`
-	ExtremaPobreza bool      `json:"extrema_pobreza"`
-	BolsaFamilia   bool      `json:"bolsa_familia"`
-	BPC            bool      `json:"bpc"`
-	SCFV           int       `json:"scfv_participantes" validate:"min=0,max=50"`
+	UnidadeID       uuid.UUID `json:"unidade_id" validate:"required"`
+	TipoAtendimento string    `json:"tipo_atendimento" validate:"required,oneof=particularizado coletivo ambos"`
+	ExtremaPobreza  bool      `json:"extrema_pobreza"`
+	BolsaFamilia    bool      `json:"bolsa_familia"`
+	BPC             bool      `json:"bpc"`
+	SCFV            int       `json:"scfv_participantes" validate:"min=0,max=50"`
 }
 
 // IncluirPaif vincula a família ao PAIF do CRAS.
@@ -615,7 +623,7 @@ func (h *Handlers) IncluirPaif(w http.ResponseWriter, r *http.Request) {
 		h.fail(w, r, err)
 		return
 	}
-	v, err := h.svc.IncluirPaif(r.Context(), identity(r), id, req.UnidadeID, req.ExtremaPobreza, req.BolsaFamilia, req.BPC, req.SCFV)
+	v, err := h.svc.IncluirPaif(r.Context(), identity(r), id, req.UnidadeID, req.TipoAtendimento, req.ExtremaPobreza, req.BolsaFamilia, req.BPC, req.SCFV)
 	if err != nil {
 		h.fail(w, r, err)
 		return
@@ -882,6 +890,108 @@ func (h *Handlers) TransitarNotificacaoCreas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	httputil.WriteOK(w, n)
+}
+
+// OficioCrasRequest é o recebimento de um ofício pelo CRAS.
+type OficioCrasRequest struct {
+	UnidadeID    uuid.UUID  `json:"unidade_id" validate:"required"`
+	OrgaoEmissor string     `json:"orgao_emissor" validate:"required,min=3,max=200"`
+	NumeroOficio string     `json:"numero_oficio" validate:"required,max=100"`
+	DataOficio   *time.Time `json:"data_oficio"`
+	Assunto      string     `json:"assunto" validate:"max=2000"`
+}
+
+// RegistrarOficioCras registra um ofício recebido pelo CRAS.
+func (h *Handlers) RegistrarOficioCras(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req OficioCrasRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	o, err := h.svc.RegistrarOficioCras(r.Context(), identity(r), id, req.UnidadeID, req.OrgaoEmissor, req.NumeroOficio, req.DataOficio, req.Assunto)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, o)
+}
+
+// ResponderOficioRequest é a resposta a um ofício pendente do CRAS.
+type ResponderOficioRequest struct {
+	NumeroResposta string `json:"numero_resposta" validate:"required,max=100"`
+}
+
+// ResponderOficioCras registra a resposta de um ofício do CRAS.
+func (h *Handlers) ResponderOficioCras(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req ResponderOficioRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	o, err := h.svc.ResponderOficioCras(r.Context(), identity(r), id, req.NumeroResposta)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, o)
+}
+
+// AtendimentoColetivoRequest é o registro de um evento de grupo (SCFV).
+type AtendimentoColetivoRequest struct {
+	DataEvento    time.Time `json:"data_evento" validate:"required"`
+	Categoria     string    `json:"categoria" validate:"required,oneof=paif_familias scfv_0_6 scfv_7_14 scfv_15_17 scfv_18_59 scfv_idosos palestras_nao_continuado pcd"`
+	Participantes int       `json:"participantes" validate:"min=0,max=1000"`
+	Descricao     string    `json:"descricao" validate:"max=2000"`
+}
+
+// RegistrarAtendimentoColetivo registra um evento de grupo (SCFV) da unidade.
+func (h *Handlers) RegistrarAtendimentoColetivo(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req AtendimentoColetivoRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	a, err := h.svc.RegistrarAtendimentoColetivo(r.Context(), identity(r), id, req.DataEvento, req.Categoria, req.Participantes, req.Descricao)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, a)
+}
+
+// ListarAtendimentosColetivos lista os eventos de grupo de uma unidade
+// no mês (?mes=2026-10, padrão o mês atual).
+func (h *Handlers) ListarAtendimentosColetivos(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	mes := httputil.Query(r, "mes", 10)
+	if mes == "" {
+		mes = time.Now().Format("2006-01")
+	}
+	out, err := h.svc.ListarAtendimentosColetivos(r.Context(), identity(r), id, mes)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, out)
 }
 
 // AcolhimentoRequest é o cadastro ou a edição de um acolhimento da Casa

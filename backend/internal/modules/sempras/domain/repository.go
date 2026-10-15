@@ -96,6 +96,16 @@ type Repository interface {
 	UpdateNotificacaoCreas(ctx context.Context, db database.DBTX, n NotificacaoCreas) error
 	NotificacoesCreasNaArea(ctx context.Context, db database.DBTX, vitima uuid.UUID, area Area) ([]NotificacaoCreas, error)
 
+	// Ofícios (CRAS)
+	InsertOficioCras(ctx context.Context, db database.DBTX, o OficioCras, autor uuid.UUID) error
+	GetOficioCras(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (OficioCras, error)
+	UpdateOficioCras(ctx context.Context, db database.DBTX, o OficioCras) error
+	OficiosCrasNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]OficioCras, error)
+
+	// Atendimentos coletivos (SCFV)
+	InsertAtendimentoColetivo(ctx context.Context, db database.DBTX, a AtendimentoColetivo, autor uuid.UUID) error
+	ListAtendimentosColetivos(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio, fim time.Time) ([]AtendimentoColetivo, error)
+
 	// Casa Abrigo
 	InsertAcolhimento(ctx context.Context, db database.DBTX, a Acolhimento, autor uuid.UUID) error
 	GetAcolhimento(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (Acolhimento, error)
