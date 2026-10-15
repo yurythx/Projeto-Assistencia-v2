@@ -12,7 +12,7 @@
 - **Sistema:** SEMPRAS — atendimento socioassistencial (ADR 030), módulo do Projeto-Assistencia-v2
 - **Controlador:** Secretaria Municipal de Promoção e Assistência Social de Rondonópolis/MT
 - **Base legal principal:** LOAS (Lei 8.742/1993) e Tipificação Nacional dos Serviços Socioassistenciais (SUAS) — execução de política pública (LGPD art. 7º, III); ECA (Lei 8.069/1990) para os atendimentos do Conselho Tutelar e das medidas socioeducativas
-- **Data desta minuta:** 2026-10-08 (revisada em 2026-10-14 — Fase 8: PAIF, benefícios eventuais, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo, RMA/MDS, painel de chamada)
+- **Data desta minuta:** 2026-10-08 (revisada em 2026-10-14 — Fase 8: PAIF, benefícios eventuais, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo, RMA/MDS, painel de chamada; revisada em 2026-10-15 — Fase 9: Centro POP — cadastro anônimo, perfil de rua com dado de saúde/drogas, encaminhamento externo, documentos)
 
 ---
 
@@ -49,8 +49,12 @@
 | Casa Abrigo — documentos | arquivos PDF do acolhido ou do responsável (certidões, laudos, documentos de identidade etc.) | art. 7º III; **dado sensível por natureza do conteúdo** (pode conter CPF, filiação, laudo de saúde) | até exclusão pela equipe técnica; arquivo é removido do object storage (MinIO) junto com o metadado |
 | RMA/MDS | contagens agregadas por unidade e competência (não há dado pessoal no relatório — só números) | art. 7º III (obrigação estatística do SUAS/MDS) | permanente — obrigação de prestação de contas |
 | Painel de chamada (TV) | nome e senha do munícipe exibidos em tempo real na tela da sala de espera | art. 7º III | nenhuma retenção — exibição efêmera, não grava nada novo (lê a fila já existente) |
+| Centro POP — cadastro anônimo | flag `anonimo` para munícipe sem nenhuma identificação confiável (abordagem de rua); quando ativo, nome fica só com o placeholder "Cidadão não identificado" e os demais campos de identificação ficam vazios de propósito | art. 7º III — a ausência de identificação é deliberada, não uma falha de coleta | mesma do cadastro comum (§2 acima); `anonimo` em si não é dado pessoal, é a ausência dele |
+| Centro POP — perfil de rua | situação habitacional, tempo de rua, motivo da vulnerabilidade, possui doença/descrição, usa medicação/descrição, uso de drogas/descrição | art. 7º III; **art. 11 — dado sensível de saúde** (doença, medicação, uso de drogas) | permanente, vinculado ao cadastro; visível só a quem tem `sempras:atendimento` na unidade (mesmo gate do prontuário — não é mascaramento de campo) |
+| Centro POP — encaminhamento externo | destino (CAPS AD, albergue, saúde, polícia etc.), prioridade, motivo, status, observações, técnico responsável | art. 7º III; destino pode revelar indiretamente condição de saúde (CAPS AD) ou situação de risco (DEAM) | permanente — log de encaminhamento, sem fluxo de aceite da outra ponta (ela não é um sistema nosso) |
+| Centro POP — documentos | arquivos do munícipe em situação de rua (documentos de identidade, laudos etc.), mesmo padrão dos documentos da Casa Abrigo | art. 7º III; **dado sensível por natureza do conteúdo**, como os documentos da Casa Abrigo | até exclusão pela equipe técnica; arquivo removido do MinIO junto com o metadado |
 
-**Dados sensíveis (art. 11):** sim — registros de atendimento psicológico, diagnósticos e PIA da Casa Abrigo (saúde), e, por natureza do público, dados de violência doméstica/infantojuvenil e de medida protetiva/socioeducativa envolvendo crianças e adolescentes (Conselho Tutelar, CREAS, Casa Abrigo) — sujeitos também ao regime de proteção reforçada do **LGPD art. 14** (dados de crianças e adolescentes) e ao sigilo do ato infracional previsto no **ECA art. 143**.
+**Dados sensíveis (art. 11):** sim — registros de atendimento psicológico, diagnósticos e PIA da Casa Abrigo, e agora também o perfil de rua do Centro POP (saúde, medicação, uso de drogas), e, por natureza do público, dados de violência doméstica/infantojuvenil e de medida protetiva/socioeducativa envolvendo crianças e adolescentes (Conselho Tutelar, CREAS, Casa Abrigo) — sujeitos também ao regime de proteção reforçada do **LGPD art. 14** (dados de crianças e adolescentes) e ao sigilo do ato infracional previsto no **ECA art. 143**.
 
 ## 3. Fluxo de dados
 
@@ -69,11 +73,14 @@ Munícipe (SEM conta na plataforma)
        │  sempras_creas_notificacoes                        — CREAS
        ├─ sempras_casa_abrigo_* (acolhimentos, irmãos,
        │  diagnósticos, visitantes, termos, PIA, documentos) — Casa Abrigo
+       ├─ sempras_centro_pop_perfis / sempras_encaminhamentos_
+       │  externos / sempras_centro_pop_documentos            — Centro POP (abordagem de rua)
        └─ audit_logs (encadeado por hash)                    — toda leitura de ficha e escrita
-  Documentos da Casa Abrigo: o PDF nunca atravessa a API — o navegador
-  envia direto ao object storage (MinIO) por URL pré-assinada de curta
-  duração (mesmo padrão dos módulos Arquivos/Trâmite); a API só grava o
-  metadado e confere tamanho/tipo reais depois do envio.
+  Documentos da Casa Abrigo e do Centro POP: o arquivo nunca atravessa a
+  API — o navegador envia direto ao object storage (MinIO) por URL
+  pré-assinada de curta duração (mesmo padrão dos módulos Arquivos/
+  Trâmite); a API só grava o metadado e confere tamanho/tipo reais depois
+  do envio.
   Tempo real: Hub WebSocket (sempras:fila:<unidade>) — nunca dado pessoal
   no frame (ADR 027); o painel de chamada (TV) lê esse mesmo canal.
 ```
@@ -94,6 +101,8 @@ O titular nunca acessa o sistema diretamente — todo tratamento é mediado por 
 | Documento da Casa Abrigo: conteúdo nunca passa pela API (só o navegador do servidor e o object storage); URL de download pré-assinada expira em minutos | ✅ |
 | Indicadores do RMA/MDS são só contagens agregadas por unidade — nenhum dado pessoal sai do módulo nesse relatório | ✅ |
 | Diagnósticos de saúde e PIA da Casa Abrigo **não têm sigilo adicional** ao de quem atende a unidade (mesmo nível de `sempras:atendimento`/`psicologia` do restante do prontuário) | ⚠️ decisão consciente — ver §5 e §7 |
+| Cadastro anônimo (Centro POP): quando o munícipe não tem nenhuma identificação confiável, o sistema **não inventa** dado (nome placeholder fixo, demais campos vazios) em vez de forçar preenchimento de CPF/NIS/nascimento/mãe fictícios | ✅ |
+| Perfil de rua (saúde/drogas) com o mesmo gate de permissão do sigilo psicológico (`sempras:atendimento` na unidade) — recepção não vê nem edita | ✅ |
 
 ## 5. Riscos e salvaguardas
 
@@ -108,6 +117,9 @@ O titular nunca acessa o sistema diretamente — todo tratamento é mediado por 
 | Dado de saúde do acolhido (Casa Abrigo — diagnósticos, PIA) acessível a qualquer perfil com `sempras:atendimento` na unidade, sem sigilo equivalente ao da psicologia | média | médio | decisão de produto deliberada (mesmo nível de acesso das demais informações do acolhido, para não fragmentar a equipe que cuida da criança) — **registrada aqui para avaliação do DPO**, não é uma lacuna não percebida |
 | Vazamento de documento da Casa Abrigo via URL pré-assinada compartilhada indevidamente | baixa | alto | URL expira em minutos (mesmo TTL curto dos módulos Arquivos/Trâmite); toda emissão de URL e todo upload/exclusão é auditado |
 | Dado de ato infracional (MSE) ou de medida protetiva (Conselho Tutelar) de adolescente exposto fora do sigilo do ECA art. 143 | baixa | alto | mesmo RBAC por unidade/permissão do restante do módulo; nenhum relatório ou exportação solta esses dados sem o gate de `sempras:atendimento` |
+| Dado de saúde/drogas do perfil de rua (Centro POP) acessível a qualquer perfil com `sempras:atendimento` na unidade, sem sigilo equivalente ao da psicologia | média | médio | mesma decisão de produto já registrada para os diagnósticos da Casa Abrigo (§5 acima) — **registrada aqui para avaliação do DPO**, não é lacuna não percebida |
+| Encaminhamento externo (Centro POP) sem fluxo de confirmação da outra ponta — não há como verificar se o destino (CAPS AD, albergue, polícia) de fato recebeu ou agiu sobre o encaminhamento | baixa | baixo | decisão consciente — a "outra ponta" não é um sistema nosso; o registro é só o log de que o encaminhamento foi feito por quem atende, auditado como qualquer escrita do módulo |
+| Vazamento de documento do Centro POP via URL pré-assinada compartilhada indevidamente | baixa | alto | mesma salvaguarda dos documentos da Casa Abrigo — URL expira em minutos, toda emissão/upload/exclusão é auditada |
 
 ## 6. Direitos do titular — operacionalização (ADR 030 §8)
 
@@ -122,7 +134,7 @@ O mecanismo genérico da plataforma (`/api/v1/lgpd/*`) **não se aplica**: é se
 
 Toda a tela correspondente: `/sempras/cidadaos/{id}` (ficha — editar, exportar, solicitar anonimização) e `/sempras/pedidos` (fila de decisão da gestão).
 
-**Importante:** o direito de acesso (exportação) e a anonimização, hoje, cobrem o cadastro (`sempras_cidadaos`), os atendimentos e as evoluções do prontuário — **não** os registros das tabelas adicionadas na Fase 8 (PAIF, benefícios, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo). Um pedido de acesso não entrega esses dados, e uma anonimização aprovada não os apaga nem anonimiza. Ver §7.
+**Importante:** o direito de acesso (exportação) e a anonimização, hoje, cobrem o cadastro (`sempras_cidadaos`), os atendimentos e as evoluções do prontuário — **não** os registros das tabelas adicionadas na Fase 8 (PAIF, benefícios, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo) nem as da Fase 9 (perfil de rua, encaminhamento externo, documentos do Centro POP). Um pedido de acesso não entrega esses dados, e uma anonimização aprovada não os apaga nem anonimiza. Ver §7.
 
 ## 7. Pendências para o RIPD oficial
 
@@ -130,7 +142,9 @@ Toda a tela correspondente: `/sempras/cidadaos/{id}` (ficha — editar, exportar
 - [ ] Definição formal do prazo de retenção do cadastro não anonimizado (hoje: indefinido, até pedido do titular ou obrigação legal cessar).
 - [x] ~~Avaliação de risco específica para as unidades de proteção especial (Conselho Tutelar, Casa Abrigo, Casa da Mulher) — hoje tratadas com o mesmo modelo genérico de prontuário~~ — **parcialmente endereçado na Fase 8**: Conselho Tutelar, CREAS (PAEFI/MSE/notificações) e Casa Abrigo agora têm campos estruturados e enums reais (não mais texto livre genérico). Casa da Mulher e Centro POP continuam no modelo genérico.
 - [ ] **Decisão do DPO**: os dados de saúde do acolhido (diagnósticos, PIA da Casa Abrigo) devem ter sigilo equivalente ao da psicologia (visível só a um subconjunto de perfis), ou o nível atual (`sempras:atendimento` na unidade) é aceitável dado que a equipe da Casa Abrigo cuida integralmente da criança? Decisão de produto já tomada no sentido de **não** criar sigilo extra — registrada para revisão.
-- [ ] **Estender o direito de acesso e a anonimização** às tabelas da Fase 8 (PAIF, benefícios, encaminhamentos, Conselho Tutelar, PAEFI, MSE, notificações do CREAS, Casa Abrigo — incluindo diagnósticos, PIA e **documentos PDF no MinIO**). Hoje a exportação não inclui esses dados e a anonimização não os toca; o conteúdo de um documento PDF pode, por si só, identificar o titular mesmo após o cadastro principal ser anonimizado.
+- [ ] **Estender o direito de acesso e a anonimização** às tabelas da Fase 8 (PAIF, benefícios, encaminhamentos, Conselho Tutelar, PAEFI, MSE, notificações do CREAS, Casa Abrigo — incluindo diagnósticos, PIA e **documentos PDF no MinIO**) e da Fase 9 (perfil de rua, encaminhamento externo, documentos do Centro POP). Hoje a exportação não inclui esses dados e a anonimização não os toca; o conteúdo de um documento pode, por si só, identificar o titular mesmo após o cadastro principal ser anonimizado.
 - [ ] Política de retenção/guarda legal específica para RMA/MDS, processos do Conselho Tutelar, casos do PAEFI e medidas socioeducativas, que hoje não têm prazo definido no código (apenas a decisão caso a caso da gestão ao negar uma anonimização).
 - [ ] Avaliar se o sigilo do ato infracional (ECA art. 143) exige uma camada de acesso própria para a MSE, separada do `sempras:atendimento` genérico do CREAS.
-- [ ] Rotina de descarte/retenção dos documentos da Casa Abrigo no MinIO quando o acolhimento é desligado há muito tempo (hoje: permanece até exclusão manual pela equipe técnica, sem expurgo automático).
+- [ ] Rotina de descarte/retenção dos documentos da Casa Abrigo e do Centro POP no MinIO quando o caso é encerrado há muito tempo (hoje: permanece até exclusão manual pela equipe técnica, sem expurgo automático).
+- [ ] **Decisão do DPO (Centro POP)**: o perfil de rua (saúde, medicação, uso de drogas) deve ter sigilo equivalente ao da psicologia, ou o nível atual (`sempras:atendimento` na unidade) é aceitável — mesma lógica já registrada para os diagnósticos da Casa Abrigo? Decisão de produto já tomada no sentido de manter o mesmo nível de acesso do restante do prontuário.
+- [ ] Avaliar se o cadastro anônimo (Centro POP) precisa de uma rotina própria de "fusão" quando a identidade da pessoa é descoberta depois (hoje: não existe — um novo cadastro identificado fica desvinculado do anônimo anterior, duplicando o histórico).

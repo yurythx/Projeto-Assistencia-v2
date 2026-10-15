@@ -207,11 +207,59 @@ tipos `aluguel_social`/`outro` em `Beneficio` (migração 000156),
 já existia de ponta a ponta no backend desde a Fase 8, só faltava no
 formulário do frontend.
 
-Ficou fora: o **Centro POP** (atendimento à população em situação de rua
-— `SocialAssistance.js` no legado, 8 entidades, RBAC de 4 papéis com
-mascaramento LGPD pra recepcionista, fila própria). É do tamanho de toda
-a Fase 8 somada; a especificação já foi extraída e fica para um ADR
-próprio quando for priorizado (roadmap, Fase 9).
+Ficou fora desta fase: o **Centro POP** — do tamanho de toda a Fase 8
+somada, tratado na seção 10 a seguir.
+
+### 10. Centro POP (Fase 9)
+
+Revendo a especificação do legado (`SocialAssistance.js`, 8 "entidades":
+pessoa, recepção, abordagem de rua, benefício, documento, observação,
+encaminhamento, rede de apoio) contra o módulo que já existe aqui: a
+maior parte **já tem equivalente real e genérico**, porque Centro POP é
+só mais uma `unidade` do SEMPRAS (já cadastrada em `deploy/estrutura`) —
+fila (`sempras_atendimentos`), evolução/diário de bordo
+(`sempras_registros`), rede de apoio (`sempras_rede_apoio`) e benefícios
+(`sempras_beneficios`, só com 2 tipos a mais — auxílio-gás,
+cobertor/agasalho) funcionam sem nenhuma mudança. O trabalho novo:
+
+- **Cadastro sem identificação confiável** (`sempras_cidadaos.anonimo`,
+  migração 000160): a tabela já previa gente sem CPF/NIS, identificada
+  por nascimento + nome da mãe (migração 000143) — mas abordagem de rua
+  às vezes não tem nem isso. Em vez de uma tabela de pessoa paralela (o
+  que quebraria o reaproveitamento de fila/prontuário/benefícios), a
+  identificação ganha uma 4ª via, explícita e auditável: `anonimo
+  BOOLEAN`, aceito pelo `CHECK` de identificação só quando marcado. Vale
+  pra qualquer unidade, não só Centro POP, mas na prática só a abordagem
+  de rua usa.
+- **Perfil de rua** (`sempras_centro_pop_perfis`, migração 000161):
+  extensão 1:1 de `sempras_cidadaos`, não campo solto nela — situação
+  habitacional, tempo de rua, motivo da vulnerabilidade, saúde/
+  medicação/drogas. Sigiloso como o registro psicológico (mesma RN já
+  estabelecida no módulo): só quem abre o prontuário com
+  `sempras:atendimento` vê, nunca a recepção (que, de resto, já não
+  acessa `Prontuario` — a permissão em si já é o gate, sem precisar de
+  mascaramento de campo dentro da mesma resposta).
+- **Encaminhamento externo** (`sempras_encaminhamentos_externos`,
+  migração 000162): `Encaminhamento` hoje é entre unidades nossas, com
+  aceite/recusa pela unidade de destino. Um encaminhamento pra CAPS AD,
+  albergue ou a Polícia Civil não tem ninguém do nosso lado pra decidir
+  — forçar isso dentro de `Encaminhamento` (destino nullable, texto
+  alternativo) distorceria o fluxo de 2 pontas que CRAS/CREAS já usam.
+  Ficou uma entidade nova, sem fluxo de aceite — status gerenciado por
+  quem registrou, mesma lógica de log dos Atendimentos Coletivos (Fase
+  8.1), não um fluxo de decisão.
+- **Documentos** (`sempras_centro_pop_documentos`, migração 000163):
+  mesmo padrão dos documentos da Casa Abrigo (ticket de upload direto ao
+  MinIO, confirmação, download pré-assinado), só que chaveado por
+  cidadão, não por acolhimento — por isso guarda `unidade_id` próprio
+  (`Cidadao` não tem unidade: é cadastro da secretaria toda), pro escopo
+  de área nas operações de confirmar/baixar/remover.
+
+Ficou fora, documentado, não construído: **abordagem de rua**
+(`SocialAbordagem`) — o próprio legado não tem tela de criar/editar
+isso, só aparece em relatórios agregados por um caminho que a extração
+não encontrou; e um **painel de indicadores dedicado** — `/sempras/
+painel` e o RMA já cobrem o essencial por unidade/competência.
 
 ## Consequências
 
