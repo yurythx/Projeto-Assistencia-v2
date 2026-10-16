@@ -216,6 +216,24 @@ func (fr *faultRepo) RegistrosNaArea(ctx context.Context, db database.DBTX, cida
 	return fr.inner.RegistrosNaArea(ctx, db, cidadao, area)
 }
 
+func (fr *faultRepo) RegistrosDeOrigem(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Registro, error) {
+	if err := fr.hook("RegistrosDeOrigem"); err != nil {
+		var z0 []domain.Registro
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.RegistrosDeOrigem(ctx, db, cidadao, area)
+}
+
+func (fr *faultRepo) AcompanhamentosForaDaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Acompanhamento, error) {
+	if err := fr.hook("AcompanhamentosForaDaArea"); err != nil {
+		var z0 []domain.Acompanhamento
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.AcompanhamentosForaDaArea(ctx, db, cidadao, area)
+}
+
 func (fr *faultRepo) InsertPedido(ctx context.Context, db database.DBTX, p domain.PedidoTitular) error {
 	if err := fr.hook("InsertPedido"); err != nil {
 		return err

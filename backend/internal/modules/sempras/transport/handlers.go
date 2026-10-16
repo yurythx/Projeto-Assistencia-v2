@@ -308,6 +308,10 @@ type EntradaRequest struct {
 	CidadaoID  uuid.UUID `json:"cidadao_id" validate:"required"`
 	Tipo       string    `json:"tipo" validate:"required,oneof=social psicologico"`
 	Prioridade string    `json:"prioridade" validate:"max=20"`
+	// Demanda: uma das demandas da unidade (GET /sempras/unidades);
+	// "outra" exige o detalhe.
+	Demanda        string `json:"demanda" validate:"required,max=40"`
+	DemandaDetalhe string `json:"demanda_detalhe" validate:"max=200"`
 }
 
 // Incluir põe o munícipe na fila da unidade.
@@ -323,7 +327,7 @@ func (h *Handlers) Incluir(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	item, err := h.svc.Incluir(r.Context(), identity(r), id, application.EntradaInput{
-		CidadaoID: req.CidadaoID, Tipo: req.Tipo, Prioridade: req.Prioridade})
+		CidadaoID: req.CidadaoID, Tipo: req.Tipo, Prioridade: req.Prioridade, Demanda: req.Demanda, DemandaDetalhe: req.DemandaDetalhe})
 	if err != nil {
 		h.fail(w, r, err)
 		return

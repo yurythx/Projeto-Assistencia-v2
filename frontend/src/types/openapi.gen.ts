@@ -6208,6 +6208,13 @@ export interface components {
             /** Format: uuid */
             unidade_id: string;
         };
+        SemprasAcompanhamento: {
+            ativos: string[];
+            tipo: string;
+            /** Format: uuid */
+            unidade_id: string;
+            unidade_nome: string;
+        };
         SemprasAtendimento: {
             /** Format: date-time */
             chamado_em: string | null;
@@ -6215,6 +6222,8 @@ export interface components {
             cidadao_id: string;
             /** Format: date-time */
             created_at: string;
+            demanda: string;
+            demanda_detalhe: string;
             dia: string;
             /** Format: date-time */
             encerrado_em: string | null;
@@ -6536,6 +6545,8 @@ export interface components {
         SemprasEntradaRequest: {
             /** Format: uuid */
             cidadao_id: string;
+            demanda: string;
+            demanda_detalhe?: string;
             prioridade?: string;
             /** @enum {string} */
             tipo: "social" | "psicologico";
@@ -6550,6 +6561,8 @@ export interface components {
             cidadao_id: string;
             /** Format: date-time */
             created_at: string;
+            demanda: string;
+            demanda_detalhe: string;
             dia: string;
             /** Format: date-time */
             encerrado_em: string | null;
@@ -6856,10 +6869,12 @@ export interface components {
             mse_medidas: components["schemas"]["SemprasMseMedida"][];
             notificacoes_creas: components["schemas"]["SemprasNotificacaoCreas"][];
             oficios_cras: components["schemas"]["SemprasOficioCras"][];
+            outras_unidades: components["schemas"]["SemprasAcompanhamento"][];
             paefi_casos: components["schemas"]["SemprasPaefiCaso"][];
             paif_vinculos: components["schemas"]["SemprasPaifVinculo"][];
             rede_apoio: components["schemas"]["SemprasContatoRedeApoio"][];
             registros: components["schemas"]["SemprasRegistro"][];
+            registros_origem: components["schemas"]["SemprasRegistro"][];
         };
         SemprasRegistro: {
             /** Format: uuid */
@@ -6975,12 +6990,16 @@ export interface components {
         };
         SemprasUnidade: {
             ativa: boolean;
+            demandas: string[];
             /** Format: uuid */
             entidade_id: string;
             /** Format: uuid */
             id: string;
             nome: string;
+            painel_exibe_nome: boolean;
+            servicos: string[];
             sigla: string;
+            tipo: string;
         };
         SemprasUploadDocumentoCentroPopRequest: {
             content_type: string;

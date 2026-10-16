@@ -1,127 +1,81 @@
 "use client";
 
-import { useState } from "react";
-import { useSWRConfig } from "swr";
-import { Building2, User } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { ChevronRight } from "lucide-react";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
-import { EncaminhamentosRecebidos } from "@/components/sempras/EncaminhamentosRecebidos";
-import { Fila } from "@/components/sempras/Fila";
-import { FichaModal } from "@/components/sempras/FichaModal";
-import { Recepcao } from "@/components/sempras/Recepcao";
 import { Badge } from "@/components/ui/Badge";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Select } from "@/components/ui/Select";
 import { useApiQuery } from "@/lib/api/swr";
-import { useNexus } from "@/lib/nexus/NexusProvider";
-import { P, type Unidade } from "@/lib/sempras/types";
+import { TIPOS_UNIDADE, oferta, type TipoUnidade, type Unidade } from "@/lib/sempras/types";
+
+const ORDEM_TIPOS = Object.keys(TIPOS_UNIDADE) as TipoUnidade[];
 
 /**
- * SEMPRAS (ADR 030): a jornada do munícipe na unidade — recepção (busca,
- * pré-cadastro e inclusão na fila) e fila do dia em tempo real posicionada abaixo.
- * Apenas equipe técnica e psicologia chamam para atendimento e acessam o prontuário.
+ * SEMPRAS — escolha da unidade (ADR 031 §4). Cada unidade tem o seu próprio
+ * atendimento em /sempras/u/<unidade>; quem é lotado numa unidade só entra
+ * direto nela. O Superintendente vê todas, agrupadas por tipo.
  */
 export default function SemprasPage() {
-  const { me, can } = useNexus();
+  const router = useRouter();
   const unidades = useApiQuery<Unidade[]>("v1/sempras/unidades");
-  const [escolhida, setEscolhida] = useState("");
-  const [fichaCidadaoId, setFichaCidadaoId] = useState<string | null>(null);
   const lista = unidades.data ?? [];
-  const unidadeId = escolhida || lista[0]?.id || "";
-  const { mutate } = useSWRConfig();
+  const unica = lista.length === 1 ? lista[0] : undefined;
 
-  // Identificação do perfil profissional do atendente
-  const papelAtendente = can(P.psicologia)
-    ? { cargo: "Psicóloga(o)", tone: "info" as const }
-    : can(P.atendimento)
-    ? { cargo: "Assistente Social / Técnica(o)", tone: "info" as const }
-    : can(P.gestao)
-    ? { cargo: "Gestão / Coordenação", tone: "neutral" as const }
-    : { cargo: "Recepção / Pré-cadastro", tone: "neutral" as const };
+  useEffect(() => {
+    if (unica) router.replace(`/sempras/u/${unica.id}`);
+  }, [unica, router]);
+
+  const grupos = ORDEM_TIPOS.map((tipo) => ({ tipo, unidades: lista.filter((u) => u.tipo === tipo) })).filter(
+    (g) => g.unidades.length > 0,
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Assistência Social"
         title="SEMPRAS — Atendimento"
-        description="Busque o munícipe pelo CPF, NIS ou nome, cadastre quem ainda não existe e acompanhe a fila da unidade em tempo real."
+        description="Escolha a unidade: cada uma tem a sua recepção, fila e serviços."
       />
-
       <DataState
-        loading={unidades.isLoading}
+        loading={unidades.isLoading || Boolean(unica)}
         error={unidades.error}
         onRetry={() => void unidades.mutate()}
         empty={lista.length === 0}
         emptyTitle="Você não está lotado em nenhuma unidade da SEMPRAS"
         emptyDescription="Peça à TI a inclusão no grupo do AD da sua unidade (ex.: SEMPRAS_CRAS_CENTRAL_TECNICO)."
       >
-        {/* Informações do Atendente e da Unidade no topo */}
-        <Card className="border-surface-border bg-surface shadow-xs">
-          <CardContent className="grid gap-4 p-5 sm:grid-cols-2 sm:items-center">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <User size={22} aria-hidden="true" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted">Atendente</span>
-                <span className="text-base font-bold text-foreground">{me?.name || me?.username || "Atendente"}</span>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <Badge tone={papelAtendente.tone}>{papelAtendente.cargo}</Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex w-full flex-col sm:max-w-xs sm:justify-self-end">
-              <Select
-                id="sempras-unidade"
-                label="Unidade"
-                value={unidadeId}
-                onChange={(e) => setEscolhida(e.target.value)}
-                options={lista.map((u) => ({ value: u.id, label: u.nome }))}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {unidadeId && (
-          <div className="flex flex-col gap-6">
-            {/* Bloco de Recepção (Pré-cadastro e inclusão na fila) */}
-            {can(P.recepcao) && (
-              <Recepcao
-                unidadeId={unidadeId}
-                unidadeNome={lista.find((u) => u.id === unidadeId)?.nome}
-                onIncluido={() => void mutate(`v1/sempras/unidades/${unidadeId}/fila`)}
-                onAbrirFicha={(id) => setFichaCidadaoId(id)}
-              />
-            )}
-
-            {/* Bloco da Fila — posicionado abaixo da recepção */}
-            <Fila
-              unidadeId={unidadeId}
-              onAbrirFicha={(id) => setFichaCidadaoId(id)}
-            />
-
-            {/* Encaminhamentos recebidos — restrito à equipe técnica/psicologia */}
-            {(can(P.atendimento) || can(P.psicologia)) && (
-              <div className="mt-2">
-                <EncaminhamentosRecebidos unidadeId={unidadeId} />
-              </div>
-            )}
-
-            {/* Modal dinâmico da Ficha do Munícipe */}
-            <FichaModal
-              cidadaoId={fichaCidadaoId}
-              unidadeId={unidadeId}
-              unidadeNome={lista.find((u) => u.id === unidadeId)?.nome}
-              onClose={() => setFichaCidadaoId(null)}
-              onCidadaoUpdated={() => {
-                void mutate(`v1/sempras/unidades/${unidadeId}/fila`);
-                void mutate(`v1/sempras/cidadaos?q=`);
-              }}
-            />
-          </div>
-        )}
+        <div className="flex flex-col gap-6">
+          {grupos.map(({ tipo, unidades: us }) => (
+            <section key={tipo} aria-labelledby={`grupo-${tipo}`} className="flex flex-col gap-3">
+              <h2 id={`grupo-${tipo}`} className="text-sm font-semibold uppercase tracking-wider text-muted">
+                {TIPOS_UNIDADE[tipo].label} <span className="font-normal normal-case">· {TIPOS_UNIDADE[tipo].protecao}</span>
+              </h2>
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {us.map((u) => (
+                  <li key={u.id}>
+                    <Link
+                      href={`/sempras/u/${u.id}`}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-surface-border bg-surface p-4 transition-colors hover:border-primary/50 hover:bg-primary/5"
+                    >
+                      <span className="flex flex-col gap-1">
+                        <span className="font-semibold text-foreground">{u.nome}</span>
+                        <span className="flex flex-wrap gap-1">
+                          {!oferta(u, "fila") && <Badge tone="neutral">Sem fila</Badge>}
+                          {!u.painel_exibe_nome && oferta(u, "fila") && <Badge tone="neutral">Painel só com senha</Badge>}
+                          {!u.ativa && <Badge tone="warning">Desativada</Badge>}
+                        </span>
+                      </span>
+                      <ChevronRight size={18} className="shrink-0 text-muted" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       </DataState>
     </div>
   );

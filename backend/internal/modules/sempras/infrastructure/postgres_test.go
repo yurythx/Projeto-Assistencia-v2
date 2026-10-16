@@ -54,8 +54,13 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			_, err := r.Rma(ctx, db, unidades, time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC))
 			return err
 		},
-		"InsertRegistro":  func(db database.DBTX) error { return r.InsertRegistro(ctx, db, domain.Registro{ID: id}) },
-		"RegistrosNaArea": func(db database.DBTX) error { _, err := r.RegistrosNaArea(ctx, db, id, area); return err },
+		"InsertRegistro":    func(db database.DBTX) error { return r.InsertRegistro(ctx, db, domain.Registro{ID: id}) },
+		"RegistrosNaArea":   func(db database.DBTX) error { _, err := r.RegistrosNaArea(ctx, db, id, area); return err },
+		"RegistrosDeOrigem": func(db database.DBTX) error { _, err := r.RegistrosDeOrigem(ctx, db, id, area); return err },
+		"AcompanhamentosForaDaArea": func(db database.DBTX) error {
+			_, err := r.AcompanhamentosForaDaArea(ctx, db, id, area)
+			return err
+		},
 		"InsertPedido": func(db database.DBTX) error {
 			return r.InsertPedido(ctx, db, domain.PedidoTitular{ID: id})
 		},
@@ -235,7 +240,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"GetPaefiCaso", "PaefiCasosNaArea", "GetMseMedida", "MseMedidasNaArea", "GetNotificacaoCreas", "NotificacoesCreasNaArea",
 		"GetAcolhimento", "AcolhimentosNaArea", "ListIrmaos", "GetIrmao", "ListDiagnosticos", "GetDiagnostico",
 		"ListVisitantes", "GetVisitante", "ListTermos", "GetTermo", "GetPiaFicha", "ListPiaMetas", "GetPiaMeta",
-		"GetDocumento", "ListDocumentos"} {
+		"GetDocumento", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
@@ -244,7 +249,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"AtendimentosNaArea", "Painel", "Rma", "RegistrosNaArea", "ListPedidosPendentes", "ListContatosRedeApoio", "BeneficiosNaArea",
 		"EncaminhamentosDoCidadaoNaArea", "ListEncaminhamentosPendentes", "PaifVinculosNaArea", "ConselhoAtendimentosNaArea",
 		"PaefiCasosNaArea", "MseMedidasNaArea", "NotificacoesCreasNaArea", "AcolhimentosNaArea", "ListIrmaos", "ListDiagnosticos",
-		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos"} {
+		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}
@@ -595,6 +600,43 @@ func TestEncaminhamentoRoundTrip(t *testing.T) {
 	}
 	if pendentes, err := r.ListEncaminhamentosPendentes(ctx, pool, destino); err != nil || len(pendentes) != 0 {
 		t.Errorf("decidido não deveria ficar na fila: %+v, %v", pendentes, err)
+	}
+
+	// Visão cruzada (ADR 031 §4): o destino lê a evolução SOCIAL da origem
+	// (nunca a psicológica) e vê o resumo do que corre lá, sem conteúdo.
+	for _, tipo := range []string{domain.TipoSocial, domain.TipoPsicologico} {
+		reg, err := domain.NovoRegistro(cid, origem, nil, tipo, "evolução "+tipo, autor)
+		if err != nil {
+			t.Fatal(err)
+		}
+		reg.CreatedAt = time.Now()
+		if err := r.InsertRegistro(ctx, pool, reg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	paif, err := domain.NovoPaifVinculo(cid, origem, domain.PaifAtendimentoParticularizado, false, false, false, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paif.DataInclusao = time.Now()
+	if err := r.InsertPaifVinculo(ctx, pool, paif, autor); err != nil {
+		t.Fatal(err)
+	}
+	noDestino := domain.Area{Unidades: []uuid.UUID{destino}}
+	origemRegs, err := r.RegistrosDeOrigem(ctx, pool, cid, noDestino)
+	if err != nil || len(origemRegs) != 1 || origemRegs[0].Tipo != domain.TipoSocial || origemRegs[0].UnidadeID != origem {
+		t.Errorf("RegistrosDeOrigem: %+v, %v", origemRegs, err)
+	}
+	// Na própria origem, a evolução já vem por RegistrosNaArea — não repete.
+	if regs, err := r.RegistrosDeOrigem(ctx, pool, cid, domain.Area{Unidades: []uuid.UUID{origem}}); err != nil || len(regs) != 0 {
+		t.Errorf("RegistrosDeOrigem na origem: %+v, %v", regs, err)
+	}
+	outras, err := r.AcompanhamentosForaDaArea(ctx, pool, cid, noDestino)
+	if err != nil || len(outras) != 1 || outras[0].UnidadeID != origem || len(outras[0].Ativos) != 1 || outras[0].Ativos[0] != "paif" {
+		t.Errorf("AcompanhamentosForaDaArea: %+v, %v", outras, err)
+	}
+	if outras, err := r.AcompanhamentosForaDaArea(ctx, pool, cid, domain.Area{All: true}); err != nil || len(outras) != 0 {
+		t.Errorf("quem vê tudo não tem 'outras unidades': %+v, %v", outras, err)
 	}
 }
 

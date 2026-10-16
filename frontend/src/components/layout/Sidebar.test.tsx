@@ -55,15 +55,11 @@ describe("buildNav", () => {
     ]);
   });
 
-  it("SEMPRAS: quem só tem sempras:atendimento vê o painel de chamada, não os itens de gestão", () => {
+  it("SEMPRAS: quem só tem sempras:atendimento fica com o link direto (painel de chamada e coletivos são atalhos da unidade)", () => {
     const mods = [mod("sempras", { route: "/sempras", name: "SEMPRAS" })];
     const comAtendimento = buildNav(mods, (p) => hasPermission(["sempras:atendimento"], p));
-    expect(comAtendimento.sections).toHaveLength(1);
-    expect(comAtendimento.sections[0]!.items.map((i) => ({ href: i.href, label: i.label }))).toEqual([
-      { href: "/sempras", label: "Atendimento" },
-      { href: "/sempras/painel-chamada", label: "Painel de chamada" },
-      { href: "/sempras/coletivos", label: "Atendimentos coletivos" },
-    ]);
+    expect(comAtendimento.sections).toEqual([]);
+    expect(comAtendimento.modules.map((m) => m.href)).toEqual(["/sempras"]);
   });
 
   it("módulo desligado some da sua seção sem recarregar (sempras:gestao, mas módulo off)", () => {

@@ -39,6 +39,12 @@ type Repository interface {
 	// Prontuário
 	InsertRegistro(ctx context.Context, db database.DBTX, r Registro) error
 	RegistrosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]Registro, error)
+	// RegistrosDeOrigem: a evolução social do munícipe nas unidades fora da
+	// área que o encaminharam (pendente ou aceito) para dentro dela.
+	RegistrosDeOrigem(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]Registro, error)
+	// AcompanhamentosForaDaArea: as unidades fora da área em que o munícipe
+	// tem serviço em curso, com quais — sem conteúdo.
+	AcompanhamentosForaDaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]Acompanhamento, error)
 
 	// Direitos do titular
 	InsertPedido(ctx context.Context, db database.DBTX, p PedidoTitular) error

@@ -40,6 +40,7 @@ var (
 	ErrNotificacaoEstado      = errors.New("sempras: a notificação não está no estado que a ação exige")
 	ErrAcolhimentoEstado      = errors.New("sempras: o acolhimento não está no estado que a ação exige")
 	ErrOficioRespondido       = errors.New("sempras: este ofício já foi respondido")
+	ErrServicoIndisponivel    = errors.New("sempras: esta unidade não oferta este serviço")
 )
 
 // ValidationError é um dado de entrada inválido (422), com a explicação.
@@ -229,13 +230,126 @@ func (in CidadaoInput) Normalizar(hoje time.Time) (Cidadao, error) {
 	return c, nil
 }
 
-// Unidade é uma unidade de atendimento (Unidade do IAM).
+// Unidade é uma unidade de atendimento (Unidade do IAM). Tipo e
+// PainelExibeNome vêm de sempras_unidades (ADR 031): sem linha lá, Tipo é
+// "" e a unidade não oferta serviço nenhum.
 type Unidade struct {
-	ID         uuid.UUID `json:"id"`
-	EntidadeID uuid.UUID `json:"entidade_id"`
-	Nome       string    `json:"nome"`
-	Sigla      string    `json:"sigla"`
-	Ativa      bool      `json:"ativa"`
+	ID              uuid.UUID `json:"id"`
+	EntidadeID      uuid.UUID `json:"entidade_id"`
+	Nome            string    `json:"nome"`
+	Sigla           string    `json:"sigla"`
+	Ativa           bool      `json:"ativa"`
+	Tipo            string    `json:"tipo"`
+	PainelExibeNome bool      `json:"painel_exibe_nome"`
+	Servicos        []string  `json:"servicos"`
+	Demandas        []string  `json:"demandas"`
+}
+
+// Tipos de unidade (ADR 031 §1) — a Tipificação Nacional (CNAS 109/2009).
+const (
+	UnidadeCras            = "cras"
+	UnidadeScfv            = "scfv"
+	UnidadeCreas           = "creas"
+	UnidadeCentroPop       = "centro_pop"
+	UnidadeCasaMulher      = "casa_mulher"
+	UnidadeCasaAbrigo      = "casa_abrigo"
+	UnidadeConselhoTutelar = "conselho_tutelar"
+)
+
+// Serviços que uma unidade pode ofertar (ADR 031 §2). Cada caso de uso
+// declara o seu, e a aplicação recusa o que o tipo da unidade não oferta.
+const (
+	ServicoFila           = "fila"           // recepção, fila do dia e painel de chamada
+	ServicoProntuario     = "prontuario"     // evolução social/psicológica
+	ServicoEncaminhamento = "encaminhamento" // entre unidades da SEMPRAS
+	ServicoBeneficio      = "beneficio"      // benefício eventual (LOAS art. 22)
+	ServicoPaif           = "paif"
+	ServicoOficio         = "oficio"
+	ServicoColetivo       = "coletivo"
+	ServicoPaefi          = "paefi"
+	ServicoMse            = "mse"
+	ServicoNotificacao    = "notificacao" // notificação de ente externo (CREAS)
+	ServicoCentroPop      = "centro_pop"  // perfil de rua, documentos e encaminhamento externo
+	ServicoAcolhimento    = "acolhimento" // acolhimento institucional (Casa Abrigo)
+	ServicoConselho       = "conselho"    // medida protetiva (art. 101 do ECA)
+)
+
+// servicosPorTipo é o catálogo do ADR 031 §2.
+var servicosPorTipo = map[string][]string{
+	UnidadeCras: {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoBeneficio, ServicoPaif, ServicoOficio,
+		ServicoColetivo},
+	UnidadeScfv:            {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoColetivo},
+	UnidadeCreas:           {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoPaefi, ServicoMse, ServicoNotificacao},
+	UnidadeCentroPop:       {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoBeneficio, ServicoCentroPop},
+	UnidadeCasaMulher:      {ServicoFila, ServicoProntuario, ServicoEncaminhamento},
+	UnidadeCasaAbrigo:      {ServicoProntuario, ServicoEncaminhamento, ServicoAcolhimento},
+	UnidadeConselhoTutelar: {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoConselho},
+}
+
+// TiposUnidade são os tipos válidos (a ordem é a de exibição).
+var TiposUnidade = []string{UnidadeCras, UnidadeScfv, UnidadeCreas, UnidadeCentroPop, UnidadeCasaMulher,
+	UnidadeCasaAbrigo, UnidadeConselhoTutelar}
+
+// ServicosDoTipo devolve os serviços ofertados pelo tipo (nenhum, para um
+// tipo desconhecido ou vazio). Devolve uma cópia: o catálogo é imutável.
+func ServicosDoTipo(tipo string) []string {
+	return append([]string{}, servicosPorTipo[tipo]...)
+}
+
+// DemandaOutra é a demanda livre — exige o detalhe.
+const DemandaOutra = "outra"
+
+// demandasPorTipo são os motivos de comparecimento da recepção (ADR 031
+// §3), vindos do legado (CrasAttendanceManagement, SocialAssistance,
+// CreasAttendanceManagement, ConselhoTutelarManagement).
+var demandasPorTipo = map[string][]string{
+	UnidadeCras: {"atendimento_tecnico", "cadunico_bolsa_familia", "beneficio_eventual", "encaminhamento_rede",
+		"orientacao_geral", DemandaOutra},
+	UnidadeScfv: {"inscricao_scfv", "atividade_grupo", "atendimento_tecnico", "orientacao_geral", DemandaOutra},
+	UnidadeCreas: {"acolhida_inicial", "atendimento_psicossocial", "orientacao_juridico_social", "acompanhamento_paefi",
+		"medida_socioeducativa", DemandaOutra},
+	UnidadeCentroPop: {"alimentacao_higiene", "banho_lavanderia", "guarda_pertences", "passagem", "pernoite_abrigo",
+		"acolhida_geral", DemandaOutra},
+	UnidadeCasaMulher: {"acolhida_inicial", "atendimento_psicossocial", "orientacao_juridico_social", "medida_protetiva",
+		DemandaOutra},
+	UnidadeConselhoTutelar: {"demanda_espontanea", "atendimento_familia", "acompanhamento_medida", "requisicao_servico",
+		DemandaOutra},
+}
+
+// DemandasDoTipo devolve as demandas da recepção do tipo (cópia).
+func DemandasDoTipo(tipo string) []string {
+	return append([]string{}, demandasPorTipo[tipo]...)
+}
+
+// ValidarEntrada aplica as regras do tipo da unidade à inclusão na fila
+// (ADR 031 §3): a demanda é da lista do tipo ("outra" pede o detalhe) e a
+// identificação é a exigida — o CRAS referencia a família no CadÚnico (CPF
+// ou NIS); o cadastro anônimo só é atendido no Centro POP (Decreto
+// 7.053/2009). Devolve demanda e detalhe normalizados.
+func (u Unidade) ValidarEntrada(c Cidadao, demanda, detalhe string) (string, string, error) {
+	demanda = strings.TrimSpace(demanda)
+	if !slices.Contains(demandasPorTipo[u.Tipo], demanda) {
+		return "", "", invalid("demanda inválida para esta unidade")
+	}
+	detalhe, err := texto("detalhe da demanda", detalhe, 0, 200)
+	if err != nil {
+		return "", "", err
+	}
+	if demanda == DemandaOutra && detalhe == "" {
+		return "", "", invalid("descreva a demanda")
+	}
+	switch {
+	case u.Tipo == UnidadeCras && c.CPF == "" && c.NIS == "":
+		return "", "", invalid("o CRAS exige CPF ou NIS do munícipe (referência no CadÚnico)")
+	case c.Anonimo && u.Tipo != UnidadeCentroPop:
+		return "", "", invalid("cadastro anônimo só é atendido no Centro POP — identifique o munícipe")
+	}
+	return demanda, detalhe, nil
+}
+
+// Oferta reporta se a unidade oferta o serviço.
+func (u Unidade) Oferta(servico string) bool {
+	return slices.Contains(servicosPorTipo[u.Tipo], servico)
 }
 
 // Alvo é a posição da unidade para auth.Can: entidade e unidade, para que a
@@ -308,6 +422,8 @@ type Atendimento struct {
 	Senha          int        `json:"senha"`
 	Tipo           string     `json:"tipo"`
 	Prioridade     string     `json:"prioridade"`
+	Demanda        string     `json:"demanda"`
+	DemandaDetalhe string     `json:"demanda_detalhe"`
 	Status         string     `json:"status"`
 	Local          string     `json:"local"`
 	IncluidoPor    *uuid.UUID `json:"incluido_por"`
@@ -420,6 +536,22 @@ type Prontuario struct {
 	CentroPopPerfil         *CentroPopPerfil        `json:"centro_pop_perfil"`
 	EncaminhamentosExternos []EncaminhamentoExterno `json:"encaminhamentos_externos"`
 	CentroPopDocumentos     []DocumentoCentroPop    `json:"centro_pop_documentos"`
+	// Fora da área de quem consulta (ADR 031 §4): só o resumo das outras
+	// unidades e a evolução social das que encaminharam o munícipe para a
+	// área — o psicológico e os registros especializados nunca cruzam.
+	OutrasUnidades  []Acompanhamento `json:"outras_unidades"`
+	RegistrosOrigem []Registro       `json:"registros_origem"`
+}
+
+// Acompanhamento é o que o munícipe tem numa unidade fora da área de quem
+// consulta: a unidade e os serviços em curso, nunca o conteúdo.
+type Acompanhamento struct {
+	UnidadeID   uuid.UUID `json:"unidade_id"`
+	UnidadeNome string    `json:"unidade_nome"`
+	Tipo        string    `json:"tipo"`
+	// Ativos: "paif", "paefi", "mse", "acolhimento", "conselho" (em curso)
+	// e "atendimento" (passou pela fila nos últimos 180 dias).
+	Ativos []string `json:"ativos"`
 }
 
 // ContatoRedeApoio é uma pessoa de apoio do munícipe (família, vizinho,

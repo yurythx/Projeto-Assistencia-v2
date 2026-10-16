@@ -62,12 +62,17 @@ func collect[T any](rows pgx.Rows, op string, scan func(pgx.Row) (T, error)) ([]
 
 // ---------------------------------------------------------------- unidades
 
-const unidadeCols = `u.id, u.entidade_id, u.nome, u.sigla, (u.ativo AND e.ativo)`
-const unidadeFrom = ` FROM unidades u JOIN entidades e ON e.id = u.entidade_id`
+// O tipo da unidade é do módulo (sempras_unidades, ADR 031); sem linha lá,
+// a unidade vem com tipo "" e não oferta serviço nenhum.
+const unidadeCols = `u.id, u.entidade_id, u.nome, u.sigla, (u.ativo AND e.ativo),
+	COALESCE(su.tipo, ''), COALESCE(su.painel_exibe_nome, false)`
+const unidadeFrom = ` FROM unidades u JOIN entidades e ON e.id = u.entidade_id
+	LEFT JOIN sempras_unidades su ON su.unidade_id = u.id`
 
 func scanUnidade(row pgx.Row) (domain.Unidade, error) {
 	var u domain.Unidade
-	err := row.Scan(&u.ID, &u.EntidadeID, &u.Nome, &u.Sigla, &u.Ativa)
+	err := row.Scan(&u.ID, &u.EntidadeID, &u.Nome, &u.Sigla, &u.Ativa, &u.Tipo, &u.PainelExibeNome)
+	u.Servicos, u.Demandas = domain.ServicosDoTipo(u.Tipo), domain.DemandasDoTipo(u.Tipo)
 	return u, err
 }
 
@@ -214,13 +219,14 @@ func (r *Repository) HistoricoNaArea(ctx context.Context, db database.DBTX, cida
 // ------------------------------------------------------- fila e atendimento
 
 const atendCols = `a.id, a.cidadao_id, a.unidade_id, to_char(a.dia, 'YYYY-MM-DD'), a.senha, a.tipo, a.prioridade,
-	a.status, a.local, a.incluido_por, a.profissional_id, a.created_at, a.chamado_em, a.iniciado_em, a.encerrado_em`
+	a.demanda, a.demanda_detalhe, a.status, a.local, a.incluido_por, a.profissional_id, a.created_at, a.chamado_em,
+	a.iniciado_em, a.encerrado_em`
 
 func scanAtend(row pgx.Row, extra ...any) (domain.Atendimento, error) {
 	var a domain.Atendimento
 	err := row.Scan(append([]any{&a.ID, &a.CidadaoID, &a.UnidadeID, &a.Dia, &a.Senha, &a.Tipo, &a.Prioridade,
-		&a.Status, &a.Local, &a.IncluidoPor, &a.ProfissionalID, &a.CreatedAt, &a.ChamadoEm, &a.IniciadoEm,
-		&a.EncerradoEm}, extra...)...)
+		&a.Demanda, &a.DemandaDetalhe, &a.Status, &a.Local, &a.IncluidoPor, &a.ProfissionalID, &a.CreatedAt, &a.ChamadoEm,
+		&a.IniciadoEm, &a.EncerradoEm}, extra...)...)
 	return a, err
 }
 
@@ -242,9 +248,10 @@ func (r *Repository) ProximaSenha(ctx context.Context, db database.DBTX, unidade
 // InsertAtendimento grava a entrada na fila (já na fila hoje = ErrJaNaFila).
 func (r *Repository) InsertAtendimento(ctx context.Context, db database.DBTX, a domain.Atendimento) error {
 	_, err := db.Exec(ctx, `INSERT INTO sempras_atendimentos
-		(id, cidadao_id, unidade_id, dia, senha, tipo, prioridade, status, local, incluido_por, created_at)
-		VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8, $9, $10, $11)`,
-		a.ID, a.CidadaoID, a.UnidadeID, a.Dia, a.Senha, a.Tipo, a.Prioridade, a.Status, a.Local, a.IncluidoPor, a.CreatedAt)
+		(id, cidadao_id, unidade_id, dia, senha, tipo, prioridade, demanda, demanda_detalhe, status, local, incluido_por, created_at)
+		VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		a.ID, a.CidadaoID, a.UnidadeID, a.Dia, a.Senha, a.Tipo, a.Prioridade, a.Demanda, a.DemandaDetalhe, a.Status, a.Local,
+		a.IncluidoPor, a.CreatedAt)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.ConstraintName == "uq_sempras_atendimentos_ativo" {
 		return domain.ErrJaNaFila
@@ -602,6 +609,51 @@ func (r *Repository) RegistrosNaArea(ctx context.Context, db database.DBTX, cida
 		err := row.Scan(&reg.ID, &reg.CidadaoID, &reg.UnidadeID, &reg.AtendimentoID, &reg.Tipo, &reg.Texto, &reg.AutorID,
 			&reg.AutorNome, &reg.CreatedAt)
 		return reg, err
+	})
+}
+
+// RegistrosDeOrigem implementa domain.Repository (ADR 031 §4).
+func (r *Repository) RegistrosDeOrigem(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Registro, error) {
+	rows, err := db.Query(ctx, `SELECT r.id, r.cidadao_id, r.unidade_id, r.atendimento_id, r.tipo, r.texto, r.autor_id,
+			COALESCE(au.display_name, ''), r.created_at
+		FROM sempras_registros r JOIN unidades u ON u.id = r.unidade_id LEFT JOIN users au ON au.id = r.autor_id
+		WHERE r.cidadao_id = $4 AND r.tipo = 'social' AND NOT `+areaSQL(1, 2, 3)+`
+		  AND r.unidade_id IN (SELECT e.unidade_origem_id
+		        FROM sempras_encaminhamentos e JOIN unidades u ON u.id = e.unidade_destino_id
+		       WHERE e.cidadao_id = $4 AND e.status IN ('pendente', 'aceito') AND `+areaSQL(1, 2, 3)+`)
+		ORDER BY r.created_at DESC LIMIT 200`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("RegistrosDeOrigem", err)
+	}
+	return collect(rows, "RegistrosDeOrigem", func(row pgx.Row) (domain.Registro, error) {
+		var reg domain.Registro
+		err := row.Scan(&reg.ID, &reg.CidadaoID, &reg.UnidadeID, &reg.AtendimentoID, &reg.Tipo, &reg.Texto, &reg.AutorID,
+			&reg.AutorNome, &reg.CreatedAt)
+		return reg, err
+	})
+}
+
+// AcompanhamentosForaDaArea implementa domain.Repository (ADR 031 §4).
+func (r *Repository) AcompanhamentosForaDaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Acompanhamento, error) {
+	rows, err := db.Query(ctx, `WITH s (unidade_id, servico) AS (
+			SELECT unidade_id, 'paif' FROM sempras_paif_vinculos WHERE cidadao_id = $4 AND status = 'ativo'
+			UNION SELECT unidade_id, 'paefi' FROM sempras_paefi_casos WHERE cidadao_id = $4 AND status = 'em_acompanhamento'
+			UNION SELECT unidade_id, 'mse' FROM sempras_mse_medidas WHERE adolescente_id = $4 AND status = 'em_cumprimento'
+			UNION SELECT unidade_id, 'acolhimento' FROM sempras_casa_abrigo_acolhimentos WHERE cidadao_id = $4 AND status = 'acolhido'
+			UNION SELECT unidade_id, 'conselho' FROM sempras_conselho_atendimentos WHERE crianca_id = $4 AND status = 'em_andamento'
+			UNION SELECT unidade_id, 'atendimento' FROM sempras_atendimentos
+			       WHERE cidadao_id = $4 AND created_at > now() - interval '180 days')
+		SELECT u.id, u.nome, COALESCE(su.tipo, ''), array_agg(DISTINCT s.servico ORDER BY s.servico)
+		  FROM s JOIN unidades u ON u.id = s.unidade_id LEFT JOIN sempras_unidades su ON su.unidade_id = u.id
+		 WHERE NOT `+areaSQL(1, 2, 3)+`
+		 GROUP BY u.id, u.nome, su.tipo ORDER BY u.nome`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("AcompanhamentosForaDaArea", err)
+	}
+	return collect(rows, "AcompanhamentosForaDaArea", func(row pgx.Row) (domain.Acompanhamento, error) {
+		var a domain.Acompanhamento
+		err := row.Scan(&a.UnidadeID, &a.UnidadeNome, &a.Tipo, &a.Ativos)
+		return a, err
 	})
 }
 

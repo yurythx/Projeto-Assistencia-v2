@@ -191,6 +191,18 @@
         msg: "{{ estrutura_result.stdout_lines }}"
       tags: [estrutura, dados-oficiais]
 
+    # Depende da estrutura: o tipo de cada unidade da SEMPRAS (ADR 031) é
+    # achado pelo slug. Idempotente — não muda o tipo de quem já tem.
+    - name: Definir o tipo das unidades da SEMPRAS (CRAS, CREAS, Centro POP...)
+      ansible.builtin.shell: >
+        docker compose exec -T postgres psql -q -v ON_ERROR_STOP=1
+        -U "${DB_USER:-nexus}" -d "${DB_NAME:-nexus}" < deploy/sempras/tipos-unidades.sql
+      args:
+        chdir: "{{ app_repo_dest }}"
+      become_user: "{{ ansible_user }}"
+      changed_when: true
+      tags: [estrutura, dados-oficiais]
+
     # Backup diário do Postgres às 02:00 UTC (23:00 em Brasília), retenção
     # de 7 dias em /var/backups/projeto-assistencia — scripts/backup-diario.sh.
     - name: Agendar o backup diário do banco

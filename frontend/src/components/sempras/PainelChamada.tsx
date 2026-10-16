@@ -6,7 +6,7 @@ import { Bell, Volume2, VolumeX } from "lucide-react";
 import { useTopic } from "@/components/realtime/RealtimeProvider";
 import { Button } from "@/components/ui/Button";
 import { useApiQuery } from "@/lib/api/swr";
-import { rotuloPrioridade, type FilaItem } from "@/lib/sempras/types";
+import { rotuloPrioridade, type FilaItem, type Unidade } from "@/lib/sempras/types";
 
 function tocarChime() {
   try {
@@ -49,7 +49,7 @@ function sintetizarVoz(senha: string, nome: string, local?: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
     window.speechSynthesis.cancel();
-    const texto = `Atenção. Senha ${senha.split("").join(" ")}. ${nome}.${
+    const texto = `Atenção. Senha ${senha.split("").join(" ")}.${nome ? ` ${nome}.` : ""}${
       local ? ` Comparecer ao ${local}.` : " Comparecer ao atendimento."
     }`;
     const utterance = new SpeechSynthesisUtterance(texto);
@@ -66,9 +66,13 @@ function sintetizarVoz(senha: string, nome: string, local?: string) {
  * Painel de chamada para TV da sala de espera:
  * - Últimos chamados em destaque;
  * - Aviso sonoro (chime) e sintetizador de voz (pt-BR);
- * - Atualização em tempo real via WebSockets (sempras:fila:<unidade>).
+ * - Atualização em tempo real via WebSockets (sempras:fila:<unidade>);
+ * - Nas unidades sigilosas (Casa da Mulher, CREAS, Conselho Tutelar —
+ *   `painel_exibe_nome` falso, ADR 031 §3) a TV mostra e fala só a senha.
  */
-export function PainelChamada({ unidadeId }: { unidadeId: string }) {
+export function PainelChamada({ unidade }: { unidade: Unidade }) {
+  const unidadeId = unidade.id;
+  const exibeNome = unidade.painel_exibe_nome;
   const [audioAtivo, setAudioAtivo] = useState(false);
   const ultimoChamadoIdRef = useRef<string | null>(null);
 
@@ -86,7 +90,7 @@ export function PainelChamada({ unidadeId }: { unidadeId: string }) {
   function dispararChamada(item: FilaItem) {
     tocarChime();
     setTimeout(() => {
-      sintetizarVoz(item.senha_exibida, item.nome, item.local);
+      sintetizarVoz(item.senha_exibida, exibeNome ? item.nome : "", item.local);
     }, 600);
   }
 
@@ -104,7 +108,7 @@ export function PainelChamada({ unidadeId }: { unidadeId: string }) {
   function handleTestarAudio() {
     tocarChime();
     setTimeout(() => {
-      sintetizarVoz("P 0 1", "Maria Silva", "Guichê 2");
+      sintetizarVoz("P 0 1", exibeNome ? "Maria Silva" : "", "Guichê 2");
     }, 600);
   }
 
@@ -178,9 +182,11 @@ export function PainelChamada({ unidadeId }: { unidadeId: string }) {
                 )}
               </div>
               <span className="flex-1 text-right">
-                <span className={i === 0 ? "text-5xl font-bold block" : "text-2xl font-medium block"}>
-                  {item.nome}
-                </span>
+                {exibeNome && (
+                  <span className={i === 0 ? "text-5xl font-bold block" : "text-2xl font-medium block"}>
+                    {item.nome}
+                  </span>
+                )}
                 <span className="block text-xl text-muted mt-1">
                   {[item.local, item.prioridade && rotuloPrioridade(item.prioridade)]
                     .filter(Boolean)

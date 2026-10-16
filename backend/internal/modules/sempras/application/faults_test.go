@@ -3,8 +3,10 @@ package application_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -33,13 +35,36 @@ type publisher struct{ err error }
 
 func (p publisher) Publish(context.Context, string, string, any) error { return p.err }
 
-// cenario: uma unidade e um profissional com todas as permissões nela.
+// cenario: uma unidade de cada tipo (ADR 031) e um profissional com todas
+// as permissões nelas. unidade é um CRAS (o tipo com mais serviços); os
+// serviços especializados usam a unidade do seu tipo.
 type cenario struct {
-	pool     *pgxpool.Pool
-	unidade  uuid.UUID
-	unidade2 uuid.UUID // destino de encaminhamento — identity não tem permissão nela, só em unidade
-	identity auth.Identity
-	store    *storagetest.Memory
+	pool       *pgxpool.Pool
+	unidade    uuid.UUID // CRAS
+	unidade2   uuid.UUID // CREAS, destino de encaminhamento — identity não tem permissão nela, só nas outras
+	unCreas    uuid.UUID
+	unPop      uuid.UUID // Centro POP
+	unAbrigo   uuid.UUID // Casa Abrigo
+	unConselho uuid.UUID // Conselho Tutelar
+	identity   auth.Identity
+	store      *storagetest.Memory
+}
+
+// novaUnidade cria uma unidade do tipo na entidade (tipo "" = sem tipo).
+func novaUnidade(t *testing.T, pool *pgxpool.Pool, ent uuid.UUID, tipo string) uuid.UUID {
+	t.Helper()
+	ctx := context.Background()
+	slug := "un-" + uuid.NewString()[:8]
+	var un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, slug).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	if tipo != "" {
+		if _, err := pool.Exec(ctx, `INSERT INTO sempras_unidades (unidade_id, tipo, painel_exibe_nome) VALUES ($1, $2, true)`, un, tipo); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return un
 }
 
 func novoCenario(t *testing.T) cenario {
@@ -47,20 +72,35 @@ func novoCenario(t *testing.T) cenario {
 	pool := dbtest.Pool(t)
 	ctx := context.Background()
 	sfx := uuid.NewString()[:8]
-	var ent, un, un2 uuid.UUID
+	var ent uuid.UUID
 	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
 		t.Fatal(err)
 	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
-		t.Fatal(err)
+	c := cenario{pool: pool, store: storagetest.New(),
+		unidade:    novaUnidade(t, pool, ent, domain.UnidadeCras),
+		unidade2:   novaUnidade(t, pool, ent, domain.UnidadeCreas),
+		unCreas:    novaUnidade(t, pool, ent, domain.UnidadeCreas),
+		unPop:      novaUnidade(t, pool, ent, domain.UnidadeCentroPop),
+		unAbrigo:   novaUnidade(t, pool, ent, domain.UnidadeCasaAbrigo),
+		unConselho: novaUnidade(t, pool, ent, domain.UnidadeConselhoTutelar),
 	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un2-"+sfx).Scan(&un2); err != nil {
-		t.Fatal(err)
+	c.identity = auth.Identity{UserID: dbtest.User(t, pool), Name: "Profissional"}
+	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho} {
+		c.identity.Scopes = append(c.identity.Scopes, auth.Scope{EntidadeID: &ent, UnidadeID: &un, Permissions: []string{"sempras:*"}})
 	}
-	identity := auth.Identity{UserID: dbtest.User(t, pool), Name: "Profissional",
-		Scopes: []auth.Scope{{EntidadeID: &ent, UnidadeID: &un, Permissions: []string{"sempras:*"}}}}
-	identity.Permissions = auth.EffectivePermissions(identity.Scopes)
-	return cenario{pool: pool, unidade: un, unidade2: un2, identity: identity, store: storagetest.New()}
+	c.identity.Permissions = auth.EffectivePermissions(c.identity.Scopes)
+	return c
+}
+
+// so é uma identidade com só as permissões dadas em todas as unidades do
+// cenário (a não ser a unidade2).
+func (c cenario) so(perms ...string) auth.Identity {
+	i := auth.Identity{UserID: c.identity.UserID}
+	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho} {
+		i.Scopes = append(i.Scopes, auth.Scope{UnidadeID: &un, Permissions: perms})
+	}
+	i.Permissions = auth.EffectivePermissions(i.Scopes)
+	return i
 }
 
 const bucket = "test-bucket"
@@ -83,7 +123,9 @@ func (c cenario) limpo() *application.Service {
 func (c cenario) cadastrar(t *testing.T) domain.Cidadao {
 	t.Helper()
 	cid, err := c.limpo().Cadastrar(context.Background(), c.identity, domain.CidadaoInput{
-		Nome: "Pessoa " + uuid.NewString()[:6], DataNascimento: "1990-01-01", NomeMae: "Mãe"})
+		Nome: "Pessoa " + uuid.NewString()[:6], DataNascimento: "1990-01-01", NomeMae: "Mãe",
+		// O CRAS exige CPF ou NIS na fila (ADR 031 §3); NIS aleatório não colide.
+		NIS: fmt.Sprintf("%011d", rand.Int64N(1e11))})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +135,7 @@ func (c cenario) cadastrar(t *testing.T) domain.Cidadao {
 func (c cenario) incluir(t *testing.T, tipo string) domain.FilaItem {
 	t.Helper()
 	item, err := c.limpo().Incluir(context.Background(), c.identity, c.unidade,
-		application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: tipo})
+		application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: tipo, Demanda: "atendimento_tecnico"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +202,7 @@ func (c cenario) paif(t *testing.T) domain.PaifVinculo {
 // (fora da transação sob teste).
 func (c cenario) conselho(t *testing.T) domain.ConselhoAtendimento {
 	t.Helper()
-	ca, err := c.limpo().RegistrarConselhoAtendimento(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+	ca, err := c.limpo().RegistrarConselhoAtendimento(context.Background(), c.identity, c.cadastrar(t).ID, c.unConselho,
 		"Mãe da Criança", "", "", "escola", "evasao_escolar", "faltou 20 dias seguidos")
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +214,7 @@ func (c cenario) conselho(t *testing.T) domain.ConselhoAtendimento {
 // sob teste).
 func (c cenario) paefi(t *testing.T) domain.PaefiCaso {
 	t.Helper()
-	p, err := c.limpo().RegistrarPaefiCaso(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+	p, err := c.limpo().RegistrarPaefiCaso(context.Background(), c.identity, c.cadastrar(t).ID, c.unCreas,
 		[]string{"violencia_fisica"}, "", "")
 	if err != nil {
 		t.Fatal(err)
@@ -184,7 +226,7 @@ func (c cenario) paefi(t *testing.T) domain.PaefiCaso {
 // transação sob teste).
 func (c cenario) mse(t *testing.T) domain.MseMedida {
 	t.Helper()
-	m, err := c.limpo().RegistrarMseMedida(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+	m, err := c.limpo().RegistrarMseMedida(context.Background(), c.identity, c.cadastrar(t).ID, c.unCreas,
 		"123/2026", "Vara da Infância", "furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
 	if err != nil {
 		t.Fatal(err)
@@ -196,7 +238,7 @@ func (c cenario) mse(t *testing.T) domain.MseMedida {
 // ela (fora da transação sob teste).
 func (c cenario) notificacaoCreas(t *testing.T) domain.NotificacaoCreas {
 	t.Helper()
-	n, err := c.limpo().RegistrarNotificacaoCreas(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+	n, err := c.limpo().RegistrarNotificacaoCreas(context.Background(), c.identity, c.cadastrar(t).ID, c.unCreas,
 		"ministerio_publico", "requisição de informações sobre acompanhamento", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -220,7 +262,7 @@ func (c cenario) oficioCras(t *testing.T) domain.OficioCras {
 // (fora da transação sob teste).
 func (c cenario) acolhimento(t *testing.T) domain.Acolhimento {
 	t.Helper()
-	a, err := c.limpo().RegistrarAcolhimento(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade,
+	a, err := c.limpo().RegistrarAcolhimento(context.Background(), c.identity, c.cadastrar(t).ID, c.unAbrigo,
 		application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"negligencia_abandono"}})
 	if err != nil {
 		t.Fatal(err)
@@ -307,7 +349,7 @@ func (c cenario) documento(t *testing.T) domain.DocumentoCasaAbrigo {
 // externo pendente dele (fora da transação sob teste).
 func (c cenario) encaminhamentoExterno(t *testing.T) domain.EncaminhamentoExterno {
 	t.Helper()
-	e, err := c.limpo().RegistrarEncaminhamentoExterno(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, "caps_ad", "media", "motivo válido")
+	e, err := c.limpo().RegistrarEncaminhamentoExterno(context.Background(), c.identity, c.cadastrar(t).ID, c.unPop, "caps_ad", "media", "motivo válido")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -319,7 +361,7 @@ func (c cenario) encaminhamentoExterno(t *testing.T) domain.EncaminhamentoExtern
 func (c cenario) documentoCentroPop(t *testing.T) domain.DocumentoCentroPop {
 	t.Helper()
 	svc := c.limpo()
-	res, err := svc.StartUploadDocumentoCentroPop(context.Background(), c.identity, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+	res, err := svc.StartUploadDocumentoCentroPop(context.Background(), c.identity, c.cadastrar(t).ID, c.unPop, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -397,7 +439,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"Incluir": func(t *testing.T, s *application.Service) error {
-			_, err := s.Incluir(ctx, id, c.unidade, application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: domain.TipoSocial})
+			_, err := s.Incluir(ctx, id, c.unidade, application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: domain.TipoSocial, Demanda: "atendimento_tecnico"})
 			return err
 		},
 		"Fila": func(_ *testing.T, s *application.Service) error { _, err := s.Fila(ctx, id, c.unidade); return err },
@@ -472,7 +514,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"RegistrarConselhoAtendimento": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarConselhoAtendimento(ctx, id, c.cadastrar(t).ID, c.unidade, "Mãe", "", "", "escola", "evasao_escolar", "")
+			_, err := s.RegistrarConselhoAtendimento(ctx, id, c.cadastrar(t).ID, c.unConselho, "Mãe", "", "", "escola", "evasao_escolar", "")
 			return err
 		},
 		"TransitarConselhoAtendimento": func(t *testing.T, s *application.Service) error {
@@ -480,7 +522,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"RegistrarPaefiCaso": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarPaefiCaso(ctx, id, c.cadastrar(t).ID, c.unidade, []string{"violencia_fisica"}, "", "")
+			_, err := s.RegistrarPaefiCaso(ctx, id, c.cadastrar(t).ID, c.unCreas, []string{"violencia_fisica"}, "", "")
 			return err
 		},
 		"MarcarPiaElaborado": func(t *testing.T, s *application.Service) error {
@@ -492,7 +534,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"RegistrarMseMedida": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarMseMedida(ctx, id, c.cadastrar(t).ID, c.unidade, "123/2026", "Vara da Infância",
+			_, err := s.RegistrarMseMedida(ctx, id, c.cadastrar(t).ID, c.unCreas, "123/2026", "Vara da Infância",
 				"furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
 			return err
 		},
@@ -501,7 +543,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"RegistrarNotificacaoCreas": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarNotificacaoCreas(ctx, id, c.cadastrar(t).ID, c.unidade, "ministerio_publico",
+			_, err := s.RegistrarNotificacaoCreas(ctx, id, c.cadastrar(t).ID, c.unCreas, "ministerio_publico",
 				"requisição de informações sobre acompanhamento", nil)
 			return err
 		},
@@ -526,7 +568,7 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"RegistrarAcolhimento": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarAcolhimento(ctx, id, c.cadastrar(t).ID, c.unidade,
+			_, err := s.RegistrarAcolhimento(ctx, id, c.cadastrar(t).ID, c.unAbrigo,
 				application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"negligencia_abandono"}})
 			return err
 		},
@@ -609,11 +651,11 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return s.RemoverDocumento(ctx, id, c.documento(t).ID)
 		},
 		"AtualizarCentroPopPerfil": func(t *testing.T, s *application.Service) error {
-			_, err := s.AtualizarCentroPopPerfil(ctx, id, c.cadastrar(t).ID, c.unidade, "situacao_rua", nil, "outro", false, "", false, "", false, "")
+			_, err := s.AtualizarCentroPopPerfil(ctx, id, c.cadastrar(t).ID, c.unPop, "situacao_rua", nil, "outro", false, "", false, "", false, "")
 			return err
 		},
 		"RegistrarEncaminhamentoExterno": func(t *testing.T, s *application.Service) error {
-			_, err := s.RegistrarEncaminhamentoExterno(ctx, id, c.cadastrar(t).ID, c.unidade, "caps_ad", "media", "motivo válido")
+			_, err := s.RegistrarEncaminhamentoExterno(ctx, id, c.cadastrar(t).ID, c.unPop, "caps_ad", "media", "motivo válido")
 			return err
 		},
 		"TransitarEncaminhamentoExterno": func(t *testing.T, s *application.Service) error {
@@ -621,11 +663,11 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			return err
 		},
 		"StartUploadDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
-			_, err := s.StartUploadDocumentoCentroPop(ctx, id, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+			_, err := s.StartUploadDocumentoCentroPop(ctx, id, c.cadastrar(t).ID, c.unPop, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
 			return err
 		},
 		"ConfirmUploadDocumentoCentroPop": func(t *testing.T, s *application.Service) error {
-			res, err := c.limpo().StartUploadDocumentoCentroPop(ctx, c.identity, c.cadastrar(t).ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
+			res, err := c.limpo().StartUploadDocumentoCentroPop(ctx, c.identity, c.cadastrar(t).ID, c.unPop, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -669,7 +711,7 @@ func TestPublishFailureDoesNotFailTheUseCase(t *testing.T) {
 	c := novoCenario(t)
 	s := c.svc(infrastructure.NewRepository(), publisher{err: errors.New("hub fora")})
 	if _, err := s.Incluir(context.Background(), c.identity, c.unidade,
-		application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: domain.TipoSocial}); err != nil {
+		application.EntradaInput{CidadaoID: c.cadastrar(t).ID, Tipo: domain.TipoSocial, Demanda: "atendimento_tecnico"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -696,6 +738,7 @@ func TestMapError(t *testing.T) {
 		domain.ErrMseEstado:               http.StatusConflict,
 		domain.ErrNotificacaoEstado:       http.StatusConflict,
 		domain.ErrAcolhimentoEstado:       http.StatusConflict,
+		domain.ErrServicoIndisponivel:     http.StatusNotFound,
 	} {
 		ae, ok := apperrors.As(application.MapError(err))
 		if !ok || ae.Status != code {
@@ -741,7 +784,7 @@ func TestRegrasDoServico(t *testing.T) {
 		t.Error("painel sem gestão")
 	}
 	// Só a recepção na unidade: vê a fila, mas não chama.
-	recepcao := auth.Identity{UserID: c.identity.UserID, Scopes: []auth.Scope{{UnidadeID: &c.unidade, Permissions: []string{"sempras:recepcao"}}}}
+	recepcao := c.so("sempras:recepcao")
 	if _, err := s.ChamarProximo(ctx, recepcao, c.unidade, ""); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não chama: %v", err)
 	}
@@ -880,10 +923,10 @@ func TestRegrasDoServico(t *testing.T) {
 	}
 
 	// Conselho Tutelar.
-	if _, err := s.RegistrarConselhoAtendimento(ctx, c.identity, cid, c.unidade, "Mãe", "", "", "origem_invalida", "evasao_escolar", ""); err == nil {
+	if _, err := s.RegistrarConselhoAtendimento(ctx, c.identity, cid, c.unConselho, "Mãe", "", "", "origem_invalida", "evasao_escolar", ""); err == nil {
 		t.Error("origem inválida")
 	}
-	caso, err := s.RegistrarConselhoAtendimento(ctx, c.identity, cid, c.unidade, "Mãe da Criança", "", "", "escola", "evasao_escolar", "faltou 20 dias")
+	caso, err := s.RegistrarConselhoAtendimento(ctx, c.identity, cid, c.unConselho, "Mãe da Criança", "", "", "escola", "evasao_escolar", "faltou 20 dias")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -902,15 +945,15 @@ func TestRegrasDoServico(t *testing.T) {
 		t.Errorf("já arquivado: %v", err)
 	}
 	// recepção (sem atendimento) não registra nem decide.
-	if _, err := s.RegistrarConselhoAtendimento(ctx, recepcao, cid, c.unidade, "Mãe", "", "", "escola", "evasao_escolar", ""); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarConselhoAtendimento(ctx, recepcao, cid, c.unConselho, "Mãe", "", "", "escola", "evasao_escolar", ""); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra: %v", err)
 	}
 
 	// PAEFI.
-	if _, err := s.RegistrarPaefiCaso(ctx, c.identity, cid, c.unidade, nil, "", ""); err == nil {
+	if _, err := s.RegistrarPaefiCaso(ctx, c.identity, cid, c.unCreas, nil, "", ""); err == nil {
 		t.Error("sem violações")
 	}
-	caso2, err := s.RegistrarPaefiCaso(ctx, c.identity, cid, c.unidade, []string{"violencia_fisica", "negligencia"}, "dois filhos menores", "")
+	caso2, err := s.RegistrarPaefiCaso(ctx, c.identity, cid, c.unCreas, []string{"violencia_fisica", "negligencia"}, "dois filhos menores", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -928,12 +971,12 @@ func TestRegrasDoServico(t *testing.T) {
 	if _, err := s.MarcarPiaElaborado(ctx, c.identity, caso2.ID); !errors.Is(err, domain.ErrPaefiEstado) {
 		t.Errorf("já desligado: %v", err)
 	}
-	if _, err := s.RegistrarPaefiCaso(ctx, recepcao, cid, c.unidade, []string{"violencia_fisica"}, "", ""); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarPaefiCaso(ctx, recepcao, cid, c.unCreas, []string{"violencia_fisica"}, "", ""); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra PAEFI: %v", err)
 	}
 
 	// MSE.
-	medida, err := s.RegistrarMseMedida(ctx, c.identity, cid, c.unidade, "123/2026", "Vara da Infância", "furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
+	medida, err := s.RegistrarMseMedida(ctx, c.identity, cid, c.unCreas, "123/2026", "Vara da Infância", "furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -947,12 +990,12 @@ func TestRegrasDoServico(t *testing.T) {
 	if _, err := s.ConcluirMseMedida(ctx, c.identity, medida.ID, domain.MseStatusExtinta); !errors.Is(err, domain.ErrMseEstado) {
 		t.Errorf("já concluída: %v", err)
 	}
-	if _, err := s.RegistrarMseMedida(ctx, recepcao, cid, c.unidade, "", "", "furto", domain.MseTipoLiberdadeAssistida, ""); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarMseMedida(ctx, recepcao, cid, c.unCreas, "", "", "furto", domain.MseTipoLiberdadeAssistida, ""); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra MSE: %v", err)
 	}
 
 	// Notificações do CREAS.
-	notif, err := s.RegistrarNotificacaoCreas(ctx, c.identity, cid, c.unidade, "ministerio_publico", "requisição de informações", nil)
+	notif, err := s.RegistrarNotificacaoCreas(ctx, c.identity, cid, c.unCreas, "ministerio_publico", "requisição de informações", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -967,15 +1010,15 @@ func TestRegrasDoServico(t *testing.T) {
 	if err != nil || respondida.Status != domain.NotificacaoStatusRespondida {
 		t.Errorf("responder: %+v, %v", respondida, err)
 	}
-	if _, err := s.RegistrarNotificacaoCreas(ctx, recepcao, cid, c.unidade, "ministerio_publico", "requisição", nil); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarNotificacaoCreas(ctx, recepcao, cid, c.unCreas, "ministerio_publico", "requisição", nil); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra notificação: %v", err)
 	}
 
 	// Casa Abrigo.
-	if _, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unidade, application.AcolhimentoInput{Sexo: "outro", Motivos: []string{"outro"}}); err == nil {
+	if _, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo, application.AcolhimentoInput{Sexo: "outro", Motivos: []string{"outro"}}); err == nil {
 		t.Error("sexo inválido")
 	}
-	acolhido, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unidade,
+	acolhido, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo,
 		application.AcolhimentoInput{Sexo: "feminino", Motivos: []string{"negligencia_abandono", "situacao_rua"}, ResponsavelNome: "Mãe da Criança"})
 	if err != nil {
 		t.Fatal(err)
@@ -998,7 +1041,7 @@ func TestRegrasDoServico(t *testing.T) {
 	if _, err := s.DesligarAcolhimento(ctx, c.identity, acolhido.ID, "de novo"); !errors.Is(err, domain.ErrAcolhimentoEstado) {
 		t.Errorf("já desligado: %v", err)
 	}
-	if _, err := s.RegistrarAcolhimento(ctx, recepcao, cid, c.unidade, application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"outro"}}); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarAcolhimento(ctx, recepcao, cid, c.unAbrigo, application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"outro"}}); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra acolhimento: %v", err)
 	}
 
@@ -1034,7 +1077,7 @@ func TestRegrasDoServico(t *testing.T) {
 	}
 
 	// Casa Abrigo: visitantes, termos e PIA.
-	acolh, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unidade, application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"outro"}})
+	acolh, err := s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo, application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"outro"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1138,29 +1181,29 @@ func TestRegrasDoServico(t *testing.T) {
 		t.Fatalf("cadastro anônimo (Centro POP): %v", err)
 	}
 
-	if _, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "invalida", nil, "outro", false, "", false, "", false, ""); err == nil {
+	if _, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unPop, "invalida", nil, "outro", false, "", false, "", false, ""); err == nil {
 		t.Error("situação inválida")
 	}
-	if _, err := s.AtualizarCentroPopPerfil(ctx, recepcao, semIdentificacao.ID, c.unidade, "situacao_rua", nil, "outro", false, "", false, "", false, ""); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.AtualizarCentroPopPerfil(ctx, recepcao, semIdentificacao.ID, c.unPop, "situacao_rua", nil, "outro", false, "", false, "", false, ""); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não atualiza perfil de rua: %v", err)
 	}
 	tempoRua := 3.0
-	perfil, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "situacao_rua", &tempoRua,
+	perfil, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unPop, "situacao_rua", &tempoRua,
 		"uso_de_drogas", true, "hipertensão", false, "", true, "uso de crack")
 	if err != nil || perfil.Situacao != "situacao_rua" || !perfil.UsoDrogas {
 		t.Errorf("atualizar perfil de rua: %+v, %v", perfil, err)
 	}
 	// upsert: atualizar de novo continua um perfil só.
-	perfil2, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unidade, "albergado", nil,
+	perfil2, err := s.AtualizarCentroPopPerfil(ctx, c.identity, semIdentificacao.ID, c.unPop, "albergado", nil,
 		"desemprego", false, "", false, "", false, "")
 	if err != nil || perfil2.Situacao != "albergado" {
 		t.Errorf("atualizar perfil de rua de novo: %+v, %v", perfil2, err)
 	}
 
-	if _, err := s.RegistrarEncaminhamentoExterno(ctx, recepcao, semIdentificacao.ID, c.unidade, "caps_ad", "alta", "motivo válido"); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.RegistrarEncaminhamentoExterno(ctx, recepcao, semIdentificacao.ID, c.unPop, "caps_ad", "alta", "motivo válido"); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não registra encaminhamento externo: %v", err)
 	}
-	encExterno, err := s.RegistrarEncaminhamentoExterno(ctx, c.identity, semIdentificacao.ID, c.unidade, "caps_ad", "alta", "uso abusivo de substâncias")
+	encExterno, err := s.RegistrarEncaminhamentoExterno(ctx, c.identity, semIdentificacao.ID, c.unPop, "caps_ad", "alta", "uso abusivo de substâncias")
 	if err != nil || encExterno.Status != domain.EncaminhamentoExternoStatusPendente {
 		t.Errorf("registrar encaminhamento externo: %+v, %v", encExterno, err)
 	}
@@ -1176,10 +1219,10 @@ func TestRegrasDoServico(t *testing.T) {
 	}
 
 	// Documentos do Centro POP — mesma regra de tipo real conferido no storage.
-	if _, err := s.StartUploadDocumentoCentroPop(ctx, recepcao, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8); !errors.Is(err, domain.ErrForbidden) {
+	if _, err := s.StartUploadDocumentoCentroPop(ctx, recepcao, semIdentificacao.ID, c.unPop, domain.DocumentoCentroPopLaudoSaude, "doc.pdf", "application/pdf", 8); !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("recepção não envia documento do Centro POP: %v", err)
 	}
-	upCp, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopLaudoSaude, "laudo.pdf", "application/pdf", 8)
+	upCp, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unPop, domain.DocumentoCentroPopLaudoSaude, "laudo.pdf", "application/pdf", 8)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1189,7 +1232,7 @@ func TestRegrasDoServico(t *testing.T) {
 	if _, err := s.ConfirmUploadDocumentoCentroPop(ctx, c.identity, upCp.Documento.ID); err == nil {
 		t.Error("tipo real diferente de PDF deveria ser recusado")
 	}
-	upCp2, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unidade, domain.DocumentoCentroPopIdentificacao, "doc.pdf", "application/pdf", 8)
+	upCp2, err := s.StartUploadDocumentoCentroPop(ctx, c.identity, semIdentificacao.ID, c.unPop, domain.DocumentoCentroPopIdentificacao, "doc.pdf", "application/pdf", 8)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1247,7 +1290,7 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/registros", `{`, 400},
 		{http.MethodGet, "/sempras/unidades/" + u + "/fila", "", 500},
 		{http.MethodGet, "/sempras/unidades/zz/fila", "", 400},
-		{http.MethodPost, "/sempras/unidades/" + u + "/fila", `{"cidadao_id":"` + x + `","tipo":"social"}`, 500},
+		{http.MethodPost, "/sempras/unidades/" + u + "/fila", `{"cidadao_id":"` + x + `","tipo":"social","demanda":"atendimento_tecnico"}`, 500},
 		{http.MethodPost, "/sempras/unidades/zz/fila", `{}`, 400},
 		{http.MethodPost, "/sempras/unidades/" + u + "/fila", `{`, 400},
 		{http.MethodPost, "/sempras/unidades/" + u + "/fila/proximo", "", 500},
@@ -1394,5 +1437,111 @@ func TestHandlersReportFailures(t *testing.T) {
 		if rec.Code != tc.want || strings.Contains(rec.Body.String(), errBoom.Error()) {
 			t.Errorf("%s %s: esperado %d, veio %d %s", tc.method, tc.path, tc.want, rec.Code, rec.Body.String())
 		}
+	}
+}
+
+// TestServicoPorTipoDeUnidade: cada unidade só oferta os serviços do seu
+// tipo (ADR 031 §2) — o CRAS não abre caso do PAEFI, o CREAS não acolhe,
+// e uma unidade sem tipo não atende.
+func TestServicoPorTipoDeUnidade(t *testing.T) {
+	c := novoCenario(t)
+	s := c.limpo()
+	ctx := context.Background()
+	cid := c.cadastrar(t).ID
+	indisponivel := func(nome string, err error) {
+		t.Helper()
+		if !errors.Is(err, domain.ErrServicoIndisponivel) {
+			t.Errorf("%s: esperava serviço indisponível, veio %v", nome, err)
+		}
+	}
+
+	_, err := s.RegistrarPaefiCaso(ctx, c.identity, cid, c.unidade, []string{"violencia_fisica"}, "", "")
+	indisponivel("PAEFI no CRAS", err)
+	_, err = s.RegistrarMseMedida(ctx, c.identity, cid, c.unPop, "1/2026", "Vara", "furto", domain.MseTipoLiberdadeAssistida, "")
+	indisponivel("MSE no Centro POP", err)
+	_, err = s.RegistrarNotificacaoCreas(ctx, c.identity, cid, c.unidade, "ministerio_publico", "requisição", nil)
+	indisponivel("notificação no CRAS", err)
+	_, err = s.IncluirPaif(ctx, c.identity, cid, c.unCreas, domain.PaifAtendimentoParticularizado, false, false, false, 0)
+	indisponivel("PAIF no CREAS", err)
+	_, err = s.RegistrarOficioCras(ctx, c.identity, cid, c.unConselho, "MPE", "1/2026", nil, "assunto")
+	indisponivel("ofício no Conselho", err)
+	_, err = s.RegistrarConselhoAtendimento(ctx, c.identity, cid, c.unidade, "Mãe", "", "", "escola", "evasao_escolar", "")
+	indisponivel("medida do Conselho no CRAS", err)
+	_, err = s.RegistrarAcolhimento(ctx, c.identity, cid, c.unCreas,
+		application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"negligencia_abandono"}})
+	indisponivel("acolhimento no CREAS", err)
+	_, err = s.AtualizarCentroPopPerfil(ctx, c.identity, cid, c.unidade, domain.SituacoesRua[0], nil, "outro", false, "", false, "", false, "")
+	indisponivel("perfil de rua no CRAS", err)
+	_, err = s.SolicitarBeneficio(ctx, c.identity, cid, nil, c.unCreas, domain.BeneficioCestaBasica, domain.FormaAcessoDemandaEspontanea, 1, "")
+	indisponivel("benefício no CREAS", err)
+	_, err = s.RegistrarAtendimentoColetivo(ctx, c.identity, c.unCreas, time.Now(), domain.CategoriasColetivo[0], 5, "grupo")
+	indisponivel("coletivo no CREAS", err)
+	_, err = s.Incluir(ctx, c.identity, c.unAbrigo, application.EntradaInput{CidadaoID: cid, Tipo: domain.TipoSocial})
+	indisponivel("fila na Casa Abrigo", err)
+
+	// Os serviços comuns valem em todos os tipos.
+	if _, err := s.RegistrarEvolucao(ctx, c.identity, cid, application.EvolucaoInput{
+		UnidadeID: c.unAbrigo, Tipo: domain.TipoSocial, Texto: "evolução na Casa Abrigo"}); err != nil {
+		t.Errorf("evolução na Casa Abrigo: %v", err)
+	}
+
+	// Unidade sem tipo (Sede, setor administrativo): não atende nada nem
+	// aparece no seletor.
+	var ent uuid.UUID
+	if err := c.pool.QueryRow(ctx, `SELECT entidade_id FROM unidades WHERE id = $1`, c.unidade).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	sede := novaUnidade(t, c.pool, ent, "")
+	gestor := auth.Identity{UserID: c.identity.UserID, Scopes: []auth.Scope{{EntidadeID: &ent, Permissions: []string{"sempras:*"}}}}
+	gestor.Permissions = auth.EffectivePermissions(gestor.Scopes)
+	_, err = s.Incluir(ctx, gestor, sede, application.EntradaInput{CidadaoID: cid, Tipo: domain.TipoSocial})
+	indisponivel("fila na unidade sem tipo", err)
+	_, err = s.Encaminhar(ctx, c.identity, cid, c.unidade, sede, "encaminhar para a sede")
+	indisponivel("encaminhamento para unidade sem tipo", err)
+	us, err := s.Unidades(ctx, gestor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(us) == 0 {
+		t.Fatal("o gestor da entidade deveria ver as unidades com tipo")
+	}
+	for _, u := range us {
+		if u.ID == sede {
+			t.Error("unidade sem tipo não aparece no seletor")
+		}
+		if len(u.Servicos) == 0 {
+			t.Errorf("unidade %s sem serviços", u.Tipo)
+		}
+	}
+}
+
+// TestProntuarioPorTipoDeUnidade: o perfil de rua (saúde, drogas) é do
+// munícipe, mas só sai para quem atua num Centro POP (ADR 031 §4).
+func TestProntuarioPorTipoDeUnidade(t *testing.T) {
+	c := novoCenario(t)
+	s := c.limpo()
+	ctx := context.Background()
+	cid := c.cadastrar(t).ID
+	if _, err := s.AtualizarCentroPopPerfil(ctx, c.identity, cid, c.unPop, domain.SituacoesRua[0], nil, "outro",
+		false, "", false, "", true, "álcool"); err != nil {
+		t.Fatal(err)
+	}
+	so := func(un uuid.UUID) auth.Identity {
+		i := auth.Identity{UserID: c.identity.UserID, Scopes: []auth.Scope{{UnidadeID: &un, Permissions: []string{"sempras:atendimento"}}}}
+		i.Permissions = auth.EffectivePermissions(i.Scopes)
+		return i
+	}
+	p, err := s.Prontuario(ctx, so(c.unidade), cid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.CentroPopPerfil != nil || len(p.CentroPopDocumentos) != 0 {
+		t.Error("o CRAS não lê o perfil de rua")
+	}
+	if p, err = s.Prontuario(ctx, so(c.unPop), cid); err != nil {
+		t.Fatal(err)
+	}
+	if p.CentroPopPerfil == nil {
+		t.Error("o Centro POP lê o perfil de rua")
 	}
 }

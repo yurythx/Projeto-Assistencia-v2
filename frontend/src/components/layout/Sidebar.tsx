@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, BarChart3, FileBarChart, LayoutDashboard, MonitorPlay, Settings, ShieldCheck, Users2, UsersRound, type LucideProps } from "lucide-react";
+import { Activity, BarChart3, FileBarChart, LayoutDashboard, Settings, ShieldCheck, UsersRound, type LucideProps } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ComponentType } from "react";
@@ -29,14 +29,10 @@ interface NavSection {
 // basta. Some junto quando o módulo é desativado (vem de `modules`, igual a
 // tudo mais na sidebar).
 const MODULE_CHILDREN: Record<string, (can: (p: string) => boolean) => NavItem[]> = {
+  // Painel de chamada e atendimentos coletivos são da unidade (ADR 031 §4):
+  // viram atalhos no espaço de cada unidade que oferta o serviço.
   sempras: (can) => [
     { href: "/sempras", label: "Atendimento", icon: UsersRound },
-    ...(can("sempras:atendimento")
-      ? [
-          { href: "/sempras/painel-chamada", label: "Painel de chamada", icon: MonitorPlay },
-          { href: "/sempras/coletivos", label: "Atendimentos coletivos", icon: Users2 },
-        ]
-      : []),
     ...(can("sempras:gestao")
       ? [
           { href: "/sempras/painel", label: "Painel de gestão", icon: BarChart3 },

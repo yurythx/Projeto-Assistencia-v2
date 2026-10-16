@@ -803,3 +803,64 @@ func TestDocumentoCentroPop(t *testing.T) {
 		t.Errorf("documento centro pop: %+v", d)
 	}
 }
+
+// TestCatalogoPorTipoDeUnidade cobre o ADR 031: serviços e demandas por
+// tipo, e as regras de identificação da entrada na fila.
+func TestCatalogoPorTipoDeUnidade(t *testing.T) {
+	cras := Unidade{Tipo: UnidadeCras}
+	creas := Unidade{Tipo: UnidadeCreas}
+	pop := Unidade{Tipo: UnidadeCentroPop}
+	if !cras.Oferta(ServicoPaif) || cras.Oferta(ServicoPaefi) || !creas.Oferta(ServicoPaefi) {
+		t.Error("PAIF é do CRAS; PAEFI, do CREAS")
+	}
+	if (Unidade{}).Oferta(ServicoFila) || len(ServicosDoTipo("")) != 0 {
+		t.Error("unidade sem tipo não oferta nada")
+	}
+	if (Unidade{Tipo: UnidadeCasaAbrigo}).Oferta(ServicoFila) {
+		t.Error("a Casa Abrigo não tem fila")
+	}
+	for _, tipo := range TiposUnidade {
+		if !(Unidade{Tipo: tipo}).Oferta(ServicoProntuario) {
+			t.Errorf("%s: o prontuário é comum a todos os tipos", tipo)
+		}
+	}
+	// As listas devolvidas são cópias: mexer nelas não muda o catálogo.
+	sv := ServicosDoTipo(UnidadeCras)
+	sv[0] = "x"
+	dm := DemandasDoTipo(UnidadeCras)
+	dm[0] = "x"
+	if ServicosDoTipo(UnidadeCras)[0] == "x" || DemandasDoTipo(UnidadeCras)[0] == "x" {
+		t.Error("o catálogo é imutável")
+	}
+
+	comNIS := Cidadao{NIS: "12345678901"}
+	semDoc := Cidadao{DataNascimento: "1990-01-01", NomeMae: "Mãe"}
+	anonimo := Cidadao{Anonimo: true}
+	casos := []struct {
+		nome             string
+		u                Unidade
+		c                Cidadao
+		demanda, detalhe string
+		ok               bool
+	}{
+		{"CRAS com NIS", cras, comNIS, " cadunico_bolsa_familia ", "", true},
+		{"demanda de outro tipo", cras, comNIS, "alimentacao_higiene", "", false},
+		{"outra sem detalhe", cras, comNIS, DemandaOutra, " ", false},
+		{"outra com detalhe", cras, comNIS, DemandaOutra, "segunda via de documento", true},
+		{"detalhe longo demais", cras, comNIS, "orientacao_geral", strings.Repeat("x", 201), false},
+		{"CRAS sem CPF nem NIS", cras, semDoc, "orientacao_geral", "", false},
+		{"CREAS sem CPF nem NIS", creas, semDoc, "acolhida_inicial", "", true},
+		{"anônimo fora do Centro POP", creas, anonimo, "acolhida_inicial", "", false},
+		{"anônimo no Centro POP", pop, anonimo, "banho_lavanderia", "", true},
+		{"unidade sem tipo", Unidade{}, comNIS, "orientacao_geral", "", false},
+	}
+	for _, c := range casos {
+		d, det, err := c.u.ValidarEntrada(c.c, c.demanda, c.detalhe)
+		if (err == nil) != c.ok {
+			t.Errorf("%s: err = %v", c.nome, err)
+		}
+		if err == nil && (d != strings.TrimSpace(c.demanda) || det != strings.TrimSpace(c.detalhe)) {
+			t.Errorf("%s: normalizou para %q/%q", c.nome, d, det)
+		}
+	}
+}

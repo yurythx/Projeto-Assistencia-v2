@@ -1,5 +1,13 @@
 // Tipos e rótulos do SEMPRAS (espelho dos DTOs de
-// backend/internal/modules/sempras/domain — ADR 030).
+// backend/internal/modules/sempras/domain — ADR 030 e 031).
+
+/** Tipo da unidade (ADR 031 §1) — decide os serviços e a recepção. */
+export type TipoUnidade = "cras" | "scfv" | "creas" | "centro_pop" | "casa_mulher" | "casa_abrigo" | "conselho_tutelar";
+
+/** Serviços que uma unidade pode ofertar (ADR 031 §2). */
+export type Servico =
+  | "fila" | "prontuario" | "encaminhamento" | "beneficio" | "paif" | "oficio" | "coletivo"
+  | "paefi" | "mse" | "notificacao" | "centro_pop" | "acolhimento" | "conselho";
 
 export interface Unidade {
   id: string;
@@ -7,6 +15,59 @@ export interface Unidade {
   nome: string;
   sigla: string;
   ativa: boolean;
+  tipo: TipoUnidade;
+  /** A TV da sala de espera mostra e fala o nome? (só a senha nas unidades sigilosas) */
+  painel_exibe_nome: boolean;
+  servicos: Servico[];
+  /** Demandas da recepção válidas nesta unidade. */
+  demandas: string[];
+}
+
+/** A unidade oferta o serviço? Toda tela pergunta isto, nunca o nome da unidade. */
+export function oferta(u: Pick<Unidade, "servicos"> | undefined | null, servico: Servico): boolean {
+  return Boolean(u?.servicos?.includes(servico));
+}
+
+export const TIPOS_UNIDADE: Record<TipoUnidade, { label: string; protecao: string }> = {
+  cras: { label: "CRAS", protecao: "Proteção Social Básica" },
+  scfv: { label: "Convivência (SCFV)", protecao: "Proteção Social Básica" },
+  creas: { label: "CREAS", protecao: "Proteção Social Especial de Média Complexidade" },
+  centro_pop: { label: "Centro POP", protecao: "Proteção Social Especial de Média Complexidade" },
+  casa_mulher: { label: "Casa da Mulher", protecao: "Proteção Social Especial" },
+  casa_abrigo: { label: "Casa Abrigo", protecao: "Proteção Social Especial de Alta Complexidade" },
+  conselho_tutelar: { label: "Conselho Tutelar", protecao: "Garantia de Direitos (ECA)" },
+};
+
+/** Rótulos das demandas da recepção (a lista válida vem de Unidade.demandas). */
+export const DEMANDAS: Record<string, string> = {
+  atendimento_tecnico: "Atendimento técnico social",
+  cadunico_bolsa_familia: "Cadastro Único / Bolsa Família",
+  beneficio_eventual: "Benefício eventual (cesta, auxílio)",
+  encaminhamento_rede: "Encaminhamento da rede",
+  orientacao_geral: "Informações e orientações",
+  inscricao_scfv: "Inscrição no SCFV",
+  atividade_grupo: "Atividade de grupo",
+  acolhida_inicial: "Acolhida inicial",
+  atendimento_psicossocial: "Atendimento psicossocial",
+  orientacao_juridico_social: "Orientação jurídico-social",
+  acompanhamento_paefi: "Acompanhamento PAEFI",
+  medida_socioeducativa: "Medida socioeducativa",
+  alimentacao_higiene: "Alimentação e higiene pessoal",
+  banho_lavanderia: "Banho, troca de roupa e lavanderia",
+  guarda_pertences: "Guarda de pertences",
+  passagem: "Auxílio deslocamento / passagem",
+  pernoite_abrigo: "Pernoite / encaminhamento para abrigo",
+  acolhida_geral: "Atendimento geral de acolhida",
+  medida_protetiva: "Medida protetiva",
+  demanda_espontanea: "Demanda espontânea",
+  atendimento_familia: "Atendimento à família",
+  acompanhamento_medida: "Acompanhamento de medida",
+  requisicao_servico: "Requisição de serviço público",
+  outra: "Outra (descrever)",
+};
+
+export function rotuloDemanda(codigo: string): string {
+  return DEMANDAS[codigo] ?? (codigo || "Não informada");
 }
 
 export interface Resumo {
@@ -42,6 +103,8 @@ export interface Atendimento {
   senha: number;
   tipo: "social" | "psicologico";
   prioridade: string;
+  demanda: string;
+  demanda_detalhe: string;
   status: Status;
   local: string;
   created_at: string;
@@ -738,7 +801,27 @@ export interface Prontuario {
   centro_pop_perfil: CentroPopPerfil | null;
   encaminhamentos_externos: EncaminhamentoExterno[];
   centro_pop_documentos: DocumentoCentroPop[];
+  /** Outras unidades em que o munícipe tem serviço em curso — sem conteúdo (ADR 031 §4). */
+  outras_unidades: Acompanhamento[];
+  /** Evolução social das unidades que encaminharam o munícipe para cá. */
+  registros_origem: Registro[];
 }
+
+export interface Acompanhamento {
+  unidade_id: string;
+  unidade_nome: string;
+  tipo: TipoUnidade | "";
+  ativos: ("paif" | "paefi" | "mse" | "acolhimento" | "conselho" | "atendimento")[];
+}
+
+export const ACOMPANHAMENTOS: Record<Acompanhamento["ativos"][number], string> = {
+  paif: "PAIF ativo",
+  paefi: "PAEFI em acompanhamento",
+  mse: "Medida socioeducativa",
+  acolhimento: "Acolhido",
+  conselho: "Atendimento do Conselho em andamento",
+  atendimento: "Atendido nos últimos 6 meses",
+};
 
 export interface PainelUnidade {
   unidade: Unidade;

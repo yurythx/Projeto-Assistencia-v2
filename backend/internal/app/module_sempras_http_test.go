@@ -53,6 +53,13 @@ func newSemprasCenario(t *testing.T) *semprasCenario {
 		`{"entidade_id":"`+c.entidade+`","nome":"CRAS A `+sfx+`"}`)).ID
 	c.unB = data[idResp](t, h.expect(http.StatusCreated, http.MethodPost, "/api/v1/iam/unidades", c.admin,
 		`{"entidade_id":"`+c.entidade+`","nome":"CRAS B `+sfx+`"}`)).ID
+	// O tipo é do módulo (ADR 031): sem ele a unidade não atende.
+	for _, un := range []string{c.unA, c.unB} {
+		if _, err := h.d.DB.Exec(context.Background(),
+			`INSERT INTO sempras_unidades (unidade_id, tipo, painel_exibe_nome) VALUES ($1, 'cras', true)`, un); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	var id uuid.UUID
 	id, c.recepA = h.user("nexus-user")
@@ -116,7 +123,7 @@ func (c *semprasCenario) cadastrar(tok, body string) string {
 func (c *semprasCenario) incluir(tok, unidade, cidadao, tipo, prioridade string) semprasItem {
 	c.h.t.Helper()
 	return data[semprasItem](c.h.t, c.h.expect(http.StatusCreated, http.MethodPost, "/api/v1/sempras/unidades/"+unidade+"/fila", tok,
-		`{"cidadao_id":"`+cidadao+`","tipo":"`+tipo+`","prioridade":"`+prioridade+`"}`))
+		`{"cidadao_id":"`+cidadao+`","tipo":"`+tipo+`","prioridade":"`+prioridade+`","demanda":"atendimento_tecnico"}`))
 }
 
 func (c *semprasCenario) acao(want int, tok, id, acao string) {
@@ -205,19 +212,24 @@ func TestSemprasJornadaHTTP(t *testing.T) {
 	if m.SenhaExibida != fmt.Sprintf("N%03d", m.Senha) || m.Status != "aguardando" {
 		t.Fatalf("entrada: %+v", m)
 	}
-	h.expect(http.StatusConflict, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social"}`)
-	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social","prioridade":"vip"}`)
-	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+uuid.NewString()+`","tipo":"social"}`)
+	h.expect(http.StatusConflict, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social","demanda":"atendimento_tecnico"}`)
+	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social","demanda":"atendimento_tecnico","prioridade":"vip"}`)
+	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA, `{"cidadao_id":"`+uuid.NewString()+`","tipo":"social","demanda":"atendimento_tecnico"}`)
 	jo := c.incluir(c.tecA, c.unA, jose, "social", "idoso_80")
 	if !strings.HasPrefix(jo.SenhaExibida, "P") || jo.Senha != m.Senha+1 {
 		t.Fatalf("prioridade: %+v", jo)
 	}
+	// O CRAS exige CPF ou NIS (ADR 031 §3): sem documento, não entra na fila.
+	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.recepA,
+		`{"cidadao_id":"`+joao+`","tipo":"psicologico","demanda":"atendimento_tecnico"}`)
+	h.expect(http.StatusOK, http.MethodPut, "/api/v1/sempras/cidadaos/"+joao, c.recepA,
+		`{"nome":"João Sem Documento","data_nascimento":"1990-05-01","nome_mae":"Ana","nis":"`+cpfTeste(t)+`"}`)
 	ps := c.incluir(c.recepA, c.unA, joao, "psicologico", "")
 
 	// Escopo: B não vê nem mexe na A; a gestão vê.
 	h.expect(http.StatusNotFound, http.MethodGet, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.tecB, "")
-	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.tecB, `{"cidadao_id":"`+maria+`","tipo":"social"}`)
-	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unB+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social"}`)
+	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.tecB, `{"cidadao_id":"`+maria+`","tipo":"social","demanda":"atendimento_tecnico"}`)
+	h.expect(http.StatusNotFound, http.MethodPost, "/api/v1/sempras/unidades/"+c.unB+"/fila", c.recepA, `{"cidadao_id":"`+maria+`","tipo":"social","demanda":"atendimento_tecnico"}`)
 	h.expect(http.StatusNotFound, http.MethodGet, "/api/v1/sempras/unidades/"+uuid.NewString()+"/fila", c.sup, "")
 	c.acao(http.StatusNotFound, c.tecB, m.ID, "chamar")
 	fila := data[[]semprasItem](t, h.expect(http.StatusOK, http.MethodGet, "/api/v1/sempras/unidades/"+c.unA+"/fila", c.sup, ""))
@@ -261,7 +273,7 @@ func TestSemprasJornadaHTTP(t *testing.T) {
 	h.expect(http.StatusBadRequest, http.MethodPost, "/api/v1/sempras/atendimentos/"+m.ID+"/concluir", c.tecA, `{"local":`)
 
 	// Cancelar: a recepção cancela quem aguarda.
-	c2 := c.cadastrar(c.recepA, `{"nome":"Cancelada","data_nascimento":"2000-01-01","nome_mae":"Mãe"}`)
+	c2 := c.cadastrar(c.recepA, `{"nome":"Cancelada","nis":"`+cpfTeste(t)+`"}`)
 	can := c.incluir(c.recepA, c.unA, c2, "social", "")
 	c.acao(http.StatusOK, c.recepA, can.ID, "cancelar")
 
@@ -345,7 +357,7 @@ func TestSemprasJornadaHTTP(t *testing.T) {
 	// Unidade desativada não recebe fila nem evolução (ADR 012).
 	h.expect(http.StatusOK, http.MethodPut, "/api/v1/iam/unidades/"+c.unB, c.admin,
 		`{"entidade_id":"`+c.entidade+`","nome":"CRAS B desativado `+uuid.NewString()[:4]+`","ativo":false}`)
-	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/unidades/"+c.unB+"/fila", c.admin, `{"cidadao_id":"`+maria+`","tipo":"social"}`)
+	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/unidades/"+c.unB+"/fila", c.admin, `{"cidadao_id":"`+maria+`","tipo":"social","demanda":"atendimento_tecnico"}`)
 	h.expect(http.StatusUnprocessableEntity, http.MethodPost, "/api/v1/sempras/cidadaos/"+maria+"/registros", c.admin,
 		`{"unidade_id":"`+c.unB+`","tipo":"social","texto":"x"}`)
 }

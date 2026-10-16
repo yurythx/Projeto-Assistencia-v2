@@ -13,7 +13,8 @@ import {
   renderRealtime,
   wsTicketRoute,
 } from "@/test/backend";
-import { resetNavigation } from "@/test/navigation";
+import type { Servico, TipoUnidade, Unidade } from "@/lib/sempras/types";
+import { resetNavigation, router } from "@/test/navigation";
 
 vi.mock("next/navigation", async () => (await import("@/test/navigation")).navigationModule);
 
@@ -23,6 +24,7 @@ vi.mock("next/navigation", async () => (await import("@/test/navigation")).navig
 vi.setConfig({ testTimeout: 15000 });
 
 import SemprasPage from "./page";
+import UnidadePage from "./u/[unidade]/page";
 import PainelPage from "./painel/page";
 import PedidosPage from "./pedidos/page";
 import RmaPage from "./rma/page";
@@ -30,10 +32,21 @@ import PainelChamadaPage from "./painel-chamada/page";
 import ColetivosPage from "./coletivos/page";
 import FichaPage from "./cidadaos/[id]/page";
 
-const UNIDADES = [
-  { id: "u1", entidade_id: "e1", nome: "CRAS Ana Carla", sigla: "", ativa: true },
-  { id: "u2", entidade_id: "e1", nome: "CREAS", sigla: "", ativa: true },
-];
+const unidade = (id: string, nome: string, tipo: TipoUnidade, servicos: Servico[], demandas: string[], painel_exibe_nome = true): Unidade => ({
+  id, entidade_id: "e1", nome, sigla: "", ativa: true, tipo, painel_exibe_nome, servicos, demandas,
+});
+const CRAS = unidade("u1", "CRAS Ana Carla", "cras",
+  ["fila", "prontuario", "encaminhamento", "beneficio", "paif", "oficio", "coletivo"],
+  ["atendimento_tecnico", "cadunico_bolsa_familia", "beneficio_eventual", "encaminhamento_rede", "orientacao_geral", "outra"]);
+const CREAS = unidade("u2", "CREAS", "creas", ["fila", "prontuario", "encaminhamento", "paefi", "mse", "notificacao"],
+  ["acolhida_inicial", "atendimento_psicossocial", "outra"], false);
+const POP = unidade("u3", "Centro POP", "centro_pop", ["fila", "prontuario", "encaminhamento", "beneficio", "centro_pop"],
+  ["alimentacao_higiene", "banho_lavanderia", "outra"]);
+const ABRIGO = unidade("u4", "Casa Abrigo", "casa_abrigo", ["prontuario", "encaminhamento", "acolhimento"], [], false);
+const CONSELHO = unidade("u5", "Conselho Tutelar Central", "conselho_tutelar", ["fila", "prontuario", "encaminhamento", "conselho"],
+  ["demanda_espontanea", "outra"], false);
+const UNIDADES = [CRAS, CREAS];
+const TODAS = [CRAS, CREAS, POP, ABRIGO, CONSELHO];
 
 const item = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -46,6 +59,8 @@ const item = (id: string, extra: Record<string, unknown> = {}) => ({
   prioridade: "",
   status: "aguardando",
   local: "",
+  demanda: "atendimento_tecnico",
+  demanda_detalhe: "",
   nome: `Pessoa ${id}`,
   created_at: "2026-10-08T10:00:00Z",
   chamado_em: null,
@@ -57,7 +72,7 @@ const item = (id: string, extra: Record<string, unknown> = {}) => ({
 const recepcionista = { permissions: ["sempras:recepcao"], scopes: [] };
 
 describe("SEMPRAS — atendimento", () => {
-  beforeEach(() => resetNavigation());
+  beforeEach(() => resetNavigation({ unidade: "u1" }));
 
   it("recepção busca, cadastra e inclui na fila; a fila se atualiza pelo tempo real", async () => {
     const ws = mockWebSocket();
@@ -75,10 +90,10 @@ describe("SEMPRAS — atendimento", () => {
       "POST v1/sempras/unidades/u1/fila": { status: 201, data: item("2") },
       "POST v1/sempras/atendimentos/1/cancelar": { data: item("1", { status: "cancelado" }) },
     });
-    renderRealtime(<SemprasPage />);
+    renderRealtime(<UnidadePage />);
 
     expect(await screen.findByText("Pessoa 1")).toBeInTheDocument();
-    expect(screen.getByLabelText("Unidade")).toHaveValue("u1");
+    expect(screen.getByRole("heading", { level: 1, name: "CRAS Ana Carla" })).toBeInTheDocument();
     // recepção não chama nem vê o painel
     expect(screen.queryByRole("button", { name: /Chamar próximo/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Painel das unidades/)).not.toBeInTheDocument();
@@ -90,9 +105,15 @@ describe("SEMPRAS — atendimento", () => {
     expect(screen.queryByRole("link", { name: "Ficha" })).not.toBeInTheDocument();
 
     await userEvent.selectOptions(screen.getByLabelText("Prioridade legal"), "gestante");
+    // A demanda é obrigatória e vem da lista do tipo da unidade (ADR 031 §3).
+    const demanda = screen.getAllByLabelText("Demanda")[0]!;
+    expect(within(demanda).queryByRole("option", { name: /Banho/ })).not.toBeInTheDocument();
+    await userEvent.selectOptions(demanda, "cadunico_bolsa_familia");
     await userEvent.click(screen.getByRole("button", { name: "Incluir Maria na fila" }));
     await waitFor(() =>
-      expect(api.to("POST v1/sempras/unidades/u1/fila")[0]!.body).toEqual({ cidadao_id: "c9", tipo: "social", prioridade: "gestante" }),
+      expect(api.to("POST v1/sempras/unidades/u1/fila")[0]!.body).toEqual({
+        cidadao_id: "c9", tipo: "social", prioridade: "gestante", demanda: "cadunico_bolsa_familia", demanda_detalhe: "",
+      }),
     );
 
     // nada encontrado → cadastra
@@ -103,11 +124,11 @@ describe("SEMPRAS — atendimento", () => {
     await userEvent.click(screen.getByRole("button", { name: /Cadastrar/ }));
     const dialog = await screen.findByRole("dialog", { name: "Cadastrar munícipe" });
     await userEvent.type(within(dialog).getByLabelText("Nome civil *"), "Nova Pessoa");
-    // no CRAS, tentar salvar sem CPF gera erro exibido diretamente no modal
+    // no CRAS, tentar salvar sem CPF nem NIS gera erro exibido diretamente no modal
     await userEvent.click(within(dialog).getByRole("button", { name: "Salvar cadastro" }));
-    expect(within(dialog).getByText(/Apenas o Centro POP possui exceção legal/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/O CRAS exige CPF ou NIS/)).toBeInTheDocument();
     // preenche o CPF obrigatório e o nome da mãe
-    await userEvent.type(within(dialog).getByLabelText("CPF *"), "529.982.247-25");
+    await userEvent.type(within(dialog).getByLabelText("CPF (ou NIS) *"), "529.982.247-25");
     await userEvent.type(within(dialog).getByLabelText("Nome da mãe"), "Ana");
     await userEvent.click(within(dialog).getByRole("button", { name: "Salvar cadastro" }));
     expect(await screen.findByText("Sem histórico na área")).toBeInTheDocument();
@@ -143,7 +164,7 @@ describe("SEMPRAS — atendimento", () => {
       "POST v1/sempras/atendimentos/*": (req) =>
         req.path.endsWith("/concluir") ? fail(409, "o atendimento não está no estado que a ação exige") : { data: item("x") },
     });
-    renderRealtime(<SemprasPage />);
+    renderRealtime(<UnidadePage />);
 
     expect(await screen.findByText("Pessoa 1")).toBeInTheDocument();
     expect(within(screen.getByRole("list", { name: "Fila" })).getByText(/Idoso 80\+/)).toBeInTheDocument();
@@ -168,8 +189,58 @@ describe("SEMPRAS — atendimento", () => {
     // concluído não tem ação
     expect(screen.queryByRole("button", { name: /N004/ })).not.toBeInTheDocument();
 
-    await userEvent.selectOptions(screen.getByLabelText("Unidade"), "u2");
+    // Atalhos da unidade: o painel de chamada e os coletivos são DESTA unidade.
+    expect(screen.getByRole("link", { name: /Painel de chamada/ })).toHaveAttribute("href", "/sempras/painel-chamada?unidade=u1");
+    expect(screen.getByRole("link", { name: /Atendimentos coletivos/ })).toHaveAttribute("href", "/sempras/coletivos?unidade=u1");
+    expect(screen.getByRole("link", { name: /Trocar de unidade/ })).toHaveAttribute("href", "/sempras");
+  });
+
+  it("cada tipo tem o seu atendimento: a Casa Abrigo não tem fila; o CREAS não tem coletivos", async () => {
+    mockWebSocket();
+    mockBackend({
+      ...identityRoutes(),
+      ...wsTicketRoute,
+      "GET v1/sempras/unidades": { data: TODAS },
+      "GET v1/sempras/unidades/u2/fila": { data: [] },
+      "GET v1/sempras/unidades/u2/encaminhamentos": { data: [] },
+      "GET v1/sempras/unidades/u4/encaminhamentos": { data: [] },
+    });
+    resetNavigation({ unidade: "u4" });
+    const { unmount } = renderRealtime(<UnidadePage />);
+    expect(await screen.findByRole("heading", { level: 1, name: "Casa Abrigo" })).toBeInTheDocument();
+    expect(screen.getByText("Busca de munícipe")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Demanda")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Fila" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Painel de chamada/ })).not.toBeInTheDocument();
+    unmount();
+
+    resetNavigation({ unidade: "u2" });
+    renderRealtime(<UnidadePage />);
     expect(await screen.findByText("Ninguém na fila hoje")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Painel de chamada/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Atendimentos coletivos/ })).not.toBeInTheDocument();
+  });
+
+  it("unidade fora da lotação: não encontrada", async () => {
+    mockBackend({ ...identityRoutes(), "GET v1/sempras/unidades": { data: UNIDADES } });
+    resetNavigation({ unidade: "u9" });
+    renderApp(<UnidadePage />);
+    expect(await screen.findByText("Unidade não encontrada")).toBeInTheDocument();
+  });
+
+  it("a escolha da unidade agrupa por tipo; com uma unidade só, entra direto nela", async () => {
+    mockBackend({ ...identityRoutes(), "GET v1/sempras/unidades": { data: TODAS } });
+    const { unmount } = renderApp(<SemprasPage />);
+    expect(await screen.findByRole("heading", { name: /^CRAS/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Casa Abrigo/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Centro POP/ })).toHaveAttribute("href", "/sempras/u/u3");
+    expect(screen.getByRole("link", { name: /Casa Abrigo/ })).toHaveTextContent("Sem fila");
+    expect(screen.getByRole("link", { name: /CREAS/ })).toHaveTextContent("Painel só com senha");
+    unmount();
+
+    mockBackend({ ...identityRoutes(), "GET v1/sempras/unidades": { data: [CRAS] } });
+    renderApp(<SemprasPage />);
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/sempras/u/u1"));
   });
 
   it("sem lotação: explica como obter acesso", async () => {
@@ -186,7 +257,7 @@ describe("SEMPRAS — atendimento", () => {
       "GET v1/sempras/unidades": { data: UNIDADES },
       "GET v1/sempras/unidades/u1/fila": { data: [item("5", { status: "chamado", tipo: "psicologico" }), item("6", { status: "em_atendimento" })] },
     });
-    renderRealtime(<SemprasPage />);
+    renderRealtime(<UnidadePage />);
     expect(await screen.findByRole("button", { name: "Cancelar N005" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Iniciar N005" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /N006/ })).not.toBeInTheDocument();
@@ -365,7 +436,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes({ permissions: ["sempras:recepcao", "sempras:atendimento"], scopes: [] }),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/registros": { status: 201, data: {} },
     });
     renderApp(<FichaPage />);
@@ -385,11 +456,35 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await waitFor(() => expect(screen.getByLabelText("Nova evolução *")).toHaveValue(""));
   });
 
+  it("a ficha mostra só as seções do tipo da unidade e o resumo das outras unidades", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u2");
+    mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/cidadaos/c1/prontuario": { data: { ...PRONTUARIO,
+        outras_unidades: [{ unidade_id: "u9", unidade_nome: "CRAS Iguaçu", tipo: "cras", ativos: ["paif"] }],
+        registros_origem: [{ id: "ro1", unidade_id: "u9", atendimento_id: null, tipo: "social", texto: "Família em extrema pobreza",
+          sigiloso: false, autor_nome: "Técnica do CRAS", created_at: "2026-10-07T10:00:00Z" }] } },
+      "GET v1/sempras/unidades": { data: TODAS },
+    });
+    renderApp(<FichaPage />);
+    expect(await screen.findByRole("heading", { name: "PAEFI (CREAS)" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "PAIF (CRAS)" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Casa Abrigo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Benefícios eventuais" })).not.toBeInTheDocument();
+    expect(screen.getByText(/CRAS Iguaçu — PAIF ativo/)).toBeInTheDocument();
+    expect(screen.getByText("Família em extrema pobreza")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Voltar ao atendimento/ })).toHaveAttribute("href", "/sempras/u/u2");
+
+    await userEvent.selectOptions(screen.getByLabelText("Atendendo pela unidade"), "u1");
+    expect(await screen.findByRole("heading", { name: "PAIF (CRAS)" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "PAEFI (CREAS)" })).not.toBeInTheDocument();
+  });
+
   it("psicólogo escolhe o tipo psicológico; ficha sem atendimentos na área", async () => {
     mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: { ...PRONTUARIO, atendimentos: [], registros: [] } },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/registros": fail(403, "sem permissão nesta unidade"),
     });
     renderApp(<FichaPage />);
@@ -405,7 +500,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "PUT v1/sempras/cidadaos/c1": { data: { ...PRONTUARIO.cidadao, telefone: "66999990000" } },
       "POST v1/sempras/cidadaos/c1/pedidos": { status: 201, data: { id: "p1", tipo: "correcao", status: "concluido" } },
     });
@@ -460,7 +555,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/rede-apoio": { status: 201, data: { id: "ra2", cidadao_id: "c1", nome: "Pedro", parentesco: "Vizinho", telefone: "", created_at: "2026-10-08T12:00:00Z" } },
       "DELETE v1/sempras/rede-apoio/ra1": { data: { removido: true } },
     });
@@ -485,7 +580,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/beneficios": { status: 201, data: { ...PRONTUARIO.beneficios[0], id: "b2", tipo: "funeral" } },
       "POST v1/sempras/beneficios/b1/decidir": (req) => ({
         data: { ...PRONTUARIO.beneficios[0], status: (req.body as { acao: string }).acao === "conceder" ? "concedido" : "negado" },
@@ -520,7 +615,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/encaminhamentos": { status: 201, data: { ...PRONTUARIO.encaminhamentos[0], id: "enc2" } },
     });
     renderApp(<FichaPage />);
@@ -544,7 +639,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/paif": { status: 201, data: { ...PRONTUARIO.paif_vinculos[0], id: "paif2" } },
       "POST v1/sempras/paif/paif1/excluir": { data: { ...PRONTUARIO.paif_vinculos[0], status: "excluido" } },
     });
@@ -575,10 +670,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Conselho Tutelar: lista, registra um atendimento e aplica medida protetiva", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u5");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/conselho-tutelar": {
         status: 201,
         data: { ...PRONTUARIO.conselho_atendimentos[0], id: "ct2", protocolo: "CT-NOVO0001" },
@@ -596,7 +692,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Abrir atendimento" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/conselho-tutelar")[0]!.body).toEqual({
-        unidade_id: "u1", responsavel_nome: "", responsavel_cpf: "", responsavel_telefone: "",
+        unidade_id: "u5", responsavel_nome: "", responsavel_cpf: "", responsavel_telefone: "",
         origem_demanda: "disque_100", motivo_violacao: "negligencia_abandono", observacoes: "",
       }),
     );
@@ -615,10 +711,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("PAEFI: lista, abre um caso, marca o PIA elaborado e encerra", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u2");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/paefi": {
         status: 201,
         data: { ...PRONTUARIO.paefi_casos[0], id: "paefi2", caso_codigo: "PAEFI-NOVO0001" },
@@ -637,7 +734,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Abrir caso" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/paefi")[0]!.body).toEqual({
-        unidade_id: "u1", violacoes: ["negligencia"], membros_vulneraveis: "", observacoes: "",
+        unidade_id: "u2", violacoes: ["negligencia"], membros_vulneraveis: "", observacoes: "",
       }),
     );
     expect(await screen.findByText("Caso do PAEFI aberto")).toBeInTheDocument();
@@ -656,10 +753,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("MSE: lista, abre uma medida e conclui", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u2");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/mse": { status: 201, data: { ...PRONTUARIO.mse_medidas[0], id: "mse2" } },
       "POST v1/sempras/mse/mse1/concluir": { data: { ...PRONTUARIO.mse_medidas[0], status: "cumprida" } },
     });
@@ -672,7 +770,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Abrir medida" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/mse")[0]!.body).toEqual({
-        unidade_id: "u1", numero_processo: "", vara_origem: "", ato_infracional: "ameaça (art. 147 CP)",
+        unidade_id: "u2", numero_processo: "", vara_origem: "", ato_infracional: "ameaça (art. 147 CP)",
         tipo_medida: "liberdade_assistida", instituicao_parceira: "",
       }),
     );
@@ -689,10 +787,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Notificações do CREAS: lista, protocola, inicia diligência, responde e arquiva", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u2");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/creas-notificacoes": { status: 201, data: { ...PRONTUARIO.notificacoes_creas[0], id: "notif2" } },
       "POST v1/sempras/creas-notificacoes/notif1/transitar": (req) => {
         const { acao, resposta } = req.body as { acao: string; resposta?: string };
@@ -711,7 +810,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Protocolar notificação" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/creas-notificacoes")[0]!.body).toEqual({
-        unidade_id: "u1", origem_entidade: "disque_100_180", assunto: "nova denúncia recebida", prazo_resposta: null,
+        unidade_id: "u2", origem_entidade: "disque_100_180", assunto: "nova denúncia recebida", prazo_resposta: null,
       }),
     );
     expect(await screen.findByText("Notificação do CREAS registrada")).toBeInTheDocument();
@@ -744,7 +843,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/oficios-cras": { status: 201, data: { ...PRONTUARIO.oficios_cras[0], id: "oficio2" } },
       "POST v1/sempras/oficios-cras/oficio1/responder": { data: { ...PRONTUARIO.oficios_cras[0], status: "respondido", numero_resposta: "456/2026" } },
     });
@@ -775,10 +874,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Casa Abrigo: lista, abre acolhimento, adiciona irmão/diagnóstico e desliga", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u4");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/cidadaos/c1/casa-abrigo": {
         status: 201,
         data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0], id: "acolh2" },
@@ -806,7 +906,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Abrir acolhimento" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/casa-abrigo")[0]!.body).toEqual({
-        unidade_id: "u1", sexo: "masculino", motivos: ["situacao_rua"], responsavel_nome: "",
+        unidade_id: "u4", sexo: "masculino", motivos: ["situacao_rua"], responsavel_nome: "",
         responsavel_vinculo: "", processo_judicial: "", conselheiro_nome: "",
       }),
     );
@@ -845,10 +945,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Casa Abrigo: visitantes, termos e PIA — anota, lança, salva e conclui uma meta", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u4");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/casa-abrigo/acolh1/visitantes": {
         status: 201,
         data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.visitantes[0], id: "visita2" },
@@ -919,10 +1020,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Casa Abrigo: documentos — envia um PDF (ticket, PUT, confirmação), baixa e remove", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u4");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "POST v1/sempras/casa-abrigo/acolh1/documentos/uploads": {
         status: 201,
         data: {
@@ -960,10 +1062,11 @@ describe("SEMPRAS — ficha do munícipe", () => {
   });
 
   it("Centro POP: salva o perfil de rua, encaminha pra fora do sistema e conclui, envia um documento", async () => {
+    resetNavigation({ id: "c1" }, "/", "unidade=u3");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "PUT v1/sempras/cidadaos/c1/centro-pop-perfil": {
         data: { cidadao_id: "c1", situacao: "situacao_rua", tempo_rua_anos: 2, motivo_vulnerabilidade: "uso_de_drogas",
           possui_doenca: false, doenca_descricao: "", usa_medicacao: false, medicacao_descricao: "",
@@ -977,14 +1080,14 @@ describe("SEMPRAS — ficha do munícipe", () => {
       "POST v1/sempras/cidadaos/c1/centro-pop-documentos/uploads": {
         status: 201,
         data: {
-          documento: { id: "docCp1", cidadao_id: "c1", unidade_id: "u1", tipo: "laudo_saude", nome_original: "laudo.pdf",
+          documento: { id: "docCp1", cidadao_id: "c1", unidade_id: "u3", tipo: "laudo_saude", nome_original: "laudo.pdf",
             object_key: "k3", content_type: "application/pdf", size_bytes: 8, status: "pending", created_at: "2026-10-08T12:30:00Z" },
           upload: { object_key: "k3", upload_url: "http://minio.test/b/k3", method: "PUT", headers: {}, expires_at: "" },
         },
       },
       "PUT minio.test/*": { status: 200 },
       "POST v1/sempras/centro-pop-documentos/docCp1/confirm": {
-        data: { id: "docCp1", cidadao_id: "c1", unidade_id: "u1", tipo: "laudo_saude", nome_original: "laudo.pdf",
+        data: { id: "docCp1", cidadao_id: "c1", unidade_id: "u3", tipo: "laudo_saude", nome_original: "laudo.pdf",
           object_key: "k3", content_type: "application/pdf", size_bytes: 8, status: "ready", created_at: "2026-10-08T12:30:00Z" },
       },
     });
@@ -997,7 +1100,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Salvar perfil de rua" }));
     await waitFor(() =>
       expect(api.to("PUT v1/sempras/cidadaos/c1/centro-pop-perfil")[0]!.body).toEqual({
-        unidade_id: "u1", situacao: "situacao_rua", tempo_rua_anos: null, motivo_vulnerabilidade: "uso_de_drogas",
+        unidade_id: "u3", situacao: "situacao_rua", tempo_rua_anos: null, motivo_vulnerabilidade: "uso_de_drogas",
         possui_doenca: false, doenca_descricao: "", usa_medicacao: false, medicacao_descricao: "",
         uso_drogas: true, drogas_descricao: "uso de crack",
       }),
@@ -1011,7 +1114,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.click(screen.getByRole("button", { name: "Registrar encaminhamento externo" }));
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/encaminhamentos-externos")[0]!.body).toEqual({
-        unidade_id: "u1", destino: "saude_upa_hospital", prioridade: "media", motivo: "avaliação médica urgente",
+        unidade_id: "u3", destino: "saude_upa_hospital", prioridade: "media", motivo: "avaliação médica urgente",
       }),
     );
     expect(await screen.findByText("Encaminhamento externo registrado")).toBeInTheDocument();
@@ -1028,7 +1131,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     );
     await waitFor(() =>
       expect(api.to("POST v1/sempras/cidadaos/c1/centro-pop-documentos/uploads")[0]!.body).toEqual({
-        unidade_id: "u1", tipo: "identificacao", filename: "laudo.pdf", content_type: "application/pdf", size: 8,
+        unidade_id: "u3", tipo: "identificacao", filename: "laudo.pdf", content_type: "application/pdf", size: 8,
       }),
     );
     await waitFor(() => expect(api.to("POST v1/sempras/centro-pop-documentos/docCp1/confirm")).toHaveLength(1));
@@ -1144,13 +1247,20 @@ describe("SEMPRAS — painel de chamada", () => {
         ],
       },
     });
-    renderApp(<PainelChamada unidadeId="u1" />);
+    const { unmount } = renderApp(<PainelChamada unidade={CRAS} />);
     expect(await screen.findByText("2 pessoas aguardando")).toBeInTheDocument();
     const lista = within(await screen.findByRole("list", { name: "Últimas senhas chamadas" }));
     const itens = lista.getAllByRole("listitem");
     expect(itens[0]).toHaveTextContent("N004");
     expect(itens[0]).toHaveTextContent("Pessoa 4");
     expect(itens[1]).toHaveTextContent("N003");
+    unmount();
+
+    // Unidade sigilosa (ADR 031 §3): a TV mostra só a senha, nunca o nome.
+    renderApp(<PainelChamada unidade={{ ...CREAS, id: "u1" }} />);
+    const sigiloso = within(await screen.findByRole("list", { name: "Últimas senhas chamadas" }));
+    expect(sigiloso.getAllByRole("listitem")[0]).toHaveTextContent("N004");
+    expect(sigiloso.queryByText("Pessoa 4")).not.toBeInTheDocument();
   });
 
   it("sem ninguém chamado ainda", async () => {
@@ -1158,18 +1268,20 @@ describe("SEMPRAS — painel de chamada", () => {
       ...identityRoutes(),
       "GET v1/sempras/unidades/u1/fila": { data: [] },
     });
-    renderApp(<PainelChamada unidadeId="u1" />);
+    renderApp(<PainelChamada unidade={CRAS} />);
     expect(await screen.findByText("Nenhuma senha chamada")).toBeInTheDocument();
     expect(screen.getByText("0 pessoas aguardando")).toBeInTheDocument();
   });
 
-  it("a página escolhe a unidade e tem título próprio (h1)", async () => {
+  it("a página escolhe a unidade e tem título próprio (h1); só unidades com fila", async () => {
     mockBackend({
       ...identityRoutes(),
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: [ABRIGO, CRAS] },
       "GET v1/sempras/unidades/u1/fila": { data: [] },
     });
     renderApp(<PainelChamadaPage />);
+    expect(await screen.findByLabelText("Unidade")).toHaveValue("u1");
+    expect(within(screen.getByLabelText("Unidade")).queryByRole("option", { name: "Casa Abrigo" })).not.toBeInTheDocument();
     expect(await screen.findByRole("heading", { level: 1, name: "SEMPRAS — Painel de chamada" })).toBeInTheDocument();
     expect(await screen.findByText("Nenhuma senha chamada")).toBeInTheDocument();
   });
@@ -1185,9 +1297,10 @@ describe("SEMPRAS — atendimentos coletivos", () => {
   beforeEach(() => resetNavigation());
 
   it("escolhe a unidade, lista e registra um evento de grupo", async () => {
+    resetNavigation({}, "/", "unidade=u1");
     const api = mockBackend({
       ...identityRoutes(),
-      "GET v1/sempras/unidades": { data: UNIDADES },
+      "GET v1/sempras/unidades": { data: TODAS },
       "GET v1/sempras/unidades/u1/coletivos": { data: [
         { id: "col1", unidade_id: "u1", data_evento: "2026-10-05", categoria: "scfv_0_6", participantes: 8,
           descricao: "turma da manhã", created_at: "2026-10-05T00:00:00Z" },
@@ -1197,6 +1310,8 @@ describe("SEMPRAS — atendimentos coletivos", () => {
     });
     renderApp(<ColetivosPage />);
     expect(await screen.findByRole("heading", { level: 1, name: "SEMPRAS — Atendimentos coletivos" })).toBeInTheDocument();
+    // O CREAS não oferta coletivos: não aparece no seletor.
+    expect(within(await screen.findByLabelText("Unidade")).queryByRole("option", { name: "CREAS" })).not.toBeInTheDocument();
     const lista = within(await screen.findByRole("list", { name: "Atendimentos coletivos" }));
     expect(lista.getByText("SCFV — crianças até 6 anos")).toBeInTheDocument();
     expect(lista.getByText(/8 participantes/)).toBeInTheDocument();

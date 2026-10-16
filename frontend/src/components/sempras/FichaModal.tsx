@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Download,
   ExternalLink,
+  Info,
   FileText,
   HeartHandshake,
   History,
@@ -42,6 +43,7 @@ import { useNexus } from "@/lib/nexus/NexusProvider";
 import { mimeOf, putToTicket } from "@/lib/nexus/upload";
 import type { UploadTicket } from "@/lib/nexus/types";
 import {
+  ACOMPANHAMENTOS,
   CAMPOS_CIDADAO,
   DESTINOS_EXTERNOS,
   P,
@@ -50,18 +52,21 @@ import {
   TIPOS,
   TIPOS_BENEFICIO,
   TIPOS_DOCUMENTO_CENTRO_POP,
+  TIPOS_UNIDADE,
+  oferta,
   type Cidadao,
   type DestinoExterno,
   type DocumentoCentroPop,
   type FilaItem,
   type Prontuario,
   type TipoDocumentoCentroPop,
+  type Unidade,
 } from "@/lib/sempras/types";
 
 interface FichaModalProps {
   cidadaoId: string | null;
-  unidadeId: string;
-  unidadeNome?: string;
+  /** A unidade em que se atende: decide as abas (ADR 031 §4). */
+  unidade: Unidade;
   onClose: () => void;
   onCidadaoUpdated?: () => void;
 }
@@ -88,19 +93,30 @@ type TabKey =
  * - Upload de documentos para o MinIO (PDF / identificação / laudos);
  * - Emissão e impressão de Guia de Encaminhamento Intersetorial.
  */
-export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidadaoUpdated }: FichaModalProps) {
+export function FichaModal({ cidadaoId, unidade, onClose, onCidadaoUpdated }: FichaModalProps) {
   const { can } = useNexus();
-  const isCentroPop = /centro\s*pop/i.test(unidadeNome ?? "");
-  const [tab, setTab] = useState<TabKey>(isCentroPop ? "atendimento_pop" : "atendimento_cras");
+  const unidadeId = unidade.id;
+  const unidadeNome = unidade.nome;
+  const isCentroPop = oferta(unidade, "centro_pop");
+  const temBeneficio = oferta(unidade, "beneficio");
+
+  // As abas saem dos serviços da unidade (ADR 031 §4): nunca do nome dela.
+  const abas: { key: TabKey; icon: typeof User; mostrar: boolean }[] = [
+    { key: "atendimento_pop", icon: Sparkles, mostrar: isCentroPop },
+    { key: "atendimento_cras", icon: ClipboardCheck, mostrar: unidade.tipo === "cras" },
+    { key: "paif", icon: Users, mostrar: oferta(unidade, "paif") },
+    { key: "evolucoes", icon: History, mostrar: true },
+    { key: "beneficios", icon: HeartHandshake, mostrar: true },
+    { key: "documentos", icon: FileText, mostrar: isCentroPop },
+    { key: "encaminhamento", icon: Send, mostrar: isCentroPop },
+    { key: "cadastro", icon: User, mostrar: true },
+  ];
+  const abasVisiveis = abas.filter((a) => a.mostrar);
+  const [tab, setTab] = useState<TabKey>(abasVisiveis[0]!.key);
   const [textoEvolucao, setTextoEvolucao] = useState("");
   const [tipoEvolucao, setTipoEvolucao] = useState("social");
 
-  const activeTab: TabKey =
-    isCentroPop && (tab === "atendimento_cras" || tab === "paif")
-      ? "atendimento_pop"
-      : !isCentroPop && tab === "atendimento_pop"
-      ? "atendimento_cras"
-      : tab;
+  const activeTab: TabKey = abasVisiveis.some((a) => a.key === tab) ? tab : abasVisiveis[0]!.key;
 
   // Encaminhamento Externo
   const [destinoExterno, setDestinoExterno] = useState<DestinoExterno>("saude_upa_hospital");
@@ -141,6 +157,21 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
   const redeApoio = ficha.data?.rede_apoio ?? [];
   const documentos = ficha.data?.centro_pop_documentos ?? [];
   const encaminhamentos = ficha.data?.encaminhamentos_externos ?? [];
+  const outrasUnidades = ficha.data?.outras_unidades ?? [];
+  const registrosOrigem = ficha.data?.registros_origem ?? [];
+
+  const rotuloAba: Record<TabKey, string> = {
+    atendimento_pop: "Atendimento Centro POP",
+    atendimento_cras: "Atendimento CRAS",
+    paif: `PAIF (${ficha.data?.paif_vinculos?.length ?? 0})`,
+    evolucoes: `Evoluções & Histórico (${registros.length})`,
+    beneficios: temBeneficio
+      ? `Benefícios & Rede (${beneficios.length + redeApoio.length})`
+      : `Rede de apoio (${redeApoio.length})`,
+    documentos: `Documentos & Anexos (${documentos.length})`,
+    encaminhamento: `Guia de Encaminhamento (${encaminhamentos.length})`,
+    cadastro: "Dados Cadastrais",
+  };
 
   // Item ativo da fila para este cidadão
   const itemFilaAtivo = fila.data?.find(
@@ -277,7 +308,7 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
         footer={
           <div className="flex w-full flex-wrap items-center justify-between gap-2">
             <Link
-              href={`/sempras/cidadaos/${cidadaoId}`}
+              href={`/sempras/cidadaos/${cidadaoId}?unidade=${unidadeId}`}
               className="inline-flex items-center gap-1.5 text-xs text-primary underline hover:text-primary-hover"
               target="_blank"
               rel="noopener noreferrer"
@@ -373,9 +404,7 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
                     <span className="text-sm font-bold text-foreground">
                       {cidadao.nome_social ? `${cidadao.nome_social} (${cidadao.nome})` : cidadao.nome}
                     </span>
-                    {isCentroPop && (
-                      <Badge tone="info">Centro POP · Média Complexidade</Badge>
-                    )}
+                    <Badge tone="info">{TIPOS_UNIDADE[unidade.tipo]?.label ?? unidadeNome}</Badge>
                   </div>
                   <span className="text-xs text-muted">
                     {[
@@ -391,171 +420,38 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
                 <Badge tone="info">Prontuário Ativo</Badge>
               </div>
 
-              {/* Abas de Navegação */}
-              <div className="flex flex-wrap gap-1.5 border-b border-surface-border pb-2">
-                {isCentroPop ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setTab("atendimento_pop")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "atendimento_pop"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <Sparkles size={14} aria-hidden="true" />
-                      Atendimento Centro POP
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("documentos")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "documentos"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <FileText size={14} aria-hidden="true" />
-                      Documentos & Anexos ({documentos.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("beneficios")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "beneficios"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <HeartHandshake size={14} aria-hidden="true" />
-                      Benefícios & Passagem ({beneficios.length + redeApoio.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("encaminhamento")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "encaminhamento"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <Send size={14} aria-hidden="true" />
-                      Guia de Encaminhamento ({encaminhamentos.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("cadastro")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "cadastro"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <User size={14} aria-hidden="true" />
-                      Dados Cadastrais
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("evolucoes")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "evolucoes"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <History size={14} aria-hidden="true" />
-                      Evoluções & Histórico ({registros.length})
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setTab("atendimento_cras")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "atendimento_cras"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <ClipboardCheck size={14} aria-hidden="true" />
-                      Atendimento CRAS
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("paif")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "paif"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <Users size={14} aria-hidden="true" />
-                      PAIF ({ficha.data?.paif_vinculos?.length ?? 0})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("cadastro")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "cadastro"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <User size={14} aria-hidden="true" />
-                      Dados Cadastrais
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("evolucoes")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "evolucoes"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <History size={14} aria-hidden="true" />
-                      Evoluções & Histórico ({registros.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("beneficios")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "beneficios"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <HeartHandshake size={14} aria-hidden="true" />
-                      Benefícios & Rede ({beneficios.length + redeApoio.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("documentos")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "documentos"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <FileText size={14} aria-hidden="true" />
-                      Documentos Anexos ({documentos.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab("encaminhamento")}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                        activeTab === "encaminhamento"
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted hover:bg-surface-border/50 hover:text-foreground"
-                      }`}
-                    >
-                      <Send size={14} aria-hidden="true" />
-                      Guia de Encaminhamento ({encaminhamentos.length})
-                    </button>
-                  </>
-                )}
+              {/* Acompanhamento em outras unidades: só o resumo, sem conteúdo (ADR 031 §4) */}
+              {outrasUnidades.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-info/30 bg-info/5 p-3 text-xs">
+                  <Info size={14} className="shrink-0 text-info" aria-hidden="true" />
+                  <span className="font-semibold text-foreground">Também acompanhado por:</span>
+                  {outrasUnidades.map((o) => (
+                    <Badge key={o.unidade_id} tone="neutral">
+                      {o.unidade_nome} — {o.ativos.map((a) => ACOMPANHAMENTOS[a] ?? a).join(", ")}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Abas de Navegação — pelos serviços da unidade */}
+              <div role="tablist" className="flex flex-wrap gap-1.5 border-b border-surface-border pb-2">
+                {abasVisiveis.map(({ key, icon: Icone }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === key}
+                    onClick={() => setTab(key)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeTab === key
+                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        : "text-muted hover:bg-surface-border/50 hover:text-foreground"
+                    }`}
+                  >
+                    <Icone size={14} aria-hidden="true" />
+                    {rotuloAba[key]}
+                  </button>
+                ))}
               </div>
 
               {/* Aba Atendimento Especializado Centro POP */}
@@ -600,7 +496,7 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
               )}
 
               {/* Aba PAIF (Acompanhamento e Inclusão / Desligamento) - estritamente CRAS */}
-              {!isCentroPop && activeTab === "paif" && (
+              {activeTab === "paif" && (
                 <CrasPaifCard
                   cidadao={cidadao}
                   unidadeId={unidadeId}
@@ -718,12 +614,36 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
                       </ul>
                     )}
                   </div>
+
+                  {/* Evolução social de quem encaminhou o munícipe para cá (ADR 031 §4) */}
+                  {registrosOrigem.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                        Evolução social da unidade de origem do encaminhamento ({registrosOrigem.length})
+                      </span>
+                      <ul className="flex flex-col divide-y divide-surface-border rounded-xl border border-info/30 bg-info/5">
+                        {registrosOrigem.map((r) => (
+                          <li key={r.id} className="flex flex-col gap-1.5 p-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="font-semibold text-foreground">
+                                {r.autor_nome || "Técnico"} ·{" "}
+                                {outrasUnidades.find((o) => o.unidade_id === r.unidade_id)?.unidade_nome ?? "outra unidade"}
+                              </span>
+                              <span className="text-xs text-muted">{fmtDateTime(r.created_at)}</span>
+                            </div>
+                            <p className="whitespace-pre-wrap text-foreground/90">{r.texto}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Aba 3: Benefícios & Rede */}
               {activeTab === "beneficios" && (
                 <div className="flex flex-col gap-5">
+                  {temBeneficio && (
                   <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                       Benefícios Eventuais Concedidos ({beneficios.length})
@@ -751,6 +671,7 @@ export function FichaModal({ cidadaoId, unidadeId, unidadeNome, onClose, onCidad
                       </ul>
                     )}
                   </div>
+                  )}
 
                   <div className="flex flex-col gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted">

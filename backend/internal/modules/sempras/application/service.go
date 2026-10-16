@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -95,6 +96,8 @@ func MapError(err error) error {
 		return apperrors.Validation(v.Msg)
 	case errors.Is(err, domain.ErrNotFound):
 		return apperrors.NotFound("registro não encontrado")
+	case errors.Is(err, domain.ErrServicoIndisponivel):
+		return apperrors.NotFound("esta unidade não oferta este serviço")
 	case errors.Is(err, domain.ErrForbidden):
 		return apperrors.Forbidden(err.Error())
 	case errors.Is(err, domain.ErrInvalidState), errors.Is(err, domain.ErrFilaVazia), errors.Is(err, domain.ErrJaNaFila),
@@ -109,9 +112,11 @@ func MapError(err error) error {
 	return err
 }
 
-// unidade carrega a unidade e exige alguma das permissões nela. Quem não
-// alcança a unidade com permissão nenhuma do módulo recebe "não encontrado".
-func (s *Service) unidade(ctx context.Context, db database.DBTX, identity auth.Identity, id uuid.UUID, perms ...auth.Permission) (domain.Unidade, error) {
+// unidade carrega a unidade, exige alguma das permissões nela e que ela
+// oferte o serviço do caso de uso (ADR 031 §2). Quem não alcança a unidade
+// com permissão nenhuma do módulo recebe "não encontrado"; a unidade que
+// não oferta o serviço também (o mesmo contrato de um módulo desligado).
+func (s *Service) unidade(ctx context.Context, db database.DBTX, identity auth.Identity, id uuid.UUID, servico string, perms ...auth.Permission) (domain.Unidade, error) {
 	u, err := s.repo.GetUnidade(ctx, db, id)
 	if err != nil {
 		return domain.Unidade{}, err
@@ -121,6 +126,9 @@ func (s *Service) unidade(ctx context.Context, db database.DBTX, identity auth.I
 	}
 	if !u.PodeAlguma(identity, perms...) {
 		return domain.Unidade{}, domain.ErrForbidden
+	}
+	if !u.Oferta(servico) {
+		return domain.Unidade{}, domain.ErrServicoIndisponivel
 	}
 	return u, nil
 }
@@ -139,9 +147,27 @@ func (s *Service) evento(ctx context.Context, tx pgx.Tx, a domain.Atendimento) e
 
 // ---------------------------------------------------------------- unidades
 
-// Unidades lista as unidades onde identity atua (seletor da tela).
+// Unidades lista as unidades onde identity atua (seletor da tela), com o
+// tipo e os serviços de cada uma — é o que monta as abas do frontend.
 func (s *Service) Unidades(ctx context.Context, identity auth.Identity) ([]domain.Unidade, error) {
-	return s.repo.ListUnidades(ctx, s.pool, domain.AreaDe(identity, domain.TodasAsPermissoes...), EntidadeSlug)
+	return s.unidadesQueAtendem(ctx, domain.AreaDe(identity, domain.TodasAsPermissoes...))
+}
+
+// unidadesQueAtendem lista as unidades da área que têm tipo (ADR 031): a
+// Sede e os setores administrativos da SEMPRAS não aparecem no seletor,
+// no painel nem no RMA.
+func (s *Service) unidadesQueAtendem(ctx context.Context, area domain.Area) ([]domain.Unidade, error) {
+	todas, err := s.repo.ListUnidades(ctx, s.pool, area, EntidadeSlug)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Unidade, 0, len(todas))
+	for _, u := range todas {
+		if u.Tipo != "" {
+			out = append(out, u)
+		}
+	}
+	return out, nil
 }
 
 // ----------------------------------------------------------------- munícipe
@@ -310,18 +336,34 @@ func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth
 	if p.OficiosCras, err = s.repo.OficiosCrasNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
-	switch perfil, err := s.repo.GetCentroPopPerfil(ctx, tx, id); {
-	case errors.Is(err, domain.ErrNotFound):
-		// perfil ainda não preenchido — fica nil, não é erro.
-	case err != nil:
-		return domain.Prontuario{}, err
-	default:
-		p.CentroPopPerfil = &perfil
-	}
 	if p.EncaminhamentosExternos, err = s.repo.EncaminhamentosExternosNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
-	if p.CentroPopDocumentos, err = s.repo.ListDocumentosCentroPop(ctx, tx, id); err != nil {
+	// O perfil de rua (saúde, uso de drogas) e os documentos são do
+	// munícipe, não de uma unidade — então o filtro é o tipo: só sai para
+	// quem atua num Centro POP (ADR 031 §4, necessidade de saber).
+	unidadesDaArea, err := s.repo.ListUnidades(ctx, tx, area, EntidadeSlug)
+	if err != nil {
+		return domain.Prontuario{}, err
+	}
+	p.CentroPopDocumentos = []domain.DocumentoCentroPop{}
+	if slices.ContainsFunc(unidadesDaArea, func(u domain.Unidade) bool { return u.Oferta(domain.ServicoCentroPop) }) {
+		switch perfil, err := s.repo.GetCentroPopPerfil(ctx, tx, id); {
+		case errors.Is(err, domain.ErrNotFound):
+			// perfil ainda não preenchido — fica nil, não é erro.
+		case err != nil:
+			return domain.Prontuario{}, err
+		default:
+			p.CentroPopPerfil = &perfil
+		}
+		if p.CentroPopDocumentos, err = s.repo.ListDocumentosCentroPop(ctx, tx, id); err != nil {
+			return domain.Prontuario{}, err
+		}
+	}
+	if p.OutrasUnidades, err = s.repo.AcompanhamentosForaDaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.RegistrosOrigem, err = s.repo.RegistrosDeOrigem(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
 	if p.CasaAbrigoAcolhimentos, err = s.repo.AcolhimentosNaArea(ctx, tx, id, area); err != nil {
@@ -416,7 +458,7 @@ func (s *Service) RegistrarEvolucao(ctx context.Context, identity auth.Identity,
 	}
 	r.CreatedAt, r.AutorNome = s.now(), identity.Name
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, in.UnidadeID, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, in.UnidadeID, domain.ServicoProntuario, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -455,8 +497,9 @@ func (s *Service) RegistrarEvolucao(ctx context.Context, identity auth.Identity,
 
 // EntradaInput é a inclusão de um munícipe na fila.
 type EntradaInput struct {
-	CidadaoID        uuid.UUID
-	Tipo, Prioridade string
+	CidadaoID               uuid.UUID
+	Tipo, Prioridade        string
+	Demanda, DemandaDetalhe string
 }
 
 // Incluir põe o munícipe na fila da unidade (recepção ou técnico), com a
@@ -469,7 +512,7 @@ func (s *Service) Incluir(ctx context.Context, identity auth.Identity, unidade u
 	a.CreatedAt = s.now()
 	var c domain.Cidadao
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasRecepcao, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoFila, auth.PermSemprasRecepcao, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -477,6 +520,9 @@ func (s *Service) Incluir(ctx context.Context, identity auth.Identity, unidade u
 			return domain.ErrUnidadeInativa
 		}
 		if c, err = s.repo.GetCidadao(ctx, tx, in.CidadaoID, false); err != nil {
+			return err
+		}
+		if a.Demanda, a.DemandaDetalhe, err = u.ValidarEntrada(c, in.Demanda, in.DemandaDetalhe); err != nil {
 			return err
 		}
 		if a.Senha, err = s.repo.ProximaSenha(ctx, tx, u.ID, a.Dia); err != nil {
@@ -489,7 +535,8 @@ func (s *Service) Incluir(ctx context.Context, identity auth.Identity, unidade u
 			return err
 		}
 		e := audit.Meta(ctx, "sempras.fila.incluido", "sempras_atendimento", a.ID.String(), nil,
-			map[string]any{"status": a.Status, "unidade_id": u.ID, "cidadao_id": a.CidadaoID, "tipo": a.Tipo, "prioridade": a.Prioridade})
+			map[string]any{"status": a.Status, "unidade_id": u.ID, "cidadao_id": a.CidadaoID, "tipo": a.Tipo, "prioridade": a.Prioridade,
+				"demanda": a.Demanda})
 		return audit.NewWriter(tx).Record(ctx, e)
 	})
 	if err != nil {
@@ -501,7 +548,7 @@ func (s *Service) Incluir(ctx context.Context, identity auth.Identity, unidade u
 
 // Fila devolve as entradas do dia da unidade.
 func (s *Service) Fila(ctx context.Context, identity auth.Identity, unidade uuid.UUID) ([]domain.FilaItem, error) {
-	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.TodasAsPermissoes...); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.ServicoFila, domain.TodasAsPermissoes...); err != nil {
 		return nil, err
 	}
 	return s.repo.Fila(ctx, s.pool, unidade, s.dia())
@@ -532,7 +579,7 @@ func (s *Service) ChamarProximo(ctx context.Context, identity auth.Identity, uni
 		c domain.Cidadao
 	)
 	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoFila, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -572,7 +619,7 @@ func (s *Service) Agir(ctx context.Context, identity auth.Identity, id uuid.UUID
 		if acao != "cancelar" {
 			perms = []auth.Permission{auth.PermSemprasAtendimento}
 		}
-		u, err := s.unidade(ctx, tx, identity, a.UnidadeID, perms...)
+		u, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoFila, perms...)
 		if err != nil {
 			return err
 		}
@@ -594,7 +641,7 @@ func (s *Service) Painel(ctx context.Context, identity auth.Identity) ([]domain.
 	if area.Vazia() {
 		return nil, domain.ErrForbidden
 	}
-	unidades, err := s.repo.ListUnidades(ctx, s.pool, area, EntidadeSlug)
+	unidades, err := s.unidadesQueAtendem(ctx, area)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +660,7 @@ func (s *Service) AdicionarVisitante(ctx context.Context, identity auth.Identity
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.InsertVisitante(ctx, tx, v, identity.UserID); err != nil {
@@ -640,7 +687,7 @@ func (s *Service) RemoverVisitante(ctx context.Context, identity auth.Identity, 
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.DeleteVisitante(ctx, tx, id); err != nil {
@@ -664,7 +711,7 @@ func (s *Service) RegistrarTermo(ctx context.Context, identity auth.Identity, ac
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.InsertTermo(ctx, tx, t, identity.UserID); err != nil {
@@ -691,7 +738,7 @@ func (s *Service) RemoverTermo(ctx context.Context, identity auth.Identity, id u
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.DeleteTermo(ctx, tx, id); err != nil {
@@ -725,7 +772,7 @@ func (s *Service) SalvarPiaFicha(ctx context.Context, identity auth.Identity, ac
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.UpsertPiaFicha(ctx, tx, p, identity.UserID); err != nil {
@@ -752,7 +799,7 @@ func (s *Service) AdicionarPiaMeta(ctx context.Context, identity auth.Identity, 
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.InsertPiaMeta(ctx, tx, m, identity.UserID); err != nil {
@@ -780,7 +827,7 @@ func (s *Service) ConcluirPiaMeta(ctx context.Context, identity auth.Identity, i
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		m.Concluida = concluida
@@ -808,7 +855,7 @@ func (s *Service) RemoverPiaMeta(ctx context.Context, identity auth.Identity, id
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.DeletePiaMeta(ctx, tx, id); err != nil {
@@ -846,7 +893,7 @@ func (s *Service) StartUploadDocumento(ctx context.Context, identity auth.Identi
 	if err != nil {
 		return UploadDocumentoResult{}, err
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 		return UploadDocumentoResult{}, err
 	}
 	ticket, err := modkit.NewUpload(ctx, s.store, s.bucket, documentoPrefix(acolhimento), filename, contentType, documentoTypes, s.uploadExpiry)
@@ -883,7 +930,7 @@ func (s *Service) ConfirmUploadDocumento(ctx context.Context, identity auth.Iden
 	if err != nil {
 		return domain.DocumentoCasaAbrigo{}, err
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 		return domain.DocumentoCasaAbrigo{}, err
 	}
 	if d.Status == domain.DocumentoStatusReady {
@@ -921,7 +968,7 @@ func (s *Service) DownloadURLDocumento(ctx context.Context, identity auth.Identi
 	if err != nil {
 		return "", domain.DocumentoCasaAbrigo{}, err
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 		return "", domain.DocumentoCasaAbrigo{}, err
 	}
 	url, err := s.store.PresignedGetURL(ctx, s.bucket, d.ObjectKey, 5*time.Minute)
@@ -955,7 +1002,7 @@ func (s *Service) RemoverDocumento(ctx context.Context, identity auth.Identity, 
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		key = d.ObjectKey
@@ -986,7 +1033,7 @@ func (s *Service) AtualizarCentroPopPerfil(ctx context.Context, identity auth.Id
 	}
 	p.AtualizadoEm = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoCentroPop, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1018,7 +1065,7 @@ func (s *Service) RegistrarEncaminhamentoExterno(ctx context.Context, identity a
 	}
 	e.CreatedAt, e.AtualizadoEm = s.now(), s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoCentroPop, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1051,7 +1098,7 @@ func (s *Service) TransitarEncaminhamentoExterno(ctx context.Context, identity a
 		if e, err = s.repo.GetEncaminhamentoExterno(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, e.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, e.UnidadeID, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		antes := e.Status
@@ -1089,7 +1136,7 @@ func (s *Service) StartUploadDocumentoCentroPop(ctx context.Context, identity au
 	if size <= 0 || size > s.maxDocBytes {
 		return UploadDocumentoCentroPopResult{}, &domain.ValidationError{Msg: "tamanho de arquivo acima do limite permitido"}
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
 		return UploadDocumentoCentroPopResult{}, err
 	}
 	if _, err := s.repo.GetCidadao(ctx, s.pool, cidadao, false); err != nil {
@@ -1124,7 +1171,7 @@ func (s *Service) ConfirmUploadDocumentoCentroPop(ctx context.Context, identity 
 	if err != nil {
 		return domain.DocumentoCentroPop{}, err
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
 		return domain.DocumentoCentroPop{}, err
 	}
 	if d.Status == domain.DocumentoStatusReady {
@@ -1158,7 +1205,7 @@ func (s *Service) DownloadURLDocumentoCentroPop(ctx context.Context, identity au
 	if d.Status != domain.DocumentoStatusReady {
 		return "", domain.DocumentoCentroPop{}, domain.ErrNotFound
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, d.UnidadeID, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
 		return "", domain.DocumentoCentroPop{}, err
 	}
 	url, err := s.store.PresignedGetURL(ctx, s.bucket, d.ObjectKey, 5*time.Minute)
@@ -1178,7 +1225,7 @@ func (s *Service) RemoverDocumentoCentroPop(ctx context.Context, identity auth.I
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, d.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, d.UnidadeID, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		key = d.ObjectKey
@@ -1206,7 +1253,7 @@ func (s *Service) Rma(ctx context.Context, identity auth.Identity, competencia s
 	if err != nil {
 		return nil, err
 	}
-	unidades, err := s.repo.ListUnidades(ctx, s.pool, area, EntidadeSlug)
+	unidades, err := s.unidadesQueAtendem(ctx, area)
 	if err != nil {
 		return nil, err
 	}
@@ -1223,7 +1270,7 @@ func (s *Service) RegistrarAtendimentoColetivo(ctx context.Context, identity aut
 		return domain.AtendimentoColetivo{}, err
 	}
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoColetivo, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1250,7 +1297,7 @@ func (s *Service) ListarAtendimentosColetivos(ctx context.Context, identity auth
 	if err != nil {
 		return nil, err
 	}
-	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.ServicoColetivo, auth.PermSemprasAtendimento); err != nil {
 		return nil, err
 	}
 	return s.repo.ListAtendimentosColetivos(ctx, s.pool, unidade, inicio, fim)
@@ -1451,7 +1498,7 @@ func (s *Service) SolicitarBeneficio(ctx context.Context, identity auth.Identity
 	}
 	b.DataSolicitacao = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoBeneficio, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1490,7 +1537,7 @@ func (s *Service) DecidirBeneficio(ctx context.Context, identity auth.Identity, 
 		if b, err = s.repo.GetBeneficio(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, b.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, b.UnidadeID, domain.ServicoBeneficio, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		antes := b.Status
@@ -1522,7 +1569,7 @@ func (s *Service) Encaminhar(ctx context.Context, identity auth.Identity, cidada
 	}
 	e.CreatedAt = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		uOrigem, err := s.unidade(ctx, tx, identity, origem, auth.PermSemprasAtendimento)
+		uOrigem, err := s.unidade(ctx, tx, identity, origem, domain.ServicoEncaminhamento, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1532,6 +1579,9 @@ func (s *Service) Encaminhar(ctx context.Context, identity auth.Identity, cidada
 		uDestino, err := s.repo.GetUnidade(ctx, tx, destino)
 		if err != nil {
 			return err
+		}
+		if !uDestino.Oferta(domain.ServicoEncaminhamento) {
+			return domain.ErrServicoIndisponivel
 		}
 		if !uDestino.Ativa {
 			return domain.ErrUnidadeInativa
@@ -1554,7 +1604,7 @@ func (s *Service) Encaminhar(ctx context.Context, identity auth.Identity, cidada
 
 // EncaminhamentosPendentes é a fila de casos recebidos por uma unidade.
 func (s *Service) EncaminhamentosPendentes(ctx context.Context, identity auth.Identity, unidade uuid.UUID) ([]domain.Encaminhamento, error) {
-	if _, err := s.unidade(ctx, s.pool, identity, unidade, auth.PermSemprasAtendimento); err != nil {
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.ServicoEncaminhamento, auth.PermSemprasAtendimento); err != nil {
 		return nil, err
 	}
 	return s.repo.ListEncaminhamentosPendentes(ctx, s.pool, unidade)
@@ -1570,7 +1620,7 @@ func (s *Service) DecidirEncaminhamento(ctx context.Context, identity auth.Ident
 		if e, err = s.repo.GetEncaminhamento(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, e.UnidadeDestinoID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, e.UnidadeDestinoID, domain.ServicoEncaminhamento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		antes := e.Status
@@ -1601,7 +1651,7 @@ func (s *Service) IncluirPaif(ctx context.Context, identity auth.Identity, cidad
 	}
 	v.DataInclusao = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoPaif, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1633,7 +1683,7 @@ func (s *Service) ExcluirPaif(ctx context.Context, identity auth.Identity, id uu
 		if v, err = s.repo.GetPaifVinculo(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, v.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, v.UnidadeID, domain.ServicoPaif, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := v.Excluir(motivo, identity.UserID, now); err != nil {
@@ -1663,7 +1713,7 @@ func (s *Service) RegistrarConselhoAtendimento(ctx context.Context, identity aut
 	}
 	c.CreatedAt = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoConselho, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1696,7 +1746,7 @@ func (s *Service) TransitarConselhoAtendimento(ctx context.Context, identity aut
 		if c, err = s.repo.GetConselhoAtendimento(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, c.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, c.UnidadeID, domain.ServicoConselho, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		antes := c.Status
@@ -1727,7 +1777,7 @@ func (s *Service) RegistrarPaefiCaso(ctx context.Context, identity auth.Identity
 	}
 	p.DataAbertura = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoPaefi, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1758,7 +1808,7 @@ func (s *Service) MarcarPiaElaborado(ctx context.Context, identity auth.Identity
 		if p, err = s.repo.GetPaefiCaso(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, domain.ServicoPaefi, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := p.MarcarPiaElaborado(identity.UserID); err != nil {
@@ -1785,7 +1835,7 @@ func (s *Service) EncerrarPaefiCaso(ctx context.Context, identity auth.Identity,
 		if p, err = s.repo.GetPaefiCaso(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, p.UnidadeID, domain.ServicoPaefi, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := p.Encerrar(motivo, identity.UserID, now); err != nil {
@@ -1815,7 +1865,7 @@ func (s *Service) RegistrarMseMedida(ctx context.Context, identity auth.Identity
 	}
 	m.DataInicio = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoMse, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1848,7 +1898,7 @@ func (s *Service) ConcluirMseMedida(ctx context.Context, identity auth.Identity,
 		if m, err = s.repo.GetMseMedida(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, m.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, m.UnidadeID, domain.ServicoMse, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := m.Concluir(resultado, identity.UserID, now); err != nil {
@@ -1878,7 +1928,7 @@ func (s *Service) RegistrarNotificacaoCreas(ctx context.Context, identity auth.I
 	}
 	n.DataEntrada = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoNotificacao, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1910,7 +1960,7 @@ func (s *Service) TransitarNotificacaoCreas(ctx context.Context, identity auth.I
 		if n, err = s.repo.GetNotificacaoCreas(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, n.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, n.UnidadeID, domain.ServicoNotificacao, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		antes := n.Status
@@ -1941,7 +1991,7 @@ func (s *Service) RegistrarOficioCras(ctx context.Context, identity auth.Identit
 	}
 	o.DataRecebimento = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoOficio, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -1973,7 +2023,7 @@ func (s *Service) ResponderOficioCras(ctx context.Context, identity auth.Identit
 		if o, err = s.repo.GetOficioCras(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, o.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, o.UnidadeID, domain.ServicoOficio, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := o.Responder(numeroResposta, now, identity.UserID); err != nil {
@@ -2016,7 +2066,7 @@ func (s *Service) RegistrarAcolhimento(ctx context.Context, identity auth.Identi
 	}
 	a.DataEntrada = s.now()
 	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
-		u, err := s.unidade(ctx, tx, identity, unidade, auth.PermSemprasAtendimento)
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoAcolhimento, auth.PermSemprasAtendimento)
 		if err != nil {
 			return err
 		}
@@ -2048,7 +2098,7 @@ func (s *Service) AtualizarAcolhimento(ctx context.Context, identity auth.Identi
 		if a, err = s.repo.GetAcolhimento(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := a.Atualizar(in.Sexo, in.Motivos, in.ResponsavelNome, in.ResponsavelNIS, in.ResponsavelTelefone,
@@ -2078,7 +2128,7 @@ func (s *Service) DesligarAcolhimento(ctx context.Context, identity auth.Identit
 		if a, err = s.repo.GetAcolhimento(ctx, tx, id, true); err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := a.Desligar(motivo, identity.UserID, now); err != nil {
@@ -2109,7 +2159,7 @@ func (s *Service) AdicionarIrmao(ctx context.Context, identity auth.Identity, ac
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.InsertIrmao(ctx, tx, i); err != nil {
@@ -2136,7 +2186,7 @@ func (s *Service) RemoverIrmao(ctx context.Context, identity auth.Identity, id u
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.DeleteIrmao(ctx, tx, id); err != nil {
@@ -2161,7 +2211,7 @@ func (s *Service) AdicionarDiagnostico(ctx context.Context, identity auth.Identi
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.InsertDiagnostico(ctx, tx, d); err != nil {
@@ -2188,7 +2238,7 @@ func (s *Service) RemoverDiagnostico(ctx context.Context, identity auth.Identity
 		if err != nil {
 			return err
 		}
-		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, auth.PermSemprasAtendimento); err != nil {
+		if _, err := s.unidade(ctx, tx, identity, a.UnidadeID, domain.ServicoAcolhimento, auth.PermSemprasAtendimento); err != nil {
 			return err
 		}
 		if err := s.repo.DeleteDiagnostico(ctx, tx, id); err != nil {
@@ -2211,7 +2261,7 @@ func (s *Service) Authorize(ctx context.Context, client ws.ClientInfo, topic str
 	if err != nil {
 		return ws.ErrTopicForbidden
 	}
-	if _, err := s.unidade(ctx, s.pool, client.Identity(), id, domain.TodasAsPermissoes...); err != nil {
+	if _, err := s.unidade(ctx, s.pool, client.Identity(), id, domain.ServicoFila, domain.TodasAsPermissoes...); err != nil {
 		return ws.ErrTopicForbidden
 	}
 	return nil

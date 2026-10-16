@@ -30,10 +30,14 @@ import {
   P,
   PRIORIDADES,
   TIPOS,
+  TIPOS_UNIDADE,
+  oferta,
+  rotuloDemanda,
   rotuloPrioridade,
   type Cidadao,
   type FilaItem,
   type Resumo,
+  type Unidade,
 } from "@/lib/sempras/types";
 
 /** Valida os 11 dígitos e dígitos verificadores de um CPF brasileiro */
@@ -56,25 +60,25 @@ function validarCPF(cpf: string): boolean {
 }
 
 /**
- * Recepção & Pré-cadastro (ADR 030 §4):
- * - Busca de munícipe na recepção: CPF é obrigatório para conferência nas unidades territoriais (CRAS);
- * - Centro POP: exceção legal (Decreto Federal nº 7.053/2009) onde o CPF é opcional e o acolhimento é incondicional;
- * - Ao localizar, abre modal com informações cadastrais básicas e inclusão na fila;
- * - Se não localizar, abre modal de pré-cadastro simplificado com o CPF digitado pré-preenchido;
- * - Mensagens de erro e validações aparecem com destaque diretamente dentro do modal;
+ * Recepção & Pré-cadastro, segundo o tipo da unidade (ADR 030 §4, ADR 031 §3):
+ * - CRAS: CPF ou NIS obrigatório (referência da família no CadÚnico);
+ * - Centro POP: exceção legal (Decreto Federal nº 7.053/2009) — documento opcional, cadastro anônimo;
+ * - Demais tipos: CPF, NIS ou nascimento + nome da mãe;
+ * - A demanda da entrada vem da lista do tipo (`unidade.demandas`);
+ * - Unidade sem fila (Casa Abrigo): só busca, cadastro e ficha;
  * - Emissão e impressão de senha térmica para o munícipe.
  */
 export function Recepcao({
-  unidadeId,
-  unidadeNome,
+  unidade,
   onIncluido,
   onAbrirFicha,
 }: {
-  unidadeId: string;
-  unidadeNome?: string;
+  unidade: Unidade;
   onIncluido: () => void;
   onAbrirFicha?: (id: string) => void;
 }) {
+  const unidadeId = unidade.id;
+  const temFila = oferta(unidade, "fila");
   const { can } = useNexus();
   const { run, pending } = useAction();
   const [q, setQ] = useState("");
@@ -91,12 +95,16 @@ export function Recepcao({
   const [errosCampos, setErrosCampos] = useState<Record<string, string>>({});
   const [erroInclusao, setErroInclusao] = useState<string | null>(null);
   const [anonimo, setAnonimo] = useState(false);
+  const [demanda, setDemanda] = useState("");
+  const [demandaDetalhe, setDemandaDetalhe] = useState("");
 
-  // Identifica se a unidade selecionada é o Centro POP (Proteção Social Especial de Média Complexidade)
-  const isCentroPop = Boolean(
-    unidadeNome?.toLowerCase().includes("pop") ||
-    unidadeNome?.toLowerCase().includes("centro pop")
-  );
+  const isCentroPop = unidade.tipo === "centro_pop";
+  const isCras = unidade.tipo === "cras";
+  const tipoInfo = TIPOS_UNIDADE[unidade.tipo];
+  const opcoesDemanda = [
+    { value: "", label: "Selecione a demanda" },
+    ...unidade.demandas.map((d) => ({ value: d, label: rotuloDemanda(d) })),
+  ];
 
   async function buscar(e: FormEvent) {
     e.preventDefault();
@@ -137,6 +145,7 @@ export function Recepcao({
     const fd = new FormData(e.currentTarget);
     const nome = String(fd.get("nome") ?? "").trim();
     const cpf = String(fd.get("cpf") ?? "").trim();
+    const nis = String(fd.get("nis") ?? "").replace(/\D/g, "");
     const isAnonimoChecked = fd.get("anonimo") === "on";
 
     const novosErros: Record<string, string> = {};
@@ -150,18 +159,18 @@ export function Recepcao({
       novosErros.nome = "Nome deve conter pelo menos 2 caracteres.";
     }
 
-    // 2. Validação do CPF:
-    // O CPF é obrigatório para cadastrar em unidades convencionais (CRAS/CREAS).
-    // A única exceção legal é o Centro POP (Decreto Federal nº 7.053/2009).
+    // 2. Validação do documento (ADR 031 §3): o CRAS exige CPF ou NIS; os
+    // demais tipos aceitam nascimento + nome da mãe (o backend confere); o
+    // Centro POP aceita até o cadastro anônimo (Decreto Federal nº 7.053/2009).
     const digitosCpf = cpf.replace(/\D/g, "");
     if (cpf) {
       if (digitosCpf.length !== 11 || !validarCPF(digitosCpf)) {
         novosErros.cpf = "Confira os 11 dígitos do CPF.";
         bannerMsg = "O CPF informado é inválido. Digite um CPF válido com 11 dígitos.";
       }
-    } else if (!isCentroPop && !isAnonimoChecked) {
-      novosErros.cpf = "Informe o CPF do munícipe.";
-      bannerMsg = "O CPF é obrigatório para cadastrar nesta unidade. Apenas o Centro POP possui exceção legal para acolhimento sem documento.";
+    } else if (isCras && !nis) {
+      novosErros.cpf = "Informe o CPF ou o NIS do munícipe.";
+      bannerMsg = "O CRAS exige CPF ou NIS para referenciar a família no CadÚnico.";
     }
 
     if (Object.keys(novosErros).length > 0) {
@@ -203,6 +212,14 @@ export function Recepcao({
 
   async function incluir(cidadao: Resumo) {
     setErroInclusao(null);
+    if (!demanda) {
+      setErroInclusao("Selecione a demanda que trouxe o munícipe à unidade.");
+      return;
+    }
+    if (demanda === "outra" && !demandaDetalhe.trim()) {
+      setErroInclusao("Descreva a demanda.");
+      return;
+    }
     try {
       const out = await run(
         () =>
@@ -210,6 +227,8 @@ export function Recepcao({
             cidadao_id: cidadao.id,
             tipo,
             prioridade,
+            demanda,
+            demanda_detalhe: demanda === "outra" ? demandaDetalhe.trim() : "",
           }),
         "Munícipe incluído na fila de atendimento"
       );
@@ -219,6 +238,8 @@ export function Recepcao({
           setTicketGerado(out.data);
         }
         setMunicipeModal(null);
+        setDemanda("");
+        setDemandaDetalhe("");
         onIncluido();
       } else {
         setErroInclusao("Não foi possível incluir o munícipe na fila de atendimento.");
@@ -239,15 +260,17 @@ export function Recepcao({
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <CardTitle as="h2">Recepção & Triagem</CardTitle>
+              <CardTitle as="h2">{temFila ? "Recepção & Triagem" : "Busca de munícipe"}</CardTitle>
               <p className="mt-1 text-xs text-muted">
                 {isCentroPop
                   ? "Centro POP — Acolhimento Humanizado: Consulta por CPF, NIS, nome civil, nome social ou apelido."
-                  : "Consulta obrigatória por CPF para conferência cadastral e encaminhamento à fila da unidade."}
+                  : isCras
+                  ? "Consulta por CPF ou NIS para conferência cadastral e encaminhamento à fila da unidade."
+                  : "Consulta por CPF, NIS ou nome."}
               </p>
             </div>
             <Badge tone={isCentroPop ? "warning" : "neutral"}>
-              {isCentroPop ? "Centro POP (Média Complexidade)" : "Entrada da Unidade (CRAS)"}
+              {tipoInfo ? `${tipoInfo.label} · ${tipoInfo.protecao}` : unidade.nome}
             </Badge>
           </div>
         </CardHeader>
@@ -264,7 +287,9 @@ export function Recepcao({
               placeholder={
                 isCentroPop
                   ? "Digite o CPF, nome civil, social ou apelido"
-                  : "Digite o CPF do munícipe (obrigatório para consulta)"
+                  : isCras
+                  ? "Digite o CPF ou o NIS do munícipe"
+                  : "Digite o CPF, o NIS ou o nome"
               }
               maxLength={200}
               autoComplete="off"
@@ -287,22 +312,31 @@ export function Recepcao({
             </Button>
           </form>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Select
-              id="sempras-tipo"
-              label="Tipo de atendimento"
-              options={TIPOS}
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-            />
-            <Select
-              id="sempras-prioridade"
-              label="Prioridade legal"
-              options={PRIORIDADES}
-              value={prioridade}
-              onChange={(e) => setPrioridade(e.target.value)}
-            />
-          </div>
+          {temFila && (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Select
+                id="sempras-demanda"
+                label="Demanda"
+                options={opcoesDemanda}
+                value={demanda}
+                onChange={(e) => setDemanda(e.target.value)}
+              />
+              <Select
+                id="sempras-tipo"
+                label="Tipo de atendimento"
+                options={TIPOS}
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+              />
+              <Select
+                id="sempras-prioridade"
+                label="Prioridade legal"
+                options={PRIORIDADES}
+                value={prioridade}
+                onChange={(e) => setPrioridade(e.target.value)}
+              />
+            </div>
+          )}
 
           {achados !== null &&
             (achados.length === 0 ? (
@@ -370,14 +404,16 @@ export function Recepcao({
                           Ficha
                         </Link>
                       )}
-                      <Button
-                        size="sm"
-                        onClick={() => void incluir(c)}
-                        disabled={pending}
-                        aria-label={`Incluir ${c.nome_social || c.nome} na fila`}
-                      >
-                        <ListPlus size={14} aria-hidden="true" className="mr-1" /> Incluir na fila
-                      </Button>
+                      {temFila && (
+                        <Button
+                          size="sm"
+                          onClick={() => void incluir(c)}
+                          disabled={pending}
+                          aria-label={`Incluir ${c.nome_social || c.nome} na fila`}
+                        >
+                          <ListPlus size={14} aria-hidden="true" className="mr-1" /> Incluir na fila
+                        </Button>
+                      )}
                     </span>
                   </li>
                 ))}
@@ -395,7 +431,11 @@ export function Recepcao({
         }}
         title="Munícipe Localizado — Recepção"
         size="md"
-        description="Confira os dados cadastrais básicos e confirme a inclusão na fila de atendimento."
+        description={
+          temFila
+            ? "Confira os dados cadastrais básicos e confirme a inclusão na fila de atendimento."
+            : "Confira os dados cadastrais básicos."
+        }
       >
         {municipeModal && (
           <div className="flex flex-col gap-4">
@@ -446,11 +486,20 @@ export function Recepcao({
             </div>
 
             {/* Opções de Inclusão na Fila */}
+            {temFila && (
             <div className="rounded-xl border border-surface-border bg-surface p-4">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
                 Parâmetros do Atendimento
               </h4>
               <div className="grid gap-3 sm:grid-cols-2">
+                <Select
+                  id="sempras-modal-demanda"
+                  label="Demanda"
+                  options={opcoesDemanda}
+                  value={demanda}
+                  onChange={(e) => setDemanda(e.target.value)}
+                  required
+                />
                 <Select
                   id="sempras-modal-tipo"
                   label="Modalidade de atendimento"
@@ -465,8 +514,19 @@ export function Recepcao({
                   value={prioridade}
                   onChange={(e) => setPrioridade(e.target.value)}
                 />
+                {demanda === "outra" && (
+                  <Input
+                    id="sempras-modal-demanda-detalhe"
+                    label="Descreva a demanda"
+                    value={demandaDetalhe}
+                    onChange={(e) => setDemandaDetalhe(e.target.value)}
+                    maxLength={200}
+                    required
+                  />
+                )}
               </div>
             </div>
+            )}
 
             {/* Ações do Rodapé */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-border pt-3">
@@ -486,13 +546,15 @@ export function Recepcao({
               ) : <div />}
 
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => void incluir(municipeModal)}
-                  loading={pending}
-                >
-                  <ListPlus size={15} className="mr-1.5" /> Confirmar e incluir na fila
-                </Button>
+                {temFila && (
+                  <Button
+                    size="sm"
+                    onClick={() => void incluir(municipeModal)}
+                    loading={pending}
+                  >
+                    <ListPlus size={15} className="mr-1.5" /> Confirmar e incluir na fila
+                  </Button>
+                )}
                 <Button variant="secondary" size="sm" onClick={() => setMunicipeModal(null)}>
                   Fechar
                 </Button>
@@ -555,10 +617,15 @@ export function Recepcao({
               <UserCheck size={18} className="shrink-0 text-primary mt-0.5" />
               <div>
                 <strong className="block text-foreground font-semibold">
-                  Recepção & Triagem da Unidade (CRAS / Proteção Básica)
+                  Recepção & Triagem — {tipoInfo?.label ?? unidade.nome}
                 </strong>
                 <span className="mt-0.5 block text-muted">
-                  O <strong>CPF é obrigatório</strong> para localização cadastral, triagem e vinculação no SUAS/CadÚnico. Dados sensíveis e prontuário completo serão aprofundados pela equipe técnica na sala de atendimento.
+                  {isCras ? (
+                    <>O <strong>CPF ou o NIS é obrigatório</strong> para referenciar a família no SUAS/CadÚnico.</>
+                  ) : (
+                    <>Identifique o munícipe pelo <strong>CPF, NIS ou data de nascimento e nome da mãe</strong>.</>
+                  )}{" "}
+                  Dados sensíveis e prontuário completo serão aprofundados pela equipe técnica na sala de atendimento.
                 </span>
               </div>
             </div>
@@ -568,11 +635,13 @@ export function Recepcao({
             {CAMPOS_CIDADAO.map((c) => {
               const isCpf = c.name === "cpf";
               const isNome = c.name === "nome";
-              const isRequired = isNome || (!isCentroPop && isCpf && !anonimo);
+              const isRequired = isNome;
               const label = isCpf
                 ? isCentroPop
                   ? "CPF (opcional no Centro POP)"
-                  : "CPF *"
+                  : isCras
+                  ? "CPF (ou NIS) *"
+                  : c.label
                 : c.label;
 
               return (
@@ -619,7 +688,7 @@ export function Recepcao({
               <div className="sm:col-span-2 rounded-lg border border-surface-border bg-surface-muted/30 p-2.5 text-[11px] text-muted flex items-center gap-1.5">
                 <Info size={14} className="shrink-0 text-muted" />
                 <span>
-                  <strong>Exceção de CPF:</strong> Válida exclusivamente no <strong>Centro POP</strong> para acolhimento de pessoas em situação de rua. No CRAS, o documento é indispensável.
+                  <strong>Cadastro sem documento:</strong> o acolhimento anônimo é exclusivo do <strong>Centro POP</strong> (população em situação de rua).
                 </span>
               </div>
             )}
@@ -662,7 +731,7 @@ export function Recepcao({
                 PREFEITURA MUNICIPAL
               </span>
               <span className="text-[11px] text-muted font-sans">
-                SEMPRAS — Atendimento Social
+                SEMPRAS — {unidade.nome}
               </span>
               <div className="my-3 w-full border-y border-dashed border-surface-border py-3">
                 <span className="block text-5xl font-black tracking-tight text-primary print:text-black">

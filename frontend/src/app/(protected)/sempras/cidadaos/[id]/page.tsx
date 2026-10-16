@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, ClipboardCheck, Download, Lock, NotebookPen, Pencil, ShieldAlert, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 
@@ -72,6 +72,9 @@ import {
   type TipoMse,
   type Unidade,
   type ViolacaoPaefi,
+  ACOMPANHAMENTOS,
+  TIPOS_UNIDADE,
+  oferta,
 } from "@/lib/sempras/types";
 
 /**
@@ -82,19 +85,24 @@ import {
  */
 export default function FichaPage() {
   const { id } = useParams<{ id: string }>();
+  const params = useSearchParams();
   const { can } = useNexus();
   const { run, pending } = useAction();
   const ficha = useApiQuery<Prontuario>(`v1/sempras/cidadaos/${id}/prontuario`, { revalidateOnFocus: false });
   const unidades = useApiQuery<Unidade[]>("v1/sempras/unidades");
-  const [unidade, setUnidade] = useState("");
+  const [unidade, setUnidade] = useState(params.get("unidade") ?? "");
   const [tipo, setTipo] = useState("social");
   const [texto, setTexto] = useState("");
   const [mostrarFormAtendimentoCras, setMostrarFormAtendimentoCras] = useState(false);
   const [mostrarFormAtendimentoPop, setMostrarFormAtendimentoPop] = useState(false);
   const nomes = new Map((unidades.data ?? []).map((u) => [u.id, u.nome]));
-  const unidadeId = unidade || unidades.data?.[0]?.id || "";
+  // A unidade em uso decide as seções da ficha (ADR 031 §4) — vem do
+  // espaço de atendimento (?unidade=) e pode ser trocada por quem atua em mais de uma.
+  const unidadeAtual = unidades.data?.find((u) => u.id === unidade) ?? unidades.data?.[0];
+  const unidadeId = unidadeAtual?.id ?? "";
   const tipos = can(P.psicologia) ? TIPOS : TIPOS.filter((t) => t.value === "social");
-  const isCentroPopUnidade = /centro\s*pop/i.test(nomes.get(unidadeId) ?? "");
+  const isCentroPopUnidade = oferta(unidadeAtual, "centro_pop");
+  const isCrasUnidade = unidadeAtual?.tipo === "cras";
 
   async function registrar(e: FormEvent) {
     e.preventDefault();
@@ -632,7 +640,7 @@ export default function FichaPage() {
   const c = ficha.data?.cidadao;
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/sempras" className="inline-flex items-center gap-1 text-sm text-primary underline">
+      <Link href={unidadeId ? `/sempras/u/${unidadeId}` : "/sempras"} className="inline-flex items-center gap-1 text-sm text-primary underline">
         <ArrowLeft size={14} aria-hidden="true" /> Voltar ao atendimento
       </Link>
       <DataState loading={ficha.isLoading} error={ficha.error} onRetry={() => void ficha.mutate()} empty={!c}>
@@ -640,6 +648,45 @@ export default function FichaPage() {
           <>
             <PageHeader eyebrow="Ficha do munícipe" title={c.nome_social || c.nome}
               description="Acesso registrado na trilha de auditoria (LGPD). Mostra só o histórico das unidades onde você atua." />
+            {(unidades.data?.length ?? 0) > 1 && (
+              <div className="max-w-sm">
+                <Select id="ficha-unidade" label="Atendendo pela unidade" value={unidadeId} onChange={(e) => setUnidade(e.target.value)}
+                  options={(unidades.data ?? []).map((u) => ({ value: u.id, label: `${u.nome} (${TIPOS_UNIDADE[u.tipo]?.label ?? u.tipo})` }))} />
+              </div>
+            )}
+            {(ficha.data?.outras_unidades?.length ?? 0) > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle as="h2">Acompanhamento em outras unidades</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 pb-5">
+                  <p className="text-xs text-muted">
+                    Só o resumo: o conteúdo é de quem atende lá. A evolução social aparece quando a unidade encaminhou o munícipe para cá.
+                  </p>
+                  <ul className="flex flex-wrap gap-2">
+                    {ficha.data!.outras_unidades.map((o) => (
+                      <li key={o.unidade_id}>
+                        <Badge tone="neutral">
+                          {o.unidade_nome} — {o.ativos.map((a) => ACOMPANHAMENTOS[a] ?? a).join(", ")}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                  {ficha.data!.registros_origem.length > 0 && (
+                    <ol className="flex flex-col divide-y divide-surface-border rounded-xl border border-info/30 bg-info/5">
+                      {ficha.data!.registros_origem.map((r) => (
+                        <li key={r.id} className="flex flex-col gap-1 p-3 text-sm">
+                          <span className="text-xs text-muted">
+                            {r.autor_nome || "Técnico"} · {ficha.data!.outras_unidades.find((o) => o.unidade_id === r.unidade_id)?.unidade_nome ?? "outra unidade"} · {fmtDateTime(r.created_at)}
+                          </span>
+                          <p className="whitespace-pre-wrap">{r.texto}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle as="h2">Cadastro</CardTitle>
@@ -702,7 +749,9 @@ export default function FichaPage() {
                     <span className="text-xs text-muted">
                       {isCentroPopUnidade
                         ? "Registro de evolução rápida ou atendimento especializado do Centro POP (Decreto 7.053/2009)."
-                        : "Registro de evolução rápida ou formulário técnico oficial do CRAS (MDS)."}
+                        : isCrasUnidade
+                        ? "Registro de evolução rápida ou formulário técnico oficial do CRAS (MDS)."
+                        : "Registro de evolução do atendimento."}
                     </span>
                     {isCentroPopUnidade ? (
                       <Button
@@ -714,7 +763,7 @@ export default function FichaPage() {
                         <Sparkles size={14} className="mr-1" />
                         {mostrarFormAtendimentoPop ? "Ocultar Atendimento Centro POP" : "Abrir Atendimento Técnico Centro POP"}
                       </Button>
-                    ) : (
+                    ) : isCrasUnidade && (
                       <Button
                         type="button"
                         size="sm"
@@ -744,7 +793,7 @@ export default function FichaPage() {
                         }}
                       />
                     </div>
-                  ) : mostrarFormAtendimentoCras && !isCentroPopUnidade ? (
+                  ) : mostrarFormAtendimentoCras && isCrasUnidade ? (
                     <div className="rounded-xl border border-primary/30 bg-surface p-4">
                       <CrasAtendimentoForm
                         cidadao={ficha.data!.cidadao}
@@ -832,6 +881,7 @@ export default function FichaPage() {
               </CardContent>
             </Card>
 
+            {oferta(unidadeAtual, "beneficio") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Benefícios eventuais</CardTitle>
@@ -890,7 +940,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "encaminhamento") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Encaminhamentos entre unidades</CardTitle>
@@ -927,7 +979,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "paif") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">PAIF (CRAS)</CardTitle>
@@ -985,7 +1039,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "conselho") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Conselho Tutelar</CardTitle>
@@ -1055,6 +1111,7 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
             <Dialog open={aplicandoMedida !== null} onClose={() => setAplicandoMedida(null)} title="Aplicar medida protetiva"
               description="Art. 101 do ECA.">
@@ -1070,6 +1127,7 @@ export default function FichaPage() {
               </form>
             </Dialog>
 
+            {oferta(unidadeAtual, "paefi") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">PAEFI (CREAS)</CardTitle>
@@ -1131,7 +1189,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "mse") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Medidas socioeducativas (MSE)</CardTitle>
@@ -1184,7 +1244,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "notificacao") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Notificações do CREAS</CardTitle>
@@ -1251,7 +1313,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "oficio") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Ofícios recebidos (CRAS)</CardTitle>
@@ -1302,7 +1366,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "acolhimento") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Casa Abrigo</CardTitle>
@@ -1349,10 +1415,14 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
-            <CentroPopPerfilCard cidadaoId={id} unidadeId={unidadeId} perfil={ficha.data!.centro_pop_perfil}
-              onChanged={() => void ficha.mutate()} />
+            {oferta(unidadeAtual, "centro_pop") && (
+              <CentroPopPerfilCard cidadaoId={id} unidadeId={unidadeId} perfil={ficha.data!.centro_pop_perfil}
+                onChanged={() => void ficha.mutate()} />
+            )}
 
+            {oferta(unidadeAtual, "centro_pop") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Encaminhamentos externos</CardTitle>
@@ -1407,7 +1477,9 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {oferta(unidadeAtual, "centro_pop") && (
             <Card>
               <CardHeader>
                 <CardTitle as="h2">Documentos (Centro POP)</CardTitle>
@@ -1447,6 +1519,7 @@ export default function FichaPage() {
                 </div>
               </CardContent>
             </Card>
+            )}
 
             <Dialog open={encerrandoPaefi !== null} onClose={() => setEncerrandoPaefi(null)} title="Encerrar caso do PAEFI">
               <form onSubmit={confirmarEncerramentoPaefi} className="flex flex-col gap-4">
