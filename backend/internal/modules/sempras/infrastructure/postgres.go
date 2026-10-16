@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -403,6 +404,56 @@ func (r *Repository) ListAtendimentosColetivos(ctx context.Context, db database.
 
 // rmaAgregar roda uma query agregada por unidade_id e aplica cada linha
 // num *domain.RmaUnidade do mapa (criando-o na primeira vez).
+// rmaDe devolve o acumulador da unidade, criando-o na primeira vez.
+func rmaDe(out map[uuid.UUID]*domain.RmaUnidade, id uuid.UUID) *domain.RmaUnidade {
+	if out[id] == nil {
+		out[id] = &domain.RmaUnidade{}
+	}
+	return out[id]
+}
+
+// somarRma soma em atual todos os contadores inteiros de m, campo a campo.
+// Genérico de propósito: uma lista fixa de campos já perdeu indicadores
+// novos (ofícios e coletivos saíam sempre zerados).
+func somarRma(atual, m *domain.RmaUnidade) {
+	a, b := reflect.ValueOf(atual).Elem(), reflect.ValueOf(m).Elem()
+	for i := range a.NumField() {
+		if f := a.Field(i); f.Kind() == reflect.Int {
+			f.SetInt(f.Int() + b.Field(i).Int())
+		}
+	}
+}
+
+// rmaPorChave agrega uma contagem (unidade, chave, total) num mapa do RMA
+// — demandas da recepção, violações dos novos casos do PAEFI.
+func rmaPorChave(ctx context.Context, db database.DBTX, out map[uuid.UUID]*domain.RmaUnidade, sql string, args []any,
+	campo func(*domain.RmaUnidade) *map[string]int) error {
+	rows, err := db.Query(ctx, sql, args...)
+	if err != nil {
+		return wrap("Rma", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			id    uuid.UUID
+			chave string
+			n     int
+		)
+		if err := rows.Scan(&id, &chave, &n); err != nil {
+			return wrap("Rma", err)
+		}
+		mapa := campo(rmaDe(out, id))
+		if *mapa == nil {
+			*mapa = map[string]int{}
+		}
+		(*mapa)[chave] += n
+	}
+	if err := rows.Err(); err != nil {
+		return wrap("Rma", err)
+	}
+	return nil
+}
+
 func rmaAgregar(ctx context.Context, db database.DBTX, out map[uuid.UUID]*domain.RmaUnidade, sql string, args []any, aplicar func(row pgx.Row, m *domain.RmaUnidade) error) error {
 	rows, err := db.Query(ctx, sql, args...)
 	if err != nil {
@@ -415,27 +466,7 @@ func rmaAgregar(ctx context.Context, db database.DBTX, out map[uuid.UUID]*domain
 		if err := aplicar(multiScanRow{rows, &id}, m); err != nil {
 			return wrap("Rma", err)
 		}
-		if out[id] == nil {
-			out[id] = &domain.RmaUnidade{}
-		}
-		atual := out[id]
-		*atual = domain.RmaUnidade{
-			Atendimentos: atual.Atendimentos + m.Atendimentos, AtendimentosSociais: atual.AtendimentosSociais + m.AtendimentosSociais,
-			AtendimentosPsicologicos: atual.AtendimentosPsicologicos + m.AtendimentosPsicologicos,
-			PaifAtivos:               atual.PaifAtivos + m.PaifAtivos, PaifExtremaPobreza: atual.PaifExtremaPobreza + m.PaifExtremaPobreza,
-			PaifBolsaFamilia: atual.PaifBolsaFamilia + m.PaifBolsaFamilia, PaifBPC: atual.PaifBPC + m.PaifBPC,
-			PaifSCFVParticipantes:     atual.PaifSCFVParticipantes + m.PaifSCFVParticipantes,
-			BeneficiosConcedidosNoMes: atual.BeneficiosConcedidosNoMes + m.BeneficiosConcedidosNoMes,
-			PaefiCasosAtivos:          atual.PaefiCasosAtivos + m.PaefiCasosAtivos, PaefiCasosAbertosNoMes: atual.PaefiCasosAbertosNoMes + m.PaefiCasosAbertosNoMes,
-			MseAtivas: atual.MseAtivas + m.MseAtivas, MseConcluidasNoMes: atual.MseConcluidasNoMes + m.MseConcluidasNoMes,
-			ConselhoAtendimentosNoMes:         atual.ConselhoAtendimentosNoMes + m.ConselhoAtendimentosNoMes,
-			CreasNotificacoesRecebidasNoMes:   atual.CreasNotificacoesRecebidasNoMes + m.CreasNotificacoesRecebidasNoMes,
-			CreasNotificacoesRespondidasNoMes: atual.CreasNotificacoesRespondidasNoMes + m.CreasNotificacoesRespondidasNoMes,
-			CasaAbrigoAcolhidosAtivos:         atual.CasaAbrigoAcolhidosAtivos + m.CasaAbrigoAcolhidosAtivos,
-			CasaAbrigoEntradasNoMes:           atual.CasaAbrigoEntradasNoMes + m.CasaAbrigoEntradasNoMes,
-			CasaAbrigoDesligamentosNoMes:      atual.CasaAbrigoDesligamentosNoMes + m.CasaAbrigoDesligamentosNoMes,
-			EncaminhamentosEnviadosNoMes:      atual.EncaminhamentosEnviadosNoMes + m.EncaminhamentosEnviadosNoMes,
-		}
+		somarRma(rmaDe(out, id), m)
 	}
 	if err := rows.Err(); err != nil {
 		return wrap("Rma", err)
@@ -530,6 +561,60 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			},
 		},
 		{
+			// PAEFI: em acompanhamento no início do mês e desligados no mês.
+			`SELECT unidade_id, count(*) FILTER (WHERE data_abertura < $2 AND (data_encerramento IS NULL OR data_encerramento >= $2)),
+			 count(*) FILTER (WHERE data_encerramento >= $2 AND data_encerramento < $3)
+			 FROM sempras_paefi_casos WHERE unidade_id = ANY($1::uuid[]) GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.PaefiCasosInicioMes, &m.PaefiDesligadosNoMes)
+			},
+		},
+		{
+			// MSE por tipo: LA e PSC em cumprimento (fotografia) e novas no mês.
+			`SELECT unidade_id,
+			 count(*) FILTER (WHERE status = 'em_cumprimento' AND tipo_medida = 'liberdade_assistida'),
+			 count(*) FILTER (WHERE status = 'em_cumprimento' AND tipo_medida = 'prestacao_servico_comunidade'),
+			 count(*) FILTER (WHERE data_inicio >= $2 AND data_inicio < $3 AND tipo_medida = 'liberdade_assistida'),
+			 count(*) FILTER (WHERE data_inicio >= $2 AND data_inicio < $3 AND tipo_medida = 'prestacao_servico_comunidade')
+			 FROM sempras_mse_medidas WHERE unidade_id = ANY($1::uuid[]) GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.MseLaAtivas, &m.MsePscAtivas, &m.MseNovasLaNoMes, &m.MseNovasPscNoMes)
+			},
+		},
+		{
+			// Centro POP: pessoas diferentes atendidas no mês, as que vieram
+			// pela primeira vez, e o perfil de rua delas.
+			`SELECT a.unidade_id, count(DISTINCT a.cidadao_id),
+			 count(DISTINCT a.cidadao_id) FILTER (WHERE NOT EXISTS (SELECT 1 FROM sempras_atendimentos b
+			     WHERE b.unidade_id = a.unidade_id AND b.cidadao_id = a.cidadao_id AND b.created_at < $2)),
+			 count(DISTINCT a.cidadao_id) FILTER (WHERE p.uso_drogas),
+			 count(DISTINCT a.cidadao_id) FILTER (WHERE p.possui_doenca),
+			 count(DISTINCT a.cidadao_id) FILTER (WHERE p.situacao = 'trecheiro')
+			 FROM sempras_atendimentos a LEFT JOIN sempras_centro_pop_perfis p ON p.cidadao_id = a.cidadao_id
+			 WHERE a.unidade_id = ANY($1::uuid[]) AND a.created_at >= $2 AND a.created_at < $3 GROUP BY a.unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.PopPessoasAtendidasNoMes, &m.PopPessoasNovasNoMes, &m.PopPessoasUsoDrogas,
+					&m.PopPessoasComDoenca, &m.PopPessoasTrecheiras)
+			},
+		},
+		{
+			`SELECT unidade_id, count(*) FROM sempras_encaminhamentos_externos
+			 WHERE unidade_id = ANY($1::uuid[]) AND created_at >= $2 AND created_at < $3 GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error { return row.Scan(&m.EncaminhamentosExternosNoMes) },
+		},
+		{
+			`SELECT unidade_id, count(*) FILTER (WHERE status = 'ativo'),
+			 count(*) FILTER (WHERE data_abertura >= $2 AND data_abertura < $3),
+			 count(*) FILTER (WHERE status = 'ativo' AND nivel_risco IN ('alto', 'extremo')),
+			 count(*) FILTER (WHERE status = 'ativo' AND abrigada),
+			 count(*) FILTER (WHERE status = 'ativo' AND medida_protetiva_status = 'deferida')
+			 FROM sempras_casa_mulher_casos WHERE unidade_id = ANY($1::uuid[]) GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.CasaMulherCasosAtivos, &m.CasaMulherCasosNovosNoMes, &m.CasaMulherRiscoAltoExtremo,
+					&m.CasaMulherAbrigadas, &m.CasaMulherMedidasDeferidas)
+			},
+		},
+		{
 			`SELECT unidade_origem_id, count(*) FILTER (WHERE created_at >= $2 AND created_at < $3)
 			 FROM sempras_encaminhamentos WHERE unidade_origem_id = ANY($1::uuid[]) GROUP BY unidade_origem_id`,
 			func(row pgx.Row, m *domain.RmaUnidade) error { return row.Scan(&m.EncaminhamentosEnviadosNoMes) },
@@ -567,6 +652,28 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			return nil, err
 		}
 	}
+	porChave := []struct {
+		sql   string
+		campo func(*domain.RmaUnidade) *map[string]int
+	}{
+		{
+			`SELECT unidade_id, demanda, count(*) FROM sempras_atendimentos
+			 WHERE unidade_id = ANY($1::uuid[]) AND created_at >= $2 AND created_at < $3 AND demanda <> ''
+			 GROUP BY unidade_id, demanda`,
+			func(m *domain.RmaUnidade) *map[string]int { return &m.AtendimentosPorDemanda },
+		},
+		{
+			`SELECT unidade_id, v, count(*) FROM sempras_paefi_casos, unnest(violacoes) AS v
+			 WHERE unidade_id = ANY($1::uuid[]) AND data_abertura >= $2 AND data_abertura < $3
+			 GROUP BY unidade_id, v`,
+			func(m *domain.RmaUnidade) *map[string]int { return &m.PaefiNovosPorViolacao },
+		},
+	}
+	for _, q := range porChave {
+		if err := rmaPorChave(ctx, db, out, q.sql, args, q.campo); err != nil {
+			return nil, err
+		}
+	}
 
 	resultado := make([]domain.RmaUnidade, 0, len(unidades))
 	for _, u := range unidades {
@@ -575,6 +682,13 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			m = *p
 		}
 		m.Unidade = u
+		// Mapas vazios saem {} (não null): o frontend lê sem checar.
+		if m.AtendimentosPorDemanda == nil {
+			m.AtendimentosPorDemanda = map[string]int{}
+		}
+		if m.PaefiNovosPorViolacao == nil {
+			m.PaefiNovosPorViolacao = map[string]int{}
+		}
 		resultado = append(resultado, m)
 	}
 	return resultado, nil
@@ -1122,6 +1236,82 @@ func (r *Repository) PaefiCasosNaArea(ctx context.Context, db database.DBTX, cid
 		return nil, wrap("PaefiCasosNaArea", err)
 	}
 	return collect(rows, "PaefiCasosNaArea", scanPaefiCaso)
+}
+
+// ---------------------------------------------------------- Casa da Mulher
+
+const casaMulherCols = `c.id, c.caso_codigo, c.cidadao_id, c.unidade_id, c.violencias, c.relacao_agressor, c.nivel_risco,
+	c.medida_protetiva_status, c.medida_protetiva_processo, c.patrulha_maria_da_penha, c.filhos, c.abrigada, c.data_abrigamento,
+	c.status, c.motivo_encerramento, c.tecnico_referencia_id, c.observacoes, c.data_abertura, c.atualizado_em, c.data_encerramento`
+
+func scanCasoCasaMulher(row pgx.Row) (domain.CasoCasaMulher, error) {
+	var c domain.CasoCasaMulher
+	err := row.Scan(&c.ID, &c.CasoCodigo, &c.CidadaoID, &c.UnidadeID, &c.Violencias, &c.RelacaoAgressor, &c.NivelRisco,
+		&c.MedidaProtetivaStatus, &c.MedidaProtetivaProcesso, &c.PatrulhaMariaDaPenha, &c.Filhos, &c.Abrigada, &c.DataAbrigamento,
+		&c.Status, &c.MotivoEncerramento, &c.TecnicoReferenciaID, &c.Observacoes, &c.DataAbertura, &c.AtualizadoEm, &c.DataEncerramento)
+	return c, err
+}
+
+// InsertCasoCasaMulher grava um caso recém-aberto (já há um ativo da mulher
+// na unidade = ErrCasaMulherJaAtivo).
+func (r *Repository) InsertCasoCasaMulher(ctx context.Context, db database.DBTX, c domain.CasoCasaMulher, autor uuid.UUID) error {
+	_, err := db.Exec(ctx, `INSERT INTO sempras_casa_mulher_casos
+		(id, caso_codigo, cidadao_id, unidade_id, violencias, relacao_agressor, nivel_risco, medida_protetiva_status,
+		 medida_protetiva_processo, patrulha_maria_da_penha, filhos, abrigada, data_abrigamento, status, observacoes,
+		 registrado_por, data_abertura)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+		c.ID, c.CasoCodigo, c.CidadaoID, c.UnidadeID, c.Violencias, c.RelacaoAgressor, c.NivelRisco, c.MedidaProtetivaStatus,
+		c.MedidaProtetivaProcesso, c.PatrulhaMariaDaPenha, c.Filhos, c.Abrigada, c.DataAbrigamento, c.Status, c.Observacoes,
+		autor, c.DataAbertura)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.ConstraintName == "uq_sempras_casa_mulher_ativo" {
+		return domain.ErrCasaMulherJaAtivo
+	}
+	if err != nil {
+		return wrap("InsertCasoCasaMulher", err)
+	}
+	return nil
+}
+
+// GetCasoCasaMulher busca o caso (forUpdate trava a linha na transição).
+func (r *Repository) GetCasoCasaMulher(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.CasoCasaMulher, error) {
+	q := `SELECT ` + casaMulherCols + ` FROM sempras_casa_mulher_casos c WHERE c.id = $1`
+	if forUpdate {
+		q += ` FOR UPDATE`
+	}
+	c, err := scanCasoCasaMulher(db.QueryRow(ctx, q, id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.CasoCasaMulher{}, domain.ErrNotFound
+	}
+	if err != nil {
+		return domain.CasoCasaMulher{}, wrap("GetCasoCasaMulher", err)
+	}
+	return c, nil
+}
+
+// UpdateCasoCasaMulher grava a reavaliação ou o encerramento do caso.
+func (r *Repository) UpdateCasoCasaMulher(ctx context.Context, db database.DBTX, c domain.CasoCasaMulher) error {
+	if _, err := db.Exec(ctx, `UPDATE sempras_casa_mulher_casos SET violencias = $2, relacao_agressor = $3, nivel_risco = $4,
+		medida_protetiva_status = $5, medida_protetiva_processo = $6, patrulha_maria_da_penha = $7, filhos = $8, abrigada = $9,
+		data_abrigamento = $10, status = $11, motivo_encerramento = $12, tecnico_referencia_id = $13, observacoes = $14,
+		atualizado_em = $15, data_encerramento = $16 WHERE id = $1`,
+		c.ID, c.Violencias, c.RelacaoAgressor, c.NivelRisco, c.MedidaProtetivaStatus, c.MedidaProtetivaProcesso,
+		c.PatrulhaMariaDaPenha, c.Filhos, c.Abrigada, c.DataAbrigamento, c.Status, c.MotivoEncerramento, c.TecnicoReferenciaID,
+		c.Observacoes, c.AtualizadoEm, c.DataEncerramento); err != nil {
+		return wrap("UpdateCasoCasaMulher", err)
+	}
+	return nil
+}
+
+// CasosCasaMulherNaArea lista os casos da mulher nas unidades da área de quem consulta.
+func (r *Repository) CasosCasaMulherNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.CasoCasaMulher, error) {
+	rows, err := db.Query(ctx, `SELECT `+casaMulherCols+` FROM sempras_casa_mulher_casos c JOIN unidades u ON u.id = c.unidade_id
+		WHERE c.cidadao_id = $4 AND `+areaSQL(1, 2, 3)+`
+		ORDER BY c.data_abertura DESC LIMIT 200`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("CasosCasaMulherNaArea", err)
+	}
+	return collect(rows, "CasosCasaMulherNaArea", scanCasoCasaMulher)
 }
 
 // --------------------------------------------------------------------- MSE

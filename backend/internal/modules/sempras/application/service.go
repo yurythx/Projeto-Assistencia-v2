@@ -104,7 +104,8 @@ func MapError(err error) error {
 		errors.Is(err, domain.ErrDocumentoDuplicado), errors.Is(err, domain.ErrPedidoDecidido), errors.Is(err, domain.ErrBeneficioEstado),
 		errors.Is(err, domain.ErrEncaminhamentoDecidido), errors.Is(err, domain.ErrPaifJaAtivo), errors.Is(err, domain.ErrPaifJaExcluido),
 		errors.Is(err, domain.ErrConselhoEstado), errors.Is(err, domain.ErrPaefiEstado), errors.Is(err, domain.ErrMseEstado),
-		errors.Is(err, domain.ErrNotificacaoEstado), errors.Is(err, domain.ErrAcolhimentoEstado):
+		errors.Is(err, domain.ErrNotificacaoEstado), errors.Is(err, domain.ErrAcolhimentoEstado),
+		errors.Is(err, domain.ErrCasaMulherEstado), errors.Is(err, domain.ErrCasaMulherJaAtivo), errors.Is(err, domain.ErrOficioRespondido):
 		return apperrors.Conflict(err.Error())
 	case errors.Is(err, domain.ErrUnidadeInativa), errors.Is(err, domain.ErrAtendimentoOutro), errors.Is(err, domain.ErrMesmaUnidade):
 		return apperrors.Validation(err.Error())
@@ -337,6 +338,9 @@ func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth
 		return domain.Prontuario{}, err
 	}
 	if p.EncaminhamentosExternos, err = s.repo.EncaminhamentosExternosNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.CasaMulherCasos, err = s.repo.CasosCasaMulherNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
 	// O perfil de rua (saúde, uso de drogas) e os documentos são do
@@ -1852,6 +1856,96 @@ func (s *Service) EncerrarPaefiCaso(ctx context.Context, identity auth.Identity,
 		return domain.PaefiCaso{}, err
 	}
 	return p, nil
+}
+
+// ---------------------------------------------------------- Casa da Mulher
+
+// RegistrarCasoCasaMulher abre o caso de acompanhamento da mulher (nasce ativo).
+func (s *Service) RegistrarCasoCasaMulher(ctx context.Context, identity auth.Identity, cidadao, unidade uuid.UUID, in domain.CasoCasaMulherInput) (domain.CasoCasaMulher, error) {
+	c, err := domain.NovoCasoCasaMulher(cidadao, unidade, in, s.now())
+	if err != nil {
+		return domain.CasoCasaMulher{}, err
+	}
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoCasaMulher, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if _, err := s.repo.GetCidadao(ctx, tx, cidadao, false); err != nil {
+			return err
+		}
+		if err := s.repo.InsertCasoCasaMulher(ctx, tx, c, identity.UserID); err != nil {
+			return err
+		}
+		// Sem dado do caso na trilha: só identificadores e o risco.
+		e := audit.Meta(ctx, "sempras.casa_mulher.registrado", "sempras_casa_mulher_caso", c.ID.String(), nil,
+			map[string]any{"cidadao_id": cidadao, "unidade_id": unidade, "caso_codigo": c.CasoCodigo, "nivel_risco": c.NivelRisco})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.CasoCasaMulher{}, err
+	}
+	return c, nil
+}
+
+// AtualizarCasoCasaMulher regrava a avaliação de um caso ativo.
+func (s *Service) AtualizarCasoCasaMulher(ctx context.Context, identity auth.Identity, id uuid.UUID, in domain.CasoCasaMulherInput) (domain.CasoCasaMulher, error) {
+	var c domain.CasoCasaMulher
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if c, err = s.repo.GetCasoCasaMulher(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, c.UnidadeID, domain.ServicoCasaMulher, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		antes := c.NivelRisco
+		if err := c.Atualizar(in, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateCasoCasaMulher(ctx, tx, c); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_mulher.atualizado", "sempras_casa_mulher_caso", id.String(),
+			map[string]any{"nivel_risco": antes}, map[string]any{"nivel_risco": c.NivelRisco, "abrigada": c.Abrigada})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.CasoCasaMulher{}, err
+	}
+	return c, nil
+}
+
+// EncerrarCasoCasaMulher fecha o caso — exige motivo.
+func (s *Service) EncerrarCasoCasaMulher(ctx context.Context, identity auth.Identity, id uuid.UUID, motivo string) (domain.CasoCasaMulher, error) {
+	var c domain.CasoCasaMulher
+	now := s.now()
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if c, err = s.repo.GetCasoCasaMulher(ctx, tx, id, true); err != nil {
+			return err
+		}
+		if _, err := s.unidade(ctx, tx, identity, c.UnidadeID, domain.ServicoCasaMulher, auth.PermSemprasAtendimento); err != nil {
+			return err
+		}
+		if err := c.Encerrar(motivo, identity.UserID, now); err != nil {
+			return err
+		}
+		if err := s.repo.UpdateCasoCasaMulher(ctx, tx, c); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.casa_mulher.encerrado", "sempras_casa_mulher_caso", id.String(), nil,
+			map[string]any{"motivo_encerramento": c.MotivoEncerramento})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.CasoCasaMulher{}, err
+	}
+	return c, nil
 }
 
 // --------------------------------------------------------------------- MSE

@@ -489,6 +489,40 @@ func (fr *faultRepo) PaefiCasosNaArea(ctx context.Context, db database.DBTX, cid
 	return fr.inner.PaefiCasosNaArea(ctx, db, cidadao, area)
 }
 
+func (fr *faultRepo) InsertCasoCasaMulher(ctx context.Context, db database.DBTX, c domain.CasoCasaMulher, autor uuid.UUID) error {
+	if err := fr.hook("InsertCasoCasaMulher"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertCasoCasaMulher(ctx, db, c, autor)
+}
+
+func (fr *faultRepo) GetCasoCasaMulher(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.CasoCasaMulher, error) {
+	if err := fr.hook("GetCasoCasaMulher"); err != nil {
+		var z0 domain.CasoCasaMulher
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetCasoCasaMulher(ctx, db, id, forUpdate)
+}
+
+func (fr *faultRepo) UpdateCasoCasaMulher(ctx context.Context, db database.DBTX, c domain.CasoCasaMulher) error {
+	if err := fr.hook("UpdateCasoCasaMulher"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateCasoCasaMulher(ctx, db, c)
+}
+
+func (fr *faultRepo) CasosCasaMulherNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.CasoCasaMulher, error) {
+	if err := fr.hook("CasosCasaMulherNaArea"); err != nil {
+		var z0 []domain.CasoCasaMulher
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.CasosCasaMulherNaArea(ctx, db, cidadao, area)
+}
+
 func (fr *faultRepo) InsertMseMedida(ctx context.Context, db database.DBTX, m domain.MseMedida, autor uuid.UUID) error {
 	if err := fr.hook("InsertMseMedida"); err != nil {
 		return err

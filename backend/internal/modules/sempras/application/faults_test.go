@@ -46,6 +46,7 @@ type cenario struct {
 	unPop      uuid.UUID // Centro POP
 	unAbrigo   uuid.UUID // Casa Abrigo
 	unConselho uuid.UUID // Conselho Tutelar
+	unMulher   uuid.UUID // Casa da Mulher
 	identity   auth.Identity
 	store      *storagetest.Memory
 }
@@ -83,9 +84,10 @@ func novoCenario(t *testing.T) cenario {
 		unPop:      novaUnidade(t, pool, ent, domain.UnidadeCentroPop),
 		unAbrigo:   novaUnidade(t, pool, ent, domain.UnidadeCasaAbrigo),
 		unConselho: novaUnidade(t, pool, ent, domain.UnidadeConselhoTutelar),
+		unMulher:   novaUnidade(t, pool, ent, domain.UnidadeCasaMulher),
 	}
 	c.identity = auth.Identity{UserID: dbtest.User(t, pool), Name: "Profissional"}
-	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho} {
+	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho, c.unMulher} {
 		c.identity.Scopes = append(c.identity.Scopes, auth.Scope{EntidadeID: &ent, UnidadeID: &un, Permissions: []string{"sempras:*"}})
 	}
 	c.identity.Permissions = auth.EffectivePermissions(c.identity.Scopes)
@@ -96,11 +98,28 @@ func novoCenario(t *testing.T) cenario {
 // cenário (a não ser a unidade2).
 func (c cenario) so(perms ...string) auth.Identity {
 	i := auth.Identity{UserID: c.identity.UserID}
-	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho} {
+	for _, un := range []uuid.UUID{c.unidade, c.unCreas, c.unPop, c.unAbrigo, c.unConselho, c.unMulher} {
 		i.Scopes = append(i.Scopes, auth.Scope{UnidadeID: &un, Permissions: perms})
 	}
 	i.Permissions = auth.EffectivePermissions(i.Scopes)
 	return i
+}
+
+// casoMulherInput é uma avaliação válida de um caso da Casa da Mulher.
+func casoMulherInput() domain.CasoCasaMulherInput {
+	return domain.CasoCasaMulherInput{Violencias: []string{"fisica", "psicologica"}, RelacaoAgressor: "ex_conjuge_companheiro",
+		NivelRisco: "alto", MedidaProtetivaStatus: "em_analise", Filhos: 2}
+}
+
+// casoMulher cadastra uma mulher e abre um caso da Casa da Mulher para ela
+// (fora da transação sob teste).
+func (c cenario) casoMulher(t *testing.T) domain.CasoCasaMulher {
+	t.Helper()
+	caso, err := c.limpo().RegistrarCasoCasaMulher(context.Background(), c.identity, c.cadastrar(t).ID, c.unMulher, casoMulherInput())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return caso
 }
 
 const bucket = "test-bucket"
@@ -533,6 +552,20 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			_, err := s.EncerrarPaefiCaso(ctx, id, c.paefi(t).ID, "objetivos_alcancados")
 			return err
 		},
+		"RegistrarCasoCasaMulher": func(t *testing.T, s *application.Service) error {
+			_, err := s.RegistrarCasoCasaMulher(ctx, id, c.cadastrar(t).ID, c.unMulher, casoMulherInput())
+			return err
+		},
+		"AtualizarCasoCasaMulher": func(t *testing.T, s *application.Service) error {
+			in := casoMulherInput()
+			in.NivelRisco, in.Abrigada = "extremo", true
+			_, err := s.AtualizarCasoCasaMulher(ctx, id, c.casoMulher(t).ID, in)
+			return err
+		},
+		"EncerrarCasoCasaMulher": func(t *testing.T, s *application.Service) error {
+			_, err := s.EncerrarCasoCasaMulher(ctx, id, c.casoMulher(t).ID, "superacao_violencia")
+			return err
+		},
 		"RegistrarMseMedida": func(t *testing.T, s *application.Service) error {
 			_, err := s.RegistrarMseMedida(ctx, id, c.cadastrar(t).ID, c.unCreas, "123/2026", "Vara da Infância",
 				"furto (art. 155 CP)", domain.MseTipoLiberdadeAssistida, "")
@@ -739,6 +772,9 @@ func TestMapError(t *testing.T) {
 		domain.ErrNotificacaoEstado:       http.StatusConflict,
 		domain.ErrAcolhimentoEstado:       http.StatusConflict,
 		domain.ErrServicoIndisponivel:     http.StatusNotFound,
+		domain.ErrCasaMulherEstado:        http.StatusConflict,
+		domain.ErrCasaMulherJaAtivo:       http.StatusConflict,
+		domain.ErrOficioRespondido:        http.StatusConflict,
 	} {
 		ae, ok := apperrors.As(application.MapError(err))
 		if !ok || ae.Status != code {
@@ -1341,6 +1377,18 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodPost, "/sempras/paefi/" + x + "/encerrar", `{"motivo":"objetivos_alcancados"}`, 500},
 		{http.MethodPost, "/sempras/paefi/zz/encerrar", `{}`, 400},
 		{http.MethodPost, "/sempras/paefi/" + x + "/encerrar", `{`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-mulher", casoMulherBody(u), 500},
+		{http.MethodPost, "/sempras/cidadaos/zz/casa-mulher", `{}`, 400},
+		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-mulher", `{`, 400},
+		{http.MethodPut, "/sempras/casa-mulher/" + x, casoMulherBody(""), 500},
+		{http.MethodPut, "/sempras/casa-mulher/zz", `{}`, 400},
+		{http.MethodPut, "/sempras/casa-mulher/" + x, `{`, 400},
+		{http.MethodPost, "/sempras/casa-mulher/" + x + "/encerrar", `{"motivo":"desistencia"}`, 500},
+		{http.MethodPost, "/sempras/casa-mulher/zz/encerrar", `{}`, 400},
+		{http.MethodPost, "/sempras/casa-mulher/" + x + "/encerrar", `{`, 400},
+		{http.MethodPut, "/sempras/casa-abrigo/" + x + "/pia", `{`, 400},
+		{http.MethodPost, "/sempras/casa-abrigo-pia-metas/" + x + "/concluir", `{`, 400},
+		{http.MethodPost, "/sempras/encaminhamentos/" + x + "/decidir", `{`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/mse", `{"unidade_id":"` + u + `","ato_infracional":"furto (art. 155 CP)","tipo_medida":"liberdade_assistida"}`, 500},
 		{http.MethodPost, "/sempras/cidadaos/zz/mse", `{}`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/mse", `{`, 400},
@@ -1543,5 +1591,87 @@ func TestProntuarioPorTipoDeUnidade(t *testing.T) {
 	}
 	if p.CentroPopPerfil == nil {
 		t.Error("o Centro POP lê o perfil de rua")
+	}
+}
+
+// casoMulherBody é o JSON de uma avaliação válida (unidade só na abertura).
+func casoMulherBody(unidade string) string {
+	campoUnidade := ""
+	if unidade != "" {
+		campoUnidade = `"unidade_id":"` + unidade + `",`
+	}
+	return `{` + campoUnidade + `"violencias":["fisica"],"relacao_agressor":"conjuge_companheiro",` +
+		`"nivel_risco":"medio","medida_protetiva_status":"nao_solicitada","filhos":1}`
+}
+
+// TestCasaMulher: o caso só existe na Casa da Mulher, um ativo por mulher,
+// reavaliação e encerramento só com o caso ativo, recepção não registra.
+func TestCasaMulher(t *testing.T) {
+	c := novoCenario(t)
+	s := c.limpo()
+	ctx := context.Background()
+	cid := c.cadastrar(t).ID
+
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.identity, cid, c.unidade, casoMulherInput()); !errors.Is(err, domain.ErrServicoIndisponivel) {
+		t.Errorf("o CRAS não abre caso da Casa da Mulher: %v", err)
+	}
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.so("sempras:recepcao"), cid, c.unMulher, casoMulherInput()); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não registra o caso: %v", err)
+	}
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.identity, cid, c.unMulher, domain.CasoCasaMulherInput{}); err == nil {
+		t.Error("caso sem formas de violência deveria falhar")
+	}
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.identity, uuid.New(), c.unMulher, casoMulherInput()); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("munícipe inexistente: %v", err)
+	}
+	caso, err := s.RegistrarCasoCasaMulher(ctx, c.identity, cid, c.unMulher, casoMulherInput())
+	if err != nil || caso.Status != domain.CasaMulherStatusAtivo || caso.Abrigada {
+		t.Fatalf("abrir: %+v, %v", caso, err)
+	}
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.identity, cid, c.unMulher, casoMulherInput()); !errors.Is(err, domain.ErrCasaMulherJaAtivo) {
+		t.Errorf("segundo caso ativo: %v", err)
+	}
+
+	in := casoMulherInput()
+	in.NivelRisco, in.Abrigada, in.MedidaProtetivaStatus, in.MedidaProtetivaProcesso = "extremo", true, "deferida", "0001234-56.2026"
+	if _, err := s.AtualizarCasoCasaMulher(ctx, c.identity, caso.ID, domain.CasoCasaMulherInput{}); err == nil {
+		t.Error("reavaliação inválida deveria falhar")
+	}
+	at, err := s.AtualizarCasoCasaMulher(ctx, c.identity, caso.ID, in)
+	if err != nil || !at.Abrigada || at.DataAbrigamento == nil || at.NivelRisco != "extremo" || at.AtualizadoEm == nil {
+		t.Fatalf("reavaliar: %+v, %v", at, err)
+	}
+	if _, err := s.AtualizarCasoCasaMulher(ctx, c.so("sempras:recepcao"), caso.ID, in); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não reavalia: %v", err)
+	}
+	if _, err := s.AtualizarCasoCasaMulher(ctx, c.identity, uuid.New(), in); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("caso inexistente: %v", err)
+	}
+	if _, err := s.EncerrarCasoCasaMulher(ctx, c.identity, caso.ID, "?"); err == nil {
+		t.Error("motivo inválido deveria falhar")
+	}
+	fim, err := s.EncerrarCasoCasaMulher(ctx, c.identity, caso.ID, "mudanca_municipio")
+	if err != nil || fim.Status != domain.CasaMulherStatusEncerrado || fim.Abrigada || fim.DataEncerramento == nil {
+		t.Fatalf("encerrar: %+v, %v", fim, err)
+	}
+	if _, err := s.EncerrarCasoCasaMulher(ctx, c.identity, caso.ID, "outro"); !errors.Is(err, domain.ErrCasaMulherEstado) {
+		t.Errorf("já encerrado: %v", err)
+	}
+	if _, err := s.AtualizarCasoCasaMulher(ctx, c.identity, caso.ID, in); !errors.Is(err, domain.ErrCasaMulherEstado) {
+		t.Errorf("reavaliar encerrado: %v", err)
+	}
+	if _, err := s.EncerrarCasoCasaMulher(ctx, c.so("sempras:recepcao"), caso.ID, "outro"); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não encerra: %v", err)
+	}
+	if _, err := s.EncerrarCasoCasaMulher(ctx, c.identity, uuid.New(), "outro"); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("encerrar inexistente: %v", err)
+	}
+	// Encerrado, a mulher pode ter um caso novo; o prontuário traz os dois.
+	if _, err := s.RegistrarCasoCasaMulher(ctx, c.identity, cid, c.unMulher, casoMulherInput()); err != nil {
+		t.Fatalf("caso novo após o encerramento: %v", err)
+	}
+	p, err := s.Prontuario(ctx, c.identity, cid)
+	if err != nil || len(p.CasaMulherCasos) != 2 {
+		t.Fatalf("prontuário: %d casos, %v", len(p.CasaMulherCasos), err)
 	}
 }

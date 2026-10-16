@@ -335,7 +335,58 @@ describe("SEMPRAS — RMA/MDS", () => {
 
     fireEvent.change(screen.getByLabelText("Competência"), { target: { value: "2026-11" } });
     await waitFor(() => expect(api.to("GET v1/sempras/relatorios/rma").at(-1)!.query.get("competencia")).toBe("2026-11"));
-    expect(await screen.findByText("Nenhuma unidade")).toBeInTheDocument();
+    expect(await screen.findByText("Nenhuma unidade deste tipo")).toBeInTheDocument();
+  });
+
+  it("um formulário por tipo: CREAS, Centro POP e Casa da Mulher, com as demandas da recepção", async () => {
+    const zero = Object.fromEntries([
+      "atendimentos", "atendimentos_sociais", "atendimentos_psicologicos", "paif_ativos", "paif_extrema_pobreza",
+      "paif_bolsa_familia", "paif_bpc", "paif_scfv_participantes", "beneficios_concedidos_no_mes", "paefi_casos_ativos",
+      "paefi_casos_abertos_no_mes", "mse_ativas", "mse_concluidas_no_mes", "conselho_atendimentos_no_mes",
+      "creas_notificacoes_recebidas_no_mes", "creas_notificacoes_respondidas_no_mes", "casa_abrigo_acolhidos_ativos",
+      "casa_abrigo_entradas_no_mes", "casa_abrigo_desligamentos_no_mes", "encaminhamentos_enviados_no_mes",
+      "oficios_cras_recebidos_no_mes", "oficios_cras_respondidos_no_mes", "coletivo_paif_familias_no_mes",
+      "coletivo_scfv_0_6_no_mes", "coletivo_scfv_7_14_no_mes", "coletivo_scfv_15_17_no_mes", "coletivo_scfv_18_59_no_mes",
+      "coletivo_scfv_idosos_no_mes", "coletivo_palestras_no_mes", "coletivo_pcd_no_mes", "coletivo_total_no_mes",
+      "paefi_casos_inicio_mes", "paefi_desligados_no_mes", "mse_la_ativas", "mse_psc_ativas", "mse_novas_la_no_mes",
+      "mse_novas_psc_no_mes", "pop_pessoas_atendidas_no_mes", "pop_pessoas_novas_no_mes", "pop_pessoas_uso_drogas",
+      "pop_pessoas_com_doenca", "pop_pessoas_trecheiras", "encaminhamentos_externos_no_mes", "casa_mulher_casos_ativos",
+      "casa_mulher_casos_novos_no_mes", "casa_mulher_risco_alto_extremo", "casa_mulher_abrigadas", "casa_mulher_medidas_deferidas",
+    ].map((k) => [k, 0]));
+    const MULHER = unidade("u6", "Casa da Mulher", "casa_mulher", ["fila", "prontuario", "encaminhamento", "casa_mulher"], ["acolhida_inicial"], false);
+    mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/relatorios/rma": {
+        data: [
+          { ...zero, unidade: CRAS, atendimentos: 9, atendimentos_por_demanda: { cadunico_bolsa_familia: 6 }, paefi_novos_por_violacao: {} },
+          { ...zero, unidade: CREAS, paefi_casos_inicio_mes: 4, paefi_casos_abertos_no_mes: 2, mse_la_ativas: 3, mse_psc_ativas: 1,
+            paefi_novos_por_violacao: { violencia_sexual: 2 }, atendimentos_por_demanda: { acolhida_inicial: 5 } },
+          { ...zero, unidade: POP, pop_pessoas_atendidas_no_mes: 17, pop_pessoas_novas_no_mes: 3, atendimentos_por_demanda: {},
+            paefi_novos_por_violacao: {} },
+          { ...zero, unidade: MULHER, casa_mulher_casos_ativos: 8, casa_mulher_abrigadas: 2, atendimentos_por_demanda: {},
+            paefi_novos_por_violacao: {} },
+        ],
+      },
+    });
+    renderApp(<RmaPage />);
+    // Consolidado: todas as unidades; demandas somadas.
+    expect(await screen.findByText("CRAS Ana Carla")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Demandas da recepção" })).getByText("Cadastro Único / Bolsa Família")).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText("Formulário"), "creas");
+    const tabela = screen.getByRole("table");
+    expect(within(tabela).queryByText("CRAS Ana Carla")).not.toBeInTheDocument();
+    expect(within(tabela).getByText("CREAS")).toBeInTheDocument();
+    expect(within(tabela).getByRole("columnheader", { name: "Novos — Violência sexual" })).toBeInTheDocument();
+    const totais = within(screen.getByRole("list", { name: "Totais da competência" }));
+    expect(totais.getByText("Adolescentes em MSE").previousSibling).toHaveTextContent("4");
+
+    await userEvent.selectOptions(screen.getByLabelText("Formulário"), "centro_pop");
+    expect(within(screen.getByRole("list", { name: "Totais da competência" })).getByText("Pessoas atendidas").previousSibling).toHaveTextContent("17");
+
+    await userEvent.selectOptions(screen.getByLabelText("Formulário"), "casa_mulher");
+    expect(within(screen.getByRole("table")).getByText("Casa da Mulher")).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Totais da competência" })).getByText("Abrigadas").previousSibling).toHaveTextContent("2");
   });
 
   it("sem a permissão de gestão: explica de quem é o RMA", async () => {
@@ -478,6 +529,66 @@ describe("SEMPRAS — ficha do munícipe", () => {
     await userEvent.selectOptions(screen.getByLabelText("Atendendo pela unidade"), "u1");
     expect(await screen.findByRole("heading", { name: "PAIF (CRAS)" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "PAEFI (CREAS)" })).not.toBeInTheDocument();
+  });
+
+  it("Casa da Mulher: abre o caso, reavalia (abrigamento) e encerra", async () => {
+    const MULHER = unidade("u6", "Casa da Mulher", "casa_mulher", ["fila", "prontuario", "encaminhamento", "casa_mulher"], ["acolhida_inicial"], false);
+    resetNavigation({ id: "c1" }, "/", "unidade=u6");
+    const caso = {
+      id: "cm1", caso_codigo: "CM-ABCD1234", cidadao_id: "c1", unidade_id: "u6", violencias: ["fisica", "psicologica"],
+      relacao_agressor: "ex_conjuge_companheiro", nivel_risco: "alto", medida_protetiva_status: "deferida",
+      medida_protetiva_processo: "0001234-56.2026", patrulha_maria_da_penha: true, filhos: 2, abrigada: false,
+      data_abrigamento: null, status: "ativo", motivo_encerramento: "", tecnico_referencia_id: null, observacoes: "",
+      data_abertura: "2026-10-08T05:00:00Z", atualizado_em: null, data_encerramento: null,
+    };
+    let casos: unknown[] = [];
+    const api = mockBackend({
+      ...identityRoutes(),
+      "GET v1/sempras/cidadaos/c1/prontuario": () => ({ data: { ...PRONTUARIO, casa_mulher_casos: casos } }),
+      "GET v1/sempras/unidades": { data: [...TODAS, MULHER] },
+      "POST v1/sempras/cidadaos/c1/casa-mulher": () => {
+        casos = [caso];
+        return { status: 201, data: caso };
+      },
+      "PUT v1/sempras/casa-mulher/cm1": { data: { ...caso, abrigada: true } },
+      "POST v1/sempras/casa-mulher/cm1/encerrar": { data: { ...caso, status: "encerrado" } },
+    });
+    renderApp(<FichaPage />);
+    expect(await screen.findByRole("heading", { name: "Casa da Mulher" })).toBeInTheDocument();
+    // Seções de outros tipos não aparecem na Casa da Mulher.
+    expect(screen.queryByRole("heading", { name: "PAIF (CRAS)" })).not.toBeInTheDocument();
+    expect(screen.getByText("Nenhum caso da Casa da Mulher nas suas unidades.")).toBeInTheDocument();
+
+    const abrir = screen.getByRole("form", { name: "Abrir caso" });
+    expect(within(abrir).getByRole("button", { name: "Abrir caso" })).toBeDisabled();
+    await userEvent.click(within(abrir).getByLabelText("Física"));
+    await userEvent.click(within(abrir).getByLabelText("Psicológica"));
+    await userEvent.selectOptions(within(abrir).getByLabelText("Relação com o agressor"), "ex_conjuge_companheiro");
+    await userEvent.selectOptions(within(abrir).getByLabelText("Avaliação de risco"), "alto");
+    await userEvent.click(within(abrir).getByLabelText(/Patrulha Maria da Penha/));
+    await userEvent.click(within(abrir).getByRole("button", { name: "Abrir caso" }));
+    await waitFor(() =>
+      expect(api.to("POST v1/sempras/cidadaos/c1/casa-mulher")[0]!.body).toMatchObject({
+        unidade_id: "u6", violencias: ["fisica", "psicologica"], relacao_agressor: "ex_conjuge_companheiro",
+        nivel_risco: "alto", patrulha_maria_da_penha: true,
+      }),
+    );
+    const lista = within(await screen.findByRole("list", { name: "Casos da Casa da Mulher" }));
+    expect(lista.getByText("Risco alto")).toBeInTheDocument();
+    expect(lista.getByText(/0001234-56\.2026/)).toBeInTheDocument();
+    // Com um caso ativo, o formulário de abertura some (um ativo por mulher).
+    expect(screen.queryByRole("form", { name: "Abrir caso" })).not.toBeInTheDocument();
+
+    await userEvent.click(lista.getByRole("button", { name: "Reavaliar" }));
+    const reavaliar = screen.getByRole("form", { name: "Reavaliar o caso" });
+    await userEvent.click(within(reavaliar).getByLabelText(/Abrigada/));
+    await userEvent.click(within(reavaliar).getByRole("button", { name: "Salvar reavaliação" }));
+    await waitFor(() => expect(api.to("PUT v1/sempras/casa-mulher/cm1")[0]!.body).toMatchObject({ abrigada: true, nivel_risco: "alto" }));
+
+    await userEvent.click(lista.getByRole("button", { name: "Encerrar" }));
+    await userEvent.selectOptions(screen.getByLabelText("Motivo do encerramento", { selector: "#cm-motivo-cm1" }), "mudanca_municipio");
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar encerramento" }));
+    await waitFor(() => expect(api.to("POST v1/sempras/casa-mulher/cm1/encerrar")[0]!.body).toEqual({ motivo: "mudanca_municipio" }));
   });
 
   it("psicólogo escolhe o tipo psicológico; ficha sem atendimentos na área", async () => {

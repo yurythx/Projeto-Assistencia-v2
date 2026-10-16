@@ -1,6 +1,6 @@
 # 031 — SEMPRAS: cada tipo de unidade com o seu próprio atendimento
 
-- **Status:** Aceito e implementado (fases A a D); a fase E (RMA do CREAS e do Centro POP) e os serviços próprios da Casa da Mulher ficam para depois
+- **Status:** Aceito e implementado (fases A a F)
 - **Data:** 2026-10-16
 - **Revisa:** [ADR 030](030-sempras-atendimento-socioassistencial.md) §1 (a premissa de que "as 16 unidades têm a mesma jornada")
 - **Referência:** `protocolo_digital/docs/RELATORIO_TECNICO_MODULOS_ASSISTENCIA_SOCIAL.md` e `ARQUITETURA_SEGURANCA_SUAS_RBAC.md` (legado)
@@ -147,16 +147,16 @@ legado, só que com o tipo da unidade em vez do nome do setor.
 | **C. Espaço por unidade** (frontend) | `/sempras/u/[unidade]`, abas e menu pelo catálogo, a ficha em seções por tipo, o fim da regex do nome |
 | **D. Recepção por tipo** | Coluna `demanda`, listas por tipo e regra de identificação por tipo |
 | **E. RMA por tipo** | Formulários do MDS para CREAS e Centro POP |
+| **F. Casa da Mulher** | O caso de acompanhamento da mulher (Lei 11.340/2006) como serviço `casa_mulher` |
 
 ## Decisões das questões em aberto (2026-10-16)
 
 1. **CEU, SCFV Padre Lothar e Vila Olímpica** fazem atendimento individual
    com fila e também atividades coletivas: tipo `scfv`.
 2. **Sede da SEMPRAS** não atende público: fica sem tipo.
-3. **Casa da Mulher** recebe agora só o básico (fila sem nome no painel,
-   prontuário, encaminhamento). Os serviços próprios do legado
-   (tipificação da Lei Maria da Penha, medida protetiva, abrigamento
-   sigiloso) entram numa fase própria.
+3. **Casa da Mulher** recebeu primeiro o básico (fila sem nome no painel,
+   prontuário, encaminhamento); os serviços próprios do legado vieram na
+   fase F, abaixo.
 4. **Visão entre unidades:** além do resumo, o técnico lê a **evolução
    social** das unidades que encaminharam o munícipe para a dele
    (encaminhamento pendente ou aceito). A evolução psicológica e os
@@ -172,3 +172,55 @@ legado, só que com o tipo da unidade em vez do nome do setor.
 | Demanda da entrada | migração `000166`; `EntradaRequest.demanda` é obrigatória |
 | Visão entre unidades | `Prontuario.outras_unidades` e `Prontuario.registros_origem` |
 | Espaço por unidade | `/sempras` (escolha) e `/sempras/u/[unidade]` |
+| Casa da Mulher (fase F) | migração `000167`; serviço `casa_mulher`; `CasoCasaMulher` no domínio; `/sempras/cidadaos/{id}/casa-mulher`, `/sempras/casa-mulher/{id}` e `/encerrar`; `CasaMulherCard` na ficha |
+| RMA por tipo (fase E) | indicadores novos em `RmaUnidade`; formulários CRAS/CREAS/Centro POP/Casa da Mulher em `Rma.tsx` |
+
+## Fase E — RMA por tipo
+
+O RMA passou a ter um formulário por tipo de unidade, com o que cada uma
+produz de fato:
+
+- **CRAS / SCFV:** PAIF (perfil das famílias), benefícios, ofícios,
+  atendimentos coletivos por faixa do SCFV.
+- **CREAS:** casos do PAEFI no início do mês, novos e desligados no mês;
+  novos casos por violação; adolescentes em LA e PSC (em cumprimento e
+  novos); notificações recebidas e respondidas.
+- **Centro POP:** pessoas diferentes atendidas no mês e as que vieram pela
+  primeira vez, o perfil delas (uso de drogas, doença ou transtorno,
+  trecheiras), atendimentos e encaminhamentos para a rede.
+- **Casa da Mulher:** indicadores municipais (o MDS não tem RMA próprio):
+  casos ativos e novos, risco alto ou extremo, abrigadas e medidas
+  protetivas deferidas.
+- **Todos:** as entradas na fila do mês por demanda da recepção.
+
+Os nomes dos indicadores seguem os blocos do RMA do MDS, mas sem os códigos
+oficiais dos itens: o recorte por sexo e faixa etária do formulário
+federal exige dados que o cadastro não tem. A conferência com o SUASWeb
+continua manual.
+
+A revisão achou um bug no acumulador do RMA: ele reconstruía a struct com
+uma lista fixa de campos e perdia os indicadores das fases mais novas
+(ofícios e coletivos saíam sempre zerados). A soma passou a ser genérica,
+campo a campo.
+
+## Fase F — Casa da Mulher
+
+O atendimento do dia continua sendo a fila e o prontuário. O **caso**
+(`sempras_casa_mulher_casos`) guarda o que é próprio do serviço:
+
+- as formas de violência do art. 7º (física, psicológica, sexual,
+  patrimonial, moral);
+- o vínculo com o agressor;
+- a avaliação de risco (baixo, médio, alto, extremo);
+- a medida protetiva de urgência (situação e número do processo);
+- a Patrulha Maria da Penha;
+- os filhos;
+- o abrigamento, com a data em que começou.
+
+Um caso ativo por mulher em cada unidade. A reavaliação e o encerramento
+(com motivo) só valem com o caso ativo, e o encerramento também encerra o
+abrigamento. A auditoria guarda só identificadores, o nível de risco e se
+houve abrigamento, nunca o relato.
+
+O caso **não entra** no resumo "também acompanhado por" das outras
+unidades: revelaria a situação de violência a quem não atende a mulher.

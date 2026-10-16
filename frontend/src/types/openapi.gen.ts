@@ -3004,6 +3004,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sempras/casa-mulher/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** SEMPRAS — Salvar /sempras/casa-mulher/{id} */
+        put: operations["putSemprasCasaMulherId"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/casa-mulher/{id}/encerrar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/casa-mulher/{id}/encerrar */
+        post: operations["postSemprasCasaMulherIdEncerrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sempras/centro-pop-documentos/{id}": {
         parameters: {
             query?: never;
@@ -3125,6 +3159,23 @@ export interface paths {
          * @description Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
          */
         post: operations["postSemprasCidadaosIdCasaAbrigo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/cidadaos/{id}/casa-mulher": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/cidadaos/{id}/casa-mulher */
+        post: operations["postSemprasCidadaosIdCasaMulher"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6298,6 +6349,52 @@ export interface components {
             /** Format: uuid */
             unidade_id: string;
         };
+        SemprasCasoCasaMulher: {
+            abrigada: boolean;
+            /** Format: date-time */
+            atualizado_em: string | null;
+            caso_codigo: string;
+            /** Format: uuid */
+            cidadao_id: string;
+            /** Format: date-time */
+            data_abertura: string;
+            /** Format: date-time */
+            data_abrigamento: string | null;
+            /** Format: date-time */
+            data_encerramento: string | null;
+            filhos: number;
+            /** Format: uuid */
+            id: string;
+            medida_protetiva_processo: string;
+            medida_protetiva_status: string;
+            motivo_encerramento: string;
+            nivel_risco: string;
+            observacoes: string;
+            patrulha_maria_da_penha: boolean;
+            relacao_agressor: string;
+            status: string;
+            /** Format: uuid */
+            tecnico_referencia_id: string | null;
+            /** Format: uuid */
+            unidade_id: string;
+            violencias: string[];
+        };
+        SemprasCasoCasaMulherRequest: {
+            abrigada?: boolean;
+            filhos?: number;
+            medida_protetiva_processo?: string;
+            /** @enum {string} */
+            medida_protetiva_status: "nao_solicitada" | "em_analise" | "deferida" | "indeferida" | "descumprida";
+            /** @enum {string} */
+            nivel_risco: "baixo" | "medio" | "alto" | "extremo";
+            observacoes?: string;
+            patrulha_maria_da_penha?: boolean;
+            /** @enum {string} */
+            relacao_agressor: "conjuge_companheiro" | "ex_conjuge_companheiro" | "namorado" | "ex_namorado" | "familiar" | "outro";
+            /** Format: uuid */
+            unidade_id?: string;
+            violencias: string[];
+        };
         SemprasCentroPopPerfil: {
             /** Format: date-time */
             atualizado_em: string;
@@ -6537,6 +6634,10 @@ export interface components {
             unidade_destino_id: string;
             /** Format: uuid */
             unidade_origem_id: string;
+        };
+        SemprasEncerramentoCasaMulherRequest: {
+            /** @enum {string} */
+            motivo: "superacao_violencia" | "mudanca_municipio" | "transferencia_rede" | "desistencia" | "outro";
         };
         SemprasEncerramentoPaefiRequest: {
             /** @enum {string} */
@@ -6860,6 +6961,7 @@ export interface components {
             atendimentos: components["schemas"]["SemprasAtendimento"][];
             beneficios: components["schemas"]["SemprasBeneficio"][];
             casa_abrigo_acolhimentos: components["schemas"]["SemprasAcolhimento"][];
+            casa_mulher_casos: components["schemas"]["SemprasCasoCasaMulher"][];
             centro_pop_documentos: components["schemas"]["SemprasDocumentoCentroPop"][];
             centro_pop_perfil: components["schemas"]["SemprasCentroPopPerfil"] | null;
             cidadao: components["schemas"]["SemprasCidadao"];
@@ -6918,12 +7020,20 @@ export interface components {
         };
         SemprasRmaUnidade: {
             atendimentos: number;
+            atendimentos_por_demanda: {
+                [key: string]: number;
+            };
             atendimentos_psicologicos: number;
             atendimentos_sociais: number;
             beneficios_concedidos_no_mes: number;
             casa_abrigo_acolhidos_ativos: number;
             casa_abrigo_desligamentos_no_mes: number;
             casa_abrigo_entradas_no_mes: number;
+            casa_mulher_abrigadas: number;
+            casa_mulher_casos_ativos: number;
+            casa_mulher_casos_novos_no_mes: number;
+            casa_mulher_medidas_deferidas: number;
+            casa_mulher_risco_alto_extremo: number;
             coletivo_paif_familias_no_mes: number;
             coletivo_palestras_no_mes: number;
             coletivo_pcd_no_mes: number;
@@ -6937,17 +7047,32 @@ export interface components {
             creas_notificacoes_recebidas_no_mes: number;
             creas_notificacoes_respondidas_no_mes: number;
             encaminhamentos_enviados_no_mes: number;
+            encaminhamentos_externos_no_mes: number;
             mse_ativas: number;
             mse_concluidas_no_mes: number;
+            mse_la_ativas: number;
+            mse_novas_la_no_mes: number;
+            mse_novas_psc_no_mes: number;
+            mse_psc_ativas: number;
             oficios_cras_recebidos_no_mes: number;
             oficios_cras_respondidos_no_mes: number;
             paefi_casos_abertos_no_mes: number;
             paefi_casos_ativos: number;
+            paefi_casos_inicio_mes: number;
+            paefi_desligados_no_mes: number;
+            paefi_novos_por_violacao: {
+                [key: string]: number;
+            };
             paif_ativos: number;
             paif_bolsa_familia: number;
             paif_bpc: number;
             paif_extrema_pobreza: number;
             paif_scfv_participantes: number;
+            pop_pessoas_atendidas_no_mes: number;
+            pop_pessoas_com_doenca: number;
+            pop_pessoas_novas_no_mes: number;
+            pop_pessoas_trecheiras: number;
+            pop_pessoas_uso_drogas: number;
             unidade: components["schemas"]["SemprasUnidade"];
         };
         SemprasTermo: {
@@ -13980,6 +14105,82 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    putSemprasCasaMulherId: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasCasoCasaMulherRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasCasoCasaMulher"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasCasaMulherIdEncerrar: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasEncerramentoCasaMulherRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasCasoCasaMulher"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     deleteSemprasCentroPopDocumentosId: {
         parameters: {
             query?: never;
@@ -14277,6 +14478,44 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasCidadaosIdCasaMulher: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasCasoCasaMulherRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasCasoCasaMulher"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["ModuleDisabledOrNotFound"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyRequests"];

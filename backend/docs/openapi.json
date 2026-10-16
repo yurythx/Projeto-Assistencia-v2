@@ -6241,6 +6241,182 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasCasoCasaMulher": {
+        "properties": {
+          "abrigada": {
+            "type": "boolean"
+          },
+          "atualizado_em": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "caso_codigo": {
+            "type": "string"
+          },
+          "cidadao_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "data_abertura": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "data_abrigamento": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "data_encerramento": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "filhos": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "medida_protetiva_processo": {
+            "type": "string"
+          },
+          "medida_protetiva_status": {
+            "type": "string"
+          },
+          "motivo_encerramento": {
+            "type": "string"
+          },
+          "nivel_risco": {
+            "type": "string"
+          },
+          "observacoes": {
+            "type": "string"
+          },
+          "patrulha_maria_da_penha": {
+            "type": "boolean"
+          },
+          "relacao_agressor": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tecnico_referencia_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "violencias": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "abrigada",
+          "atualizado_em",
+          "caso_codigo",
+          "cidadao_id",
+          "data_abertura",
+          "data_abrigamento",
+          "data_encerramento",
+          "filhos",
+          "id",
+          "medida_protetiva_processo",
+          "medida_protetiva_status",
+          "motivo_encerramento",
+          "nivel_risco",
+          "observacoes",
+          "patrulha_maria_da_penha",
+          "relacao_agressor",
+          "status",
+          "tecnico_referencia_id",
+          "unidade_id",
+          "violencias"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasCasoCasaMulherRequest": {
+        "properties": {
+          "abrigada": {
+            "type": "boolean"
+          },
+          "filhos": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "medida_protetiva_processo": {
+            "maxLength": 60,
+            "type": "string"
+          },
+          "medida_protetiva_status": {
+            "enum": [
+              "nao_solicitada",
+              "em_analise",
+              "deferida",
+              "indeferida",
+              "descumprida"
+            ],
+            "type": "string"
+          },
+          "nivel_risco": {
+            "enum": [
+              "baixo",
+              "medio",
+              "alto",
+              "extremo"
+            ],
+            "type": "string"
+          },
+          "observacoes": {
+            "maxLength": 4000,
+            "type": "string"
+          },
+          "patrulha_maria_da_penha": {
+            "type": "boolean"
+          },
+          "relacao_agressor": {
+            "enum": [
+              "conjuge_companheiro",
+              "ex_conjuge_companheiro",
+              "namorado",
+              "ex_namorado",
+              "familiar",
+              "outro"
+            ],
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "violencias": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "medida_protetiva_status",
+          "nivel_risco",
+          "relacao_agressor",
+          "violencias"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SemprasCentroPopPerfil": {
         "properties": {
           "atualizado_em": {
@@ -7100,6 +7276,25 @@
           "motivo",
           "unidade_destino_id",
           "unidade_origem_id"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasEncerramentoCasaMulherRequest": {
+        "properties": {
+          "motivo": {
+            "enum": [
+              "superacao_violencia",
+              "mudanca_municipio",
+              "transferencia_rede",
+              "desistencia",
+              "outro"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "motivo"
         ],
         "type": "object",
         "x-nexus-generated": true
@@ -8233,6 +8428,12 @@
             },
             "type": "array"
           },
+          "casa_mulher_casos": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasCasoCasaMulher"
+            },
+            "type": "array"
+          },
           "centro_pop_documentos": {
             "items": {
               "$ref": "#/components/schemas/SemprasDocumentoCentroPop"
@@ -8327,6 +8528,7 @@
           "atendimentos",
           "beneficios",
           "casa_abrigo_acolhimentos",
+          "casa_mulher_casos",
           "centro_pop_documentos",
           "centro_pop_perfil",
           "cidadao",
@@ -8488,6 +8690,12 @@
           "atendimentos": {
             "type": "integer"
           },
+          "atendimentos_por_demanda": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
           "atendimentos_psicologicos": {
             "type": "integer"
           },
@@ -8504,6 +8712,21 @@
             "type": "integer"
           },
           "casa_abrigo_entradas_no_mes": {
+            "type": "integer"
+          },
+          "casa_mulher_abrigadas": {
+            "type": "integer"
+          },
+          "casa_mulher_casos_ativos": {
+            "type": "integer"
+          },
+          "casa_mulher_casos_novos_no_mes": {
+            "type": "integer"
+          },
+          "casa_mulher_medidas_deferidas": {
+            "type": "integer"
+          },
+          "casa_mulher_risco_alto_extremo": {
             "type": "integer"
           },
           "coletivo_paif_familias_no_mes": {
@@ -8545,10 +8768,25 @@
           "encaminhamentos_enviados_no_mes": {
             "type": "integer"
           },
+          "encaminhamentos_externos_no_mes": {
+            "type": "integer"
+          },
           "mse_ativas": {
             "type": "integer"
           },
           "mse_concluidas_no_mes": {
+            "type": "integer"
+          },
+          "mse_la_ativas": {
+            "type": "integer"
+          },
+          "mse_novas_la_no_mes": {
+            "type": "integer"
+          },
+          "mse_novas_psc_no_mes": {
+            "type": "integer"
+          },
+          "mse_psc_ativas": {
             "type": "integer"
           },
           "oficios_cras_recebidos_no_mes": {
@@ -8562,6 +8800,18 @@
           },
           "paefi_casos_ativos": {
             "type": "integer"
+          },
+          "paefi_casos_inicio_mes": {
+            "type": "integer"
+          },
+          "paefi_desligados_no_mes": {
+            "type": "integer"
+          },
+          "paefi_novos_por_violacao": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
           },
           "paif_ativos": {
             "type": "integer"
@@ -8578,18 +8828,39 @@
           "paif_scfv_participantes": {
             "type": "integer"
           },
+          "pop_pessoas_atendidas_no_mes": {
+            "type": "integer"
+          },
+          "pop_pessoas_com_doenca": {
+            "type": "integer"
+          },
+          "pop_pessoas_novas_no_mes": {
+            "type": "integer"
+          },
+          "pop_pessoas_trecheiras": {
+            "type": "integer"
+          },
+          "pop_pessoas_uso_drogas": {
+            "type": "integer"
+          },
           "unidade": {
             "$ref": "#/components/schemas/SemprasUnidade"
           }
         },
         "required": [
           "atendimentos",
+          "atendimentos_por_demanda",
           "atendimentos_psicologicos",
           "atendimentos_sociais",
           "beneficios_concedidos_no_mes",
           "casa_abrigo_acolhidos_ativos",
           "casa_abrigo_desligamentos_no_mes",
           "casa_abrigo_entradas_no_mes",
+          "casa_mulher_abrigadas",
+          "casa_mulher_casos_ativos",
+          "casa_mulher_casos_novos_no_mes",
+          "casa_mulher_medidas_deferidas",
+          "casa_mulher_risco_alto_extremo",
           "coletivo_paif_familias_no_mes",
           "coletivo_palestras_no_mes",
           "coletivo_pcd_no_mes",
@@ -8603,17 +8874,30 @@
           "creas_notificacoes_recebidas_no_mes",
           "creas_notificacoes_respondidas_no_mes",
           "encaminhamentos_enviados_no_mes",
+          "encaminhamentos_externos_no_mes",
           "mse_ativas",
           "mse_concluidas_no_mes",
+          "mse_la_ativas",
+          "mse_novas_la_no_mes",
+          "mse_novas_psc_no_mes",
+          "mse_psc_ativas",
           "oficios_cras_recebidos_no_mes",
           "oficios_cras_respondidos_no_mes",
           "paefi_casos_abertos_no_mes",
           "paefi_casos_ativos",
+          "paefi_casos_inicio_mes",
+          "paefi_desligados_no_mes",
+          "paefi_novos_por_violacao",
           "paif_ativos",
           "paif_bolsa_familia",
           "paif_bpc",
           "paif_extrema_pobreza",
           "paif_scfv_participantes",
+          "pop_pessoas_atendidas_no_mes",
+          "pop_pessoas_com_doenca",
+          "pop_pessoas_novas_no_mes",
+          "pop_pessoas_trecheiras",
+          "pop_pessoas_uso_drogas",
           "unidade"
         ],
         "type": "object",
@@ -23259,6 +23543,156 @@
         ]
       }
     },
+    "/api/v1/sempras/casa-mulher/{id}": {
+      "put": {
+        "operationId": "putSemprasCasaMulherId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasCasoCasaMulherRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCasoCasaMulher"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Salvar /sempras/casa-mulher/{id}",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/casa-mulher/{id}/encerrar": {
+      "post": {
+        "operationId": "postSemprasCasaMulherIdEncerrar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasEncerramentoCasaMulherRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCasoCasaMulher"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/casa-mulher/{id}/encerrar",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
     "/api/v1/sempras/centro-pop-documentos/{id}": {
       "delete": {
         "operationId": "deleteSemprasCentroPopDocumentosId",
@@ -23867,6 +24301,81 @@
           }
         ],
         "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/casa-abrigo",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/cidadaos/{id}/casa-mulher": {
+      "post": {
+        "operationId": "postSemprasCidadaosIdCasaMulher",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasCasoCasaMulherRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasCasoCasaMulher"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/cidadaos/{id}/casa-mulher",
         "tags": [
           "sempras"
         ]

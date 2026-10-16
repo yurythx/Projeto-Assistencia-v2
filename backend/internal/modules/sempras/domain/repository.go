@@ -90,6 +90,11 @@ type Repository interface {
 	UpdatePaefiCaso(ctx context.Context, db database.DBTX, p PaefiCaso) error
 	PaefiCasosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]PaefiCaso, error)
 
+	InsertCasoCasaMulher(ctx context.Context, db database.DBTX, c CasoCasaMulher, autor uuid.UUID) error
+	GetCasoCasaMulher(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (CasoCasaMulher, error)
+	UpdateCasoCasaMulher(ctx context.Context, db database.DBTX, c CasoCasaMulher) error
+	CasosCasaMulherNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]CasoCasaMulher, error)
+
 	// MSE (CREAS)
 	InsertMseMedida(ctx context.Context, db database.DBTX, m MseMedida, autor uuid.UUID) error
 	GetMseMedida(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (MseMedida, error)

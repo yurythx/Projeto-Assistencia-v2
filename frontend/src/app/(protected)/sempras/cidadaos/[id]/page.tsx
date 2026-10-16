@@ -23,6 +23,7 @@ import { useNexus } from "@/lib/nexus/NexusProvider";
 import { mimeOf, putToTicket } from "@/lib/nexus/upload";
 import type { UploadTicket } from "@/lib/nexus/types";
 import { AcolhimentoItem } from "@/components/sempras/AcolhimentoItem";
+import { CasaMulherCard } from "@/components/sempras/CasaMulherCard";
 import { CentroPopPerfilCard } from "@/components/sempras/CentroPopPerfilCard";
 import {
   CAMPOS_CIDADAO,
@@ -1189,6 +1190,11 @@ export default function FichaPage() {
                 )}
               </CardContent>
             </Card>
+            )}
+
+            {oferta(unidadeAtual, "casa_mulher") && (
+              <CasaMulherCard cidadaoId={id} unidadeId={unidadeId} casos={ficha.data!.casa_mulher_casos ?? []}
+                nomeUnidade={(u) => nomes.get(u) ?? ""} onChanged={() => void ficha.mutate()} />
             )}
 
             {oferta(unidadeAtual, "mse") && (

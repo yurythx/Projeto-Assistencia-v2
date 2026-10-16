@@ -864,3 +864,59 @@ func TestCatalogoPorTipoDeUnidade(t *testing.T) {
 		}
 	}
 }
+
+func TestCasoCasaMulher(t *testing.T) {
+	agora := time.Date(2026, 10, 16, 10, 0, 0, 0, time.UTC)
+	valido := CasoCasaMulherInput{Violencias: []string{"fisica"}, RelacaoAgressor: "namorado", NivelRisco: "baixo",
+		MedidaProtetivaStatus: "nao_solicitada"}
+	for nome, mexe := range map[string]func(in *CasoCasaMulherInput){
+		"sem violência":      func(in *CasoCasaMulherInput) { in.Violencias = nil },
+		"violência inválida": func(in *CasoCasaMulherInput) { in.Violencias = []string{"fisica", "x"} },
+		"relação inválida":   func(in *CasoCasaMulherInput) { in.RelacaoAgressor = "x" },
+		"risco inválido":     func(in *CasoCasaMulherInput) { in.NivelRisco = "x" },
+		"medida inválida":    func(in *CasoCasaMulherInput) { in.MedidaProtetivaStatus = "x" },
+		"filhos negativo":    func(in *CasoCasaMulherInput) { in.Filhos = -1 },
+		"filhos demais":      func(in *CasoCasaMulherInput) { in.Filhos = 31 },
+		"processo longo":     func(in *CasoCasaMulherInput) { in.MedidaProtetivaProcesso = strings.Repeat("9", 61) },
+		"observações longas": func(in *CasoCasaMulherInput) { in.Observacoes = strings.Repeat("x", 4001) },
+	} {
+		in := valido
+		mexe(&in)
+		if _, err := NovoCasoCasaMulher(uuid.New(), uuid.New(), in, agora); err == nil {
+			t.Errorf("%s: deveria falhar", nome)
+		}
+	}
+
+	c, err := NovoCasoCasaMulher(uuid.New(), uuid.New(), valido, agora)
+	if err != nil || !strings.HasPrefix(c.CasoCodigo, "CM-") || c.Status != CasaMulherStatusAtivo || c.DataAbertura != agora {
+		t.Fatalf("novo: %+v, %v", c, err)
+	}
+	// O abrigamento guarda quando começou; continuar abrigada não muda a data.
+	abrigada := valido
+	abrigada.Abrigada = true
+	tecnico := uuid.New()
+	if err := c.Atualizar(abrigada, tecnico, agora); err != nil || c.DataAbrigamento == nil || !c.DataAbrigamento.Equal(agora) {
+		t.Fatalf("abrigar: %+v, %v", c, err)
+	}
+	if err := c.Atualizar(abrigada, tecnico, agora.Add(time.Hour)); err != nil || !c.DataAbrigamento.Equal(agora) {
+		t.Fatalf("continua abrigada: %+v, %v", c.DataAbrigamento, err)
+	}
+	if err := c.Atualizar(valido, tecnico, agora); err != nil || c.DataAbrigamento != nil {
+		t.Fatalf("saiu do abrigo: %+v, %v", c, err)
+	}
+	if err := c.Atualizar(CasoCasaMulherInput{}, tecnico, agora); err == nil {
+		t.Error("reavaliação inválida deveria falhar")
+	}
+	if err := c.Encerrar("?", tecnico, agora); err == nil {
+		t.Error("motivo inválido")
+	}
+	if err := c.Encerrar("desistencia", tecnico, agora); err != nil || c.Status != CasaMulherStatusEncerrado {
+		t.Fatalf("encerrar: %+v, %v", c, err)
+	}
+	if err := c.Encerrar("outro", tecnico, agora); !errors.Is(err, ErrCasaMulherEstado) {
+		t.Errorf("encerrar de novo: %v", err)
+	}
+	if err := c.Atualizar(valido, tecnico, agora); !errors.Is(err, ErrCasaMulherEstado) {
+		t.Errorf("reavaliar encerrado: %v", err)
+	}
+}

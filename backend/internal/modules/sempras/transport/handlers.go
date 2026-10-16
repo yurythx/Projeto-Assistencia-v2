@@ -70,6 +70,9 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/paefi", h.RegistrarPaefiCaso)
 	r.With(atendimento).Post("/sempras/paefi/{id}/pia", h.MarcarPiaElaborado)
 	r.With(atendimento).Post("/sempras/paefi/{id}/encerrar", h.EncerrarPaefiCaso)
+	r.With(atendimento).Post("/sempras/cidadaos/{id}/casa-mulher", h.RegistrarCasoCasaMulher)
+	r.With(atendimento).Put("/sempras/casa-mulher/{id}", h.AtualizarCasoCasaMulher)
+	r.With(atendimento).Post("/sempras/casa-mulher/{id}/encerrar", h.EncerrarCasoCasaMulher)
 
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/mse", h.RegistrarMseMedida)
 	r.With(atendimento).Post("/sempras/mse/{id}/concluir", h.ConcluirMseMedida)
@@ -795,6 +798,92 @@ func (h *Handlers) EncerrarPaefiCaso(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httputil.WriteOK(w, p)
+}
+
+// CasoCasaMulherRequest é a avaliação de um caso da Casa da Mulher (abertura
+// e reavaliação; unidade_id só na abertura).
+type CasoCasaMulherRequest struct {
+	UnidadeID               uuid.UUID `json:"unidade_id"`
+	Violencias              []string  `json:"violencias" validate:"required,min=1,max=5,dive,oneof=fisica psicologica sexual patrimonial moral"`
+	RelacaoAgressor         string    `json:"relacao_agressor" validate:"required,oneof=conjuge_companheiro ex_conjuge_companheiro namorado ex_namorado familiar outro"`
+	NivelRisco              string    `json:"nivel_risco" validate:"required,oneof=baixo medio alto extremo"`
+	MedidaProtetivaStatus   string    `json:"medida_protetiva_status" validate:"required,oneof=nao_solicitada em_analise deferida indeferida descumprida"`
+	MedidaProtetivaProcesso string    `json:"medida_protetiva_processo" validate:"max=60"`
+	PatrulhaMariaDaPenha    bool      `json:"patrulha_maria_da_penha"`
+	Filhos                  int       `json:"filhos" validate:"min=0,max=30"`
+	Abrigada                bool      `json:"abrigada"`
+	Observacoes             string    `json:"observacoes" validate:"max=4000"`
+}
+
+func (req CasoCasaMulherRequest) input() domain.CasoCasaMulherInput {
+	return domain.CasoCasaMulherInput{Violencias: req.Violencias, RelacaoAgressor: req.RelacaoAgressor, NivelRisco: req.NivelRisco,
+		MedidaProtetivaStatus: req.MedidaProtetivaStatus, MedidaProtetivaProcesso: req.MedidaProtetivaProcesso,
+		PatrulhaMariaDaPenha: req.PatrulhaMariaDaPenha, Filhos: req.Filhos, Abrigada: req.Abrigada, Observacoes: req.Observacoes}
+}
+
+// RegistrarCasoCasaMulher abre o caso de acompanhamento da mulher.
+func (h *Handlers) RegistrarCasoCasaMulher(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req CasoCasaMulherRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	c, err := h.svc.RegistrarCasoCasaMulher(r.Context(), identity(r), id, req.UnidadeID, req.input())
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, c)
+}
+
+// AtualizarCasoCasaMulher regrava a avaliação de um caso ativo.
+func (h *Handlers) AtualizarCasoCasaMulher(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req CasoCasaMulherRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	c, err := h.svc.AtualizarCasoCasaMulher(r.Context(), identity(r), id, req.input())
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, c)
+}
+
+// EncerramentoCasaMulherRequest é o encerramento de um caso da Casa da Mulher.
+type EncerramentoCasaMulherRequest struct {
+	Motivo string `json:"motivo" validate:"required,oneof=superacao_violencia mudanca_municipio transferencia_rede desistencia outro"`
+}
+
+// EncerrarCasoCasaMulher fecha o caso.
+func (h *Handlers) EncerrarCasoCasaMulher(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req EncerramentoCasaMulherRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	c, err := h.svc.EncerrarCasoCasaMulher(r.Context(), identity(r), id, req.Motivo)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, c)
 }
 
 // MseMedidaRequest é o registro de uma medida socioeducativa em meio aberto.

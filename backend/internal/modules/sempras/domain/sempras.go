@@ -41,6 +41,8 @@ var (
 	ErrAcolhimentoEstado      = errors.New("sempras: o acolhimento não está no estado que a ação exige")
 	ErrOficioRespondido       = errors.New("sempras: este ofício já foi respondido")
 	ErrServicoIndisponivel    = errors.New("sempras: esta unidade não oferta este serviço")
+	ErrCasaMulherEstado       = errors.New("sempras: o caso da Casa da Mulher não está no estado que a ação exige")
+	ErrCasaMulherJaAtivo      = errors.New("sempras: a mulher já tem um caso ativo nesta unidade")
 )
 
 // ValidationError é um dado de entrada inválido (422), com a explicação.
@@ -272,6 +274,7 @@ const (
 	ServicoCentroPop      = "centro_pop"  // perfil de rua, documentos e encaminhamento externo
 	ServicoAcolhimento    = "acolhimento" // acolhimento institucional (Casa Abrigo)
 	ServicoConselho       = "conselho"    // medida protetiva (art. 101 do ECA)
+	ServicoCasaMulher     = "casa_mulher" // caso de violência doméstica (Lei 11.340/2006)
 )
 
 // servicosPorTipo é o catálogo do ADR 031 §2.
@@ -281,7 +284,7 @@ var servicosPorTipo = map[string][]string{
 	UnidadeScfv:            {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoColetivo},
 	UnidadeCreas:           {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoPaefi, ServicoMse, ServicoNotificacao},
 	UnidadeCentroPop:       {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoBeneficio, ServicoCentroPop},
-	UnidadeCasaMulher:      {ServicoFila, ServicoProntuario, ServicoEncaminhamento},
+	UnidadeCasaMulher:      {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoCasaMulher},
 	UnidadeCasaAbrigo:      {ServicoProntuario, ServicoEncaminhamento, ServicoAcolhimento},
 	UnidadeConselhoTutelar: {ServicoFila, ServicoProntuario, ServicoEncaminhamento, ServicoConselho},
 }
@@ -536,6 +539,7 @@ type Prontuario struct {
 	CentroPopPerfil         *CentroPopPerfil        `json:"centro_pop_perfil"`
 	EncaminhamentosExternos []EncaminhamentoExterno `json:"encaminhamentos_externos"`
 	CentroPopDocumentos     []DocumentoCentroPop    `json:"centro_pop_documentos"`
+	CasaMulherCasos         []CasoCasaMulher        `json:"casa_mulher_casos"`
 	// Fora da área de quem consulta (ADR 031 §4): só o resumo das outras
 	// unidades e a evolução social das que encaminharam o munícipe para a
 	// área — o psicológico e os registros especializados nunca cruzam.
@@ -631,6 +635,33 @@ type RmaUnidade struct {
 	ColetivoPalestrasNoMes            int     `json:"coletivo_palestras_no_mes"`
 	ColetivoPCDNoMes                  int     `json:"coletivo_pcd_no_mes"`
 	ColetivoTotalNoMes                int     `json:"coletivo_total_no_mes"`
+
+	// Recepção (ADR 031 §3): entradas na fila no mês, por demanda.
+	AtendimentosPorDemanda map[string]int `json:"atendimentos_por_demanda"`
+
+	// RMA do CREAS (ADR 031, fase E) — PAEFI e MSE em meio aberto.
+	PaefiCasosInicioMes   int            `json:"paefi_casos_inicio_mes"`
+	PaefiDesligadosNoMes  int            `json:"paefi_desligados_no_mes"`
+	PaefiNovosPorViolacao map[string]int `json:"paefi_novos_por_violacao"`
+	MseLaAtivas           int            `json:"mse_la_ativas"`
+	MsePscAtivas          int            `json:"mse_psc_ativas"`
+	MseNovasLaNoMes       int            `json:"mse_novas_la_no_mes"`
+	MseNovasPscNoMes      int            `json:"mse_novas_psc_no_mes"`
+
+	// RMA do Centro POP — pessoas atendidas no mês e o perfil delas.
+	PopPessoasAtendidasNoMes     int `json:"pop_pessoas_atendidas_no_mes"`
+	PopPessoasNovasNoMes         int `json:"pop_pessoas_novas_no_mes"`
+	PopPessoasUsoDrogas          int `json:"pop_pessoas_uso_drogas"`
+	PopPessoasComDoenca          int `json:"pop_pessoas_com_doenca"`
+	PopPessoasTrecheiras         int `json:"pop_pessoas_trecheiras"`
+	EncaminhamentosExternosNoMes int `json:"encaminhamentos_externos_no_mes"`
+
+	// Casa da Mulher (indicadores municipais; o MDS não tem RMA próprio).
+	CasaMulherCasosAtivos      int `json:"casa_mulher_casos_ativos"`
+	CasaMulherCasosNovosNoMes  int `json:"casa_mulher_casos_novos_no_mes"`
+	CasaMulherRiscoAltoExtremo int `json:"casa_mulher_risco_alto_extremo"`
+	CasaMulherAbrigadas        int `json:"casa_mulher_abrigadas"`
+	CasaMulherMedidasDeferidas int `json:"casa_mulher_medidas_deferidas"`
 }
 
 // ------------------------------------- Casa Abrigo: visitantes e termos
@@ -1342,6 +1373,145 @@ func (p *PaefiCaso) Encerrar(motivo string, tecnico uuid.UUID, agora time.Time) 
 		return invalid("motivo de encerramento inválido")
 	}
 	p.Status, p.MotivoEncerramento, p.TecnicoReferenciaID, p.DataEncerramento = PaefiStatusDesligado, motivo, &tecnico, &agora
+	return nil
+}
+
+// ---------------------------------------------------------- Casa da Mulher
+
+// Formas de violência doméstica e familiar contra a mulher (Lei 11.340/2006,
+// art. 7º).
+var ViolenciasCasaMulher = []string{"fisica", "psicologica", "sexual", "patrimonial", "moral"}
+
+// Vínculo da mulher com o agressor (art. 5º: âmbito doméstico, familiar ou
+// relação íntima de afeto).
+var RelacoesAgressor = []string{"conjuge_companheiro", "ex_conjuge_companheiro", "namorado", "ex_namorado", "familiar", "outro"}
+
+// Níveis de risco da avaliação (Formulário Nacional de Avaliação de Risco).
+var NiveisRisco = []string{"baixo", "medio", "alto", "extremo"}
+
+// Situações da medida protetiva de urgência (arts. 18 a 24).
+var StatusMedidaProtetiva = []string{"nao_solicitada", "em_analise", "deferida", "indeferida", "descumprida"}
+
+// Estados de um caso da Casa da Mulher.
+const (
+	CasaMulherStatusAtivo     = "ativo"
+	CasaMulherStatusEncerrado = "encerrado"
+)
+
+// Motivos de encerramento de um caso da Casa da Mulher.
+var MotivosEncerramentoCasaMulher = []string{"superacao_violencia", "mudanca_municipio", "transferencia_rede", "desistencia", "outro"}
+
+// CasoCasaMulher é o acompanhamento de uma mulher em situação de violência
+// doméstica e familiar pela Casa da Mulher. O relato e as evoluções ficam
+// no prontuário (com o sigilo da psicologia); o caso guarda a tipificação,
+// o risco, a medida protetiva e o abrigamento sigiloso.
+type CasoCasaMulher struct {
+	ID                      uuid.UUID  `json:"id"`
+	CasoCodigo              string     `json:"caso_codigo"`
+	CidadaoID               uuid.UUID  `json:"cidadao_id"`
+	UnidadeID               uuid.UUID  `json:"unidade_id"`
+	Violencias              []string   `json:"violencias"`
+	RelacaoAgressor         string     `json:"relacao_agressor"`
+	NivelRisco              string     `json:"nivel_risco"`
+	MedidaProtetivaStatus   string     `json:"medida_protetiva_status"`
+	MedidaProtetivaProcesso string     `json:"medida_protetiva_processo"`
+	PatrulhaMariaDaPenha    bool       `json:"patrulha_maria_da_penha"`
+	Filhos                  int        `json:"filhos"`
+	Abrigada                bool       `json:"abrigada"`
+	DataAbrigamento         *time.Time `json:"data_abrigamento"`
+	Status                  string     `json:"status"`
+	MotivoEncerramento      string     `json:"motivo_encerramento"`
+	TecnicoReferenciaID     *uuid.UUID `json:"tecnico_referencia_id"`
+	Observacoes             string     `json:"observacoes"`
+	DataAbertura            time.Time  `json:"data_abertura"`
+	AtualizadoEm            *time.Time `json:"atualizado_em"`
+	DataEncerramento        *time.Time `json:"data_encerramento"`
+}
+
+// CasoCasaMulherInput são os dados editáveis do caso.
+type CasoCasaMulherInput struct {
+	Violencias                                                  []string
+	RelacaoAgressor, NivelRisco                                 string
+	MedidaProtetivaStatus, MedidaProtetivaProcesso, Observacoes string
+	PatrulhaMariaDaPenha, Abrigada                              bool
+	Filhos                                                      int
+}
+
+// aplicar valida o input e o grava no caso. O abrigamento guarda a data em
+// que começou (e a perde quando a mulher sai do abrigo).
+func (c *CasoCasaMulher) aplicar(in CasoCasaMulherInput, agora time.Time) error {
+	if len(in.Violencias) == 0 {
+		return invalid("formas de violência: informe ao menos uma")
+	}
+	for _, v := range in.Violencias {
+		if !slices.Contains(ViolenciasCasaMulher, v) {
+			return invalid("forma de violência inválida: %s", v)
+		}
+	}
+	switch {
+	case !slices.Contains(RelacoesAgressor, in.RelacaoAgressor):
+		return invalid("relação com o agressor inválida")
+	case !slices.Contains(NiveisRisco, in.NivelRisco):
+		return invalid("nível de risco inválido")
+	case !slices.Contains(StatusMedidaProtetiva, in.MedidaProtetivaStatus):
+		return invalid("situação da medida protetiva inválida")
+	case in.Filhos < 0 || in.Filhos > 30:
+		return invalid("filhos: entre 0 e 30")
+	}
+	processo, err := texto("processo da medida protetiva", in.MedidaProtetivaProcesso, 0, 60)
+	if err != nil {
+		return err
+	}
+	obs, err := texto("observações", in.Observacoes, 0, 4000)
+	if err != nil {
+		return err
+	}
+	switch {
+	case in.Abrigada && !c.Abrigada:
+		c.DataAbrigamento = &agora
+	case !in.Abrigada:
+		c.DataAbrigamento = nil
+	}
+	c.Violencias, c.RelacaoAgressor, c.NivelRisco = slices.Clone(in.Violencias), in.RelacaoAgressor, in.NivelRisco
+	c.MedidaProtetivaStatus, c.MedidaProtetivaProcesso, c.Observacoes = in.MedidaProtetivaStatus, processo, obs
+	c.PatrulhaMariaDaPenha, c.Abrigada, c.Filhos = in.PatrulhaMariaDaPenha, in.Abrigada, in.Filhos
+	return nil
+}
+
+// NovoCasoCasaMulher valida e monta um caso recém-aberto (nasce 'ativo').
+func NovoCasoCasaMulher(cidadao, unidade uuid.UUID, in CasoCasaMulherInput, agora time.Time) (CasoCasaMulher, error) {
+	id := uuid.New()
+	c := CasoCasaMulher{ID: id, CasoCodigo: "CM-" + strings.ToUpper(id.String()[:8]), CidadaoID: cidadao, UnidadeID: unidade,
+		Status: CasaMulherStatusAtivo, DataAbertura: agora}
+	if err := c.aplicar(in, agora); err != nil {
+		return CasoCasaMulher{}, err
+	}
+	return c, nil
+}
+
+// Atualizar regrava a avaliação do caso (risco, medida, abrigamento...) —
+// só enquanto ele está ativo.
+func (c *CasoCasaMulher) Atualizar(in CasoCasaMulherInput, tecnico uuid.UUID, agora time.Time) error {
+	if c.Status != CasaMulherStatusAtivo {
+		return ErrCasaMulherEstado
+	}
+	if err := c.aplicar(in, agora); err != nil {
+		return err
+	}
+	c.TecnicoReferenciaID, c.AtualizadoEm = &tecnico, &agora
+	return nil
+}
+
+// Encerrar fecha o caso — exige motivo e encerra o abrigamento.
+func (c *CasoCasaMulher) Encerrar(motivo string, tecnico uuid.UUID, agora time.Time) error {
+	if c.Status != CasaMulherStatusAtivo {
+		return ErrCasaMulherEstado
+	}
+	if !slices.Contains(MotivosEncerramentoCasaMulher, motivo) {
+		return invalid("motivo de encerramento inválido")
+	}
+	c.Status, c.MotivoEncerramento, c.TecnicoReferenciaID, c.DataEncerramento = CasaMulherStatusEncerrado, motivo, &tecnico, &agora
+	c.Abrigada, c.DataAbrigamento = false, nil
 	return nil
 }
 

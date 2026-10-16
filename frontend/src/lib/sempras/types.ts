@@ -7,7 +7,7 @@ export type TipoUnidade = "cras" | "scfv" | "creas" | "centro_pop" | "casa_mulhe
 /** Serviços que uma unidade pode ofertar (ADR 031 §2). */
 export type Servico =
   | "fila" | "prontuario" | "encaminhamento" | "beneficio" | "paif" | "oficio" | "coletivo"
-  | "paefi" | "mse" | "notificacao" | "centro_pop" | "acolhimento" | "conselho";
+  | "paefi" | "mse" | "notificacao" | "centro_pop" | "acolhimento" | "conselho" | "casa_mulher";
 
 export interface Unidade {
   id: string;
@@ -801,6 +801,7 @@ export interface Prontuario {
   centro_pop_perfil: CentroPopPerfil | null;
   encaminhamentos_externos: EncaminhamentoExterno[];
   centro_pop_documentos: DocumentoCentroPop[];
+  casa_mulher_casos: CasoCasaMulher[];
   /** Outras unidades em que o munícipe tem serviço em curso — sem conteúdo (ADR 031 §4). */
   outras_unidades: Acompanhamento[];
   /** Evolução social das unidades que encaminharam o munícipe para cá. */
@@ -866,6 +867,29 @@ export interface RmaUnidade {
   coletivo_palestras_no_mes: number;
   coletivo_pcd_no_mes: number;
   coletivo_total_no_mes: number;
+  // Recepção (ADR 031 §3)
+  atendimentos_por_demanda: Record<string, number>;
+  // CREAS
+  paefi_casos_inicio_mes: number;
+  paefi_desligados_no_mes: number;
+  paefi_novos_por_violacao: Record<string, number>;
+  mse_la_ativas: number;
+  mse_psc_ativas: number;
+  mse_novas_la_no_mes: number;
+  mse_novas_psc_no_mes: number;
+  // Centro POP
+  pop_pessoas_atendidas_no_mes: number;
+  pop_pessoas_novas_no_mes: number;
+  pop_pessoas_uso_drogas: number;
+  pop_pessoas_com_doenca: number;
+  pop_pessoas_trecheiras: number;
+  encaminhamentos_externos_no_mes: number;
+  // Casa da Mulher
+  casa_mulher_casos_ativos: number;
+  casa_mulher_casos_novos_no_mes: number;
+  casa_mulher_risco_alto_extremo: number;
+  casa_mulher_abrigadas: number;
+  casa_mulher_medidas_deferidas: number;
 }
 
 // -------------------------------------------------- direitos do titular
@@ -952,3 +976,75 @@ export const P = {
   psicologia: "sempras:psicologia",
   gestao: "sempras:gestao",
 } as const;
+
+// ---------------------------------------------------------- Casa da Mulher
+
+export type ViolenciaCasaMulher = "fisica" | "psicologica" | "sexual" | "patrimonial" | "moral";
+export type RelacaoAgressor = "conjuge_companheiro" | "ex_conjuge_companheiro" | "namorado" | "ex_namorado" | "familiar" | "outro";
+export type NivelRisco = "baixo" | "medio" | "alto" | "extremo";
+export type StatusMedidaProtetiva = "nao_solicitada" | "em_analise" | "deferida" | "indeferida" | "descumprida";
+export type MotivoEncerramentoCasaMulher = "superacao_violencia" | "mudanca_municipio" | "transferencia_rede" | "desistencia" | "outro";
+
+export interface CasoCasaMulher {
+  id: string;
+  caso_codigo: string;
+  cidadao_id: string;
+  unidade_id: string;
+  violencias: ViolenciaCasaMulher[];
+  relacao_agressor: RelacaoAgressor;
+  nivel_risco: NivelRisco;
+  medida_protetiva_status: StatusMedidaProtetiva;
+  medida_protetiva_processo: string;
+  patrulha_maria_da_penha: boolean;
+  filhos: number;
+  abrigada: boolean;
+  data_abrigamento: string | null;
+  status: "ativo" | "encerrado";
+  motivo_encerramento: MotivoEncerramentoCasaMulher | "";
+  tecnico_referencia_id: string | null;
+  observacoes: string;
+  data_abertura: string;
+  atualizado_em: string | null;
+  data_encerramento: string | null;
+}
+
+/** Formas de violência (Lei 11.340/2006, art. 7º). */
+export const VIOLENCIAS_CASA_MULHER: Record<ViolenciaCasaMulher, string> = {
+  fisica: "Física",
+  psicologica: "Psicológica",
+  sexual: "Sexual",
+  patrimonial: "Patrimonial",
+  moral: "Moral",
+};
+
+export const RELACOES_AGRESSOR: Record<RelacaoAgressor, string> = {
+  conjuge_companheiro: "Cônjuge / companheiro",
+  ex_conjuge_companheiro: "Ex-cônjuge / ex-companheiro",
+  namorado: "Namorado",
+  ex_namorado: "Ex-namorado",
+  familiar: "Familiar",
+  outro: "Outro",
+};
+
+export const NIVEIS_RISCO: Record<NivelRisco, { label: string; tone: "neutral" | "info" | "warning" | "danger" }> = {
+  baixo: { label: "Risco baixo", tone: "neutral" },
+  medio: { label: "Risco médio", tone: "info" },
+  alto: { label: "Risco alto", tone: "warning" },
+  extremo: { label: "Risco extremo / iminente", tone: "danger" },
+};
+
+export const STATUS_MEDIDA_PROTETIVA: Record<StatusMedidaProtetiva, string> = {
+  nao_solicitada: "Não solicitada",
+  em_analise: "Em análise",
+  deferida: "Deferida",
+  indeferida: "Indeferida",
+  descumprida: "Descumprida",
+};
+
+export const MOTIVOS_ENCERRAMENTO_CASA_MULHER: Record<MotivoEncerramentoCasaMulher, string> = {
+  superacao_violencia: "Superação da situação de violência",
+  mudanca_municipio: "Mudança de município",
+  transferencia_rede: "Transferência para outro serviço da rede",
+  desistencia: "Desistência",
+  outro: "Outro",
+};

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/yurythx/projeto-assistencia-v2/internal/modules/sempras/domain"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
@@ -134,6 +136,62 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			_, err := r.PaefiCasosNaArea(ctx, db, id, area)
 			return err
 		},
+		// Ofícios do CRAS, coletivos e Centro POP (fases 8.1 e 9).
+		"InsertOficioCras": func(db database.DBTX) error { return r.InsertOficioCras(ctx, db, domain.OficioCras{ID: id}, id) },
+		"GetOficioCras":    func(db database.DBTX) error { _, err := r.GetOficioCras(ctx, db, id, true); return err },
+		"UpdateOficioCras": func(db database.DBTX) error { return r.UpdateOficioCras(ctx, db, domain.OficioCras{ID: id}) },
+		"OficiosCrasNaArea": func(db database.DBTX) error {
+			_, err := r.OficiosCrasNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertAtendimentoColetivo": func(db database.DBTX) error {
+			return r.InsertAtendimentoColetivo(ctx, db, domain.AtendimentoColetivo{ID: id}, id)
+		},
+		"ListAtendimentosColetivos": func(db database.DBTX) error {
+			_, err := r.ListAtendimentosColetivos(ctx, db, id, time.Now(), time.Now())
+			return err
+		},
+		"UpsertCentroPopPerfil": func(db database.DBTX) error {
+			return r.UpsertCentroPopPerfil(ctx, db, domain.CentroPopPerfil{CidadaoID: id}, id)
+		},
+		"GetCentroPopPerfil": func(db database.DBTX) error { _, err := r.GetCentroPopPerfil(ctx, db, id); return err },
+		"InsertEncaminhamentoExterno": func(db database.DBTX) error {
+			return r.InsertEncaminhamentoExterno(ctx, db, domain.EncaminhamentoExterno{ID: id}, id)
+		},
+		"GetEncaminhamentoExterno": func(db database.DBTX) error {
+			_, err := r.GetEncaminhamentoExterno(ctx, db, id, true)
+			return err
+		},
+		"UpdateEncaminhamentoExterno": func(db database.DBTX) error {
+			return r.UpdateEncaminhamentoExterno(ctx, db, domain.EncaminhamentoExterno{ID: id})
+		},
+		"EncaminhamentosExternosNaArea": func(db database.DBTX) error {
+			_, err := r.EncaminhamentosExternosNaArea(ctx, db, id, area)
+			return err
+		},
+		"InsertDocumentoCentroPop": func(db database.DBTX) error {
+			return r.InsertDocumentoCentroPop(ctx, db, domain.DocumentoCentroPop{ID: id}, id)
+		},
+		"GetDocumentoCentroPop": func(db database.DBTX) error { _, err := r.GetDocumentoCentroPop(ctx, db, id); return err },
+		"UpdateDocumentoCentroPopStatus": func(db database.DBTX) error {
+			return r.UpdateDocumentoCentroPopStatus(ctx, db, id, domain.DocumentoStatusReady, 8, "application/pdf")
+		},
+		"ListDocumentosCentroPop": func(db database.DBTX) error {
+			_, err := r.ListDocumentosCentroPop(ctx, db, id)
+			return err
+		},
+		"DeleteDocumentoCentroPop": func(db database.DBTX) error { return r.DeleteDocumentoCentroPop(ctx, db, id) },
+		"InsertCasoCasaMulher": func(db database.DBTX) error {
+			return r.InsertCasoCasaMulher(ctx, db, domain.CasoCasaMulher{ID: id}, id)
+		},
+		"GetCasoCasaMulher": func(db database.DBTX) error { _, err := r.GetCasoCasaMulher(ctx, db, id, true); return err },
+		"UpdateCasoCasaMulher": func(db database.DBTX) error {
+			return r.UpdateCasoCasaMulher(ctx, db, domain.CasoCasaMulher{ID: id})
+		},
+		"CasosCasaMulherNaArea": func(db database.DBTX) error {
+			_, err := r.CasosCasaMulherNaArea(ctx, db, id, area)
+			return err
+		},
 		"InsertMseMedida": func(db database.DBTX) error {
 			return r.InsertMseMedida(ctx, db, domain.MseMedida{ID: id, AtoInfracional: "furto", TipoMedida: domain.MseTipoLiberdadeAssistida}, id)
 		},
@@ -240,7 +298,9 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"GetPaefiCaso", "PaefiCasosNaArea", "GetMseMedida", "MseMedidasNaArea", "GetNotificacaoCreas", "NotificacoesCreasNaArea",
 		"GetAcolhimento", "AcolhimentosNaArea", "ListIrmaos", "GetIrmao", "ListDiagnosticos", "GetDiagnostico",
 		"ListVisitantes", "GetVisitante", "ListTermos", "GetTermo", "GetPiaFicha", "ListPiaMetas", "GetPiaMeta",
-		"GetDocumento", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea"} {
+		"GetDocumento", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea", "GetCasoCasaMulher",
+		"CasosCasaMulherNaArea", "GetOficioCras", "OficiosCrasNaArea", "ListAtendimentosColetivos", "GetCentroPopPerfil",
+		"GetEncaminhamentoExterno", "EncaminhamentosExternosNaArea", "GetDocumentoCentroPop", "ListDocumentosCentroPop"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
@@ -249,7 +309,9 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"AtendimentosNaArea", "Painel", "Rma", "RegistrosNaArea", "ListPedidosPendentes", "ListContatosRedeApoio", "BeneficiosNaArea",
 		"EncaminhamentosDoCidadaoNaArea", "ListEncaminhamentosPendentes", "PaifVinculosNaArea", "ConselhoAtendimentosNaArea",
 		"PaefiCasosNaArea", "MseMedidasNaArea", "NotificacoesCreasNaArea", "AcolhimentosNaArea", "ListIrmaos", "ListDiagnosticos",
-		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea"} {
+		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea",
+		"CasosCasaMulherNaArea", "OficiosCrasNaArea", "ListAtendimentosColetivos", "EncaminhamentosExternosNaArea",
+		"ListDocumentosCentroPop"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}
@@ -324,6 +386,18 @@ func TestRepositoryNotFound(t *testing.T) {
 	}
 	if _, err := r.GetDocumento(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("GetDocumento: %v", err)
+	}
+	if _, err := r.GetOficioCras(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetOficioCras: %v", err)
+	}
+	if _, err := r.GetEncaminhamentoExterno(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetEncaminhamentoExterno: %v", err)
+	}
+	if _, err := r.GetDocumentoCentroPop(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetDocumentoCentroPop: %v", err)
+	}
+	if _, err := r.GetCentroPopPerfil(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetCentroPopPerfil: %v", err)
 	}
 }
 
@@ -1683,5 +1757,229 @@ func TestDocumentoCentroPopRoundTrip(t *testing.T) {
 	}
 	if _, err := r.GetDocumentoCentroPop(ctx, pool, d.ID); !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("documento deveria ter sido removido: %v", err)
+	}
+}
+
+// rmaUnidade cria uma entidade com uma unidade e um munícipe nela.
+func rmaUnidade(t *testing.T, pool *pgxpool.Pool, r *Repository, autor uuid.UUID, nomes ...string) (uuid.UUID, []uuid.UUID) {
+	t.Helper()
+	ctx := context.Background()
+	sfx := uuid.NewString()[:8]
+	var ent, un uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
+		t.Fatal(err)
+	}
+	ids := []uuid.UUID{}
+	for _, nome := range nomes {
+		cid := uuid.New()
+		if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: cid, Nome: nome, DataNascimento: "1990-01-01", NomeMae: "Mãe",
+			CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, cid)
+	}
+	return un, ids
+}
+
+// TestRmaPorTipo cobre os indicadores do RMA do CREAS, do Centro POP e da
+// Casa da Mulher (ADR 031, fase E), as demandas da recepção e a regressão
+// dos ofícios e coletivos (o acumulador antigo os zerava).
+func TestRmaPorTipo(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	un, cids := rmaUnidade(t, pool, r, autor, "Antiga", "Nova")
+	antiga, nova := cids[0], cids[1]
+
+	inicio := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	fim := inicio.AddDate(0, 1, 0)
+	dentro := inicio.AddDate(0, 0, 10)
+	antes := inicio.AddDate(0, -2, 0)
+	falhar := func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Recepção / Centro POP: a "antiga" já veio antes; a "nova", só neste mês.
+	for i, a := range []struct {
+		cid     uuid.UUID
+		dia     string
+		quando  time.Time
+		demanda string
+	}{
+		{antiga, "2026-08-01", antes, "alimentacao_higiene"},
+		{antiga, "2026-10-11", dentro, "alimentacao_higiene"},
+		{nova, "2026-10-11", dentro, "banho_lavanderia"},
+	} {
+		falhar(r.InsertAtendimento(ctx, pool, domain.Atendimento{ID: uuid.New(), CidadaoID: a.cid, UnidadeID: un, Dia: a.dia,
+			Senha: i + 1, Tipo: domain.TipoSocial, Demanda: a.demanda, Status: domain.StatusAguardando, CreatedAt: a.quando}))
+	}
+	perfil, err := domain.NovoCentroPopPerfil(antiga, "trecheiro", nil, "outro", false, "", false, "", true, "álcool")
+	falhar(err)
+	falhar(r.UpsertCentroPopPerfil(ctx, pool, perfil, autor))
+	perfil, err = domain.NovoCentroPopPerfil(nova, "situacao_rua", nil, "outro", true, "diabetes", false, "", false, "")
+	falhar(err)
+	falhar(r.UpsertCentroPopPerfil(ctx, pool, perfil, autor))
+	ext, err := domain.NovoEncaminhamentoExterno(nova, un, "caps_ad", "alta", "acompanhamento em saúde mental")
+	falhar(err)
+	ext.CreatedAt = dentro
+	falhar(r.InsertEncaminhamentoExterno(ctx, pool, ext, autor))
+
+	// PAEFI: um caso em acompanhamento desde antes; um aberto e desligado no mês.
+	velho, err := domain.NovoPaefiCaso(antiga, un, []string{"negligencia"}, "", "")
+	falhar(err)
+	velho.DataAbertura = antes
+	falhar(r.InsertPaefiCaso(ctx, pool, velho, autor))
+	novo, err := domain.NovoPaefiCaso(nova, un, []string{"violencia_fisica", "violencia_sexual"}, "", "")
+	falhar(err)
+	novo.DataAbertura = dentro
+	falhar(r.InsertPaefiCaso(ctx, pool, novo, autor))
+	falhar(novo.Encerrar("objetivos_alcancados", autor, dentro.Add(time.Hour)))
+	falhar(r.UpdatePaefiCaso(ctx, pool, novo))
+
+	// MSE: LA nova no mês; PSC iniciada antes, ainda em cumprimento.
+	la, err := domain.NovaMseMedida(nova, un, "1/2026", "Vara", "furto", domain.MseTipoLiberdadeAssistida, "")
+	falhar(err)
+	la.DataInicio = dentro
+	falhar(r.InsertMseMedida(ctx, pool, la, autor))
+	psc, err := domain.NovaMseMedida(antiga, un, "2/2026", "Vara", "dano", domain.MseTipoPrestacaoServicoComunidade, "")
+	falhar(err)
+	psc.DataInicio = antes
+	falhar(r.InsertMseMedida(ctx, pool, psc, autor))
+
+	// Casa da Mulher: caso aberto no mês, risco extremo, abrigada, medida deferida.
+	caso, err := domain.NovoCasoCasaMulher(nova, un, domain.CasoCasaMulherInput{Violencias: []string{"fisica"},
+		RelacaoAgressor: "conjuge_companheiro", NivelRisco: "extremo", MedidaProtetivaStatus: "deferida", Abrigada: true}, dentro)
+	falhar(err)
+	falhar(r.InsertCasoCasaMulher(ctx, pool, caso, autor))
+
+	// Regressão: ofício recebido e atendimento coletivo no mês.
+	oficio, err := domain.NovoOficioCras(antiga, un, "Ministério Público", "10/2026", nil, "requisição de relatório")
+	falhar(err)
+	oficio.DataRecebimento = dentro
+	falhar(r.InsertOficioCras(ctx, pool, oficio, autor))
+	coletivo, err := domain.NovoAtendimentoColetivo(un, dentro, domain.CategoriasColetivo[0], 7, "")
+	falhar(err)
+	falhar(r.InsertAtendimentoColetivo(ctx, pool, coletivo, autor))
+
+	rma, err := r.Rma(ctx, pool, []domain.Unidade{{ID: un}}, inicio, fim)
+	if err != nil || len(rma) != 1 {
+		t.Fatalf("Rma: %+v, %v", rma, err)
+	}
+	m := rma[0]
+	switch {
+	case m.OficiosCrasRecebidosNoMes != 1 || m.ColetivoTotalNoMes != 7:
+		t.Errorf("ofícios e coletivos não podem sair zerados: %+v", m)
+	case m.AtendimentosPorDemanda["alimentacao_higiene"] != 1 || m.AtendimentosPorDemanda["banho_lavanderia"] != 1 || len(m.AtendimentosPorDemanda) != 2:
+		t.Errorf("demandas do mês: %+v", m.AtendimentosPorDemanda)
+	case m.PopPessoasAtendidasNoMes != 2 || m.PopPessoasNovasNoMes != 1 || m.PopPessoasUsoDrogas != 1 ||
+		m.PopPessoasComDoenca != 1 || m.PopPessoasTrecheiras != 1 || m.EncaminhamentosExternosNoMes != 1:
+		t.Errorf("Centro POP: %+v", m)
+	case m.PaefiCasosInicioMes != 1 || m.PaefiDesligadosNoMes != 1 || m.PaefiCasosAbertosNoMes != 1 ||
+		m.PaefiNovosPorViolacao["violencia_fisica"] != 1 || m.PaefiNovosPorViolacao["violencia_sexual"] != 1 ||
+		m.PaefiNovosPorViolacao["negligencia"] != 0:
+		t.Errorf("PAEFI: %+v", m)
+	case m.MseLaAtivas != 1 || m.MsePscAtivas != 1 || m.MseNovasLaNoMes != 1 || m.MseNovasPscNoMes != 0:
+		t.Errorf("MSE: %+v", m)
+	case m.CasaMulherCasosAtivos != 1 || m.CasaMulherCasosNovosNoMes != 1 || m.CasaMulherRiscoAltoExtremo != 1 ||
+		m.CasaMulherAbrigadas != 1 || m.CasaMulherMedidasDeferidas != 1:
+		t.Errorf("Casa da Mulher: %+v", m)
+	}
+
+	// Sem movimento: mapas vazios, não nulos.
+	vazia, _ := rmaUnidade(t, pool, r, autor)
+	sem, err := r.Rma(ctx, pool, []domain.Unidade{{ID: vazia}}, inicio, fim)
+	if err != nil || sem[0].AtendimentosPorDemanda == nil || sem[0].PaefiNovosPorViolacao == nil {
+		t.Fatalf("Rma sem movimento: %+v, %v", sem, err)
+	}
+}
+
+// TestRmaFalhaEmCadaConsulta: o RMA é uma sequência de consultas; a falha
+// (consulta, linha ilegível ou conexão perdida) em qualquer uma delas sobe.
+func TestRmaFalhaEmCadaConsulta(t *testing.T) {
+	r := NewRepository()
+	ctx := context.Background()
+	unidades := []domain.Unidade{{ID: uuid.New()}}
+	falhas := []dbtest.QueryResult{{Err: dbtest.ErrInjected}, {Rows: dbtest.BadRows()}, {Rows: dbtest.ErrRows()}}
+	for _, falha := range falhas {
+		n := 0
+		for ; ; n++ {
+			seq := &dbtest.Seq{}
+			for range n {
+				seq.Queries = append(seq.Queries, dbtest.QueryResult{Rows: dbtest.NoRows()})
+			}
+			// A falha se repete dali em diante (Seq repete a última resposta) —
+			// recria as linhas a cada consulta para não reaproveitar o cursor.
+			seq.Queries = append(seq.Queries, falha)
+			if _, err := r.Rma(ctx, seq, unidades, time.Now(), time.Now()); err == nil {
+				break // passou de todas as consultas sem falhar: acabaram
+			}
+			if falha.Rows != nil {
+				falha = dbtest.QueryResult{Rows: novaLinhaRuim(falha)}
+			}
+		}
+		// 16 consultas de contadores + 2 por chave (demandas, violações).
+		if n != 18 {
+			t.Errorf("o RMA falhou em %d consultas; esperava 18 (%+v)", n, falha)
+		}
+	}
+}
+
+// novaLinhaRuim recria o resultado com defeito (cada cursor só é lido uma vez).
+func novaLinhaRuim(f dbtest.QueryResult) pgx.Rows {
+	if f.Rows.Err() != nil {
+		return dbtest.ErrRows()
+	}
+	return dbtest.BadRows()
+}
+
+// Round-trip do caso da Casa da Mulher: grava, um ativo por mulher na
+// unidade, reavalia, lista na área, encerra.
+func TestCasoCasaMulherRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	un, cids := rmaUnidade(t, pool, r, autor, "Maria")
+	agora := time.Now()
+	in := domain.CasoCasaMulherInput{Violencias: []string{"psicologica", "moral"}, RelacaoAgressor: "ex_namorado",
+		NivelRisco: "medio", MedidaProtetivaStatus: "nao_solicitada", Filhos: 1}
+	c, err := domain.NovoCasoCasaMulher(cids[0], un, in, agora)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertCasoCasaMulher(ctx, pool, c, autor); err != nil {
+		t.Fatal(err)
+	}
+	outro, _ := domain.NovoCasoCasaMulher(cids[0], un, in, agora)
+	if err := r.InsertCasoCasaMulher(ctx, pool, outro, autor); !errors.Is(err, domain.ErrCasaMulherJaAtivo) {
+		t.Fatalf("segundo caso ativo: %v", err)
+	}
+	got, err := r.GetCasoCasaMulher(ctx, pool, c.ID, false)
+	if err != nil || got.CasoCodigo != c.CasoCodigo || len(got.Violencias) != 2 || got.Filhos != 1 {
+		t.Fatalf("GetCasoCasaMulher: %+v, %v", got, err)
+	}
+	if _, err := r.GetCasoCasaMulher(ctx, pool, uuid.New(), false); !errors.Is(err, domain.ErrNotFound) {
+		t.Fatalf("inexistente: %v", err)
+	}
+	in.Abrigada, in.NivelRisco = true, "alto"
+	if err := got.Atualizar(in, autor, agora); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.UpdateCasoCasaMulher(ctx, pool, got); err != nil {
+		t.Fatal(err)
+	}
+	lista, err := r.CasosCasaMulherNaArea(ctx, pool, cids[0], domain.Area{Unidades: []uuid.UUID{un}})
+	if err != nil || len(lista) != 1 || !lista[0].Abrigada || lista[0].DataAbrigamento == nil || lista[0].NivelRisco != "alto" {
+		t.Fatalf("CasosCasaMulherNaArea: %+v, %v", lista, err)
+	}
+	if lista, err := r.CasosCasaMulherNaArea(ctx, pool, cids[0], domain.Area{}); err != nil || len(lista) != 0 {
+		t.Fatalf("fora da área: %+v, %v", lista, err)
 	}
 }
