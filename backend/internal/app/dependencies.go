@@ -194,9 +194,14 @@ func build(ctx context.Context, cfg *config.Config, component string) (*Dependen
 	d.Transparency = transparency.NewService(d.DB, logger, d.moduleInfo)
 	wireWebSocket(d)
 
-	if err := declareTopology(d.Messaging, append(messaging.PlatformQueues(), d.Kernel.Queues()...)); err != nil {
+	queues := append(messaging.PlatformQueues(), d.Kernel.Queues()...)
+	if err := declareTopology(d.Messaging, queues); err != nil {
 		return fail("declare rabbitmq topology", err)
 	}
+	// Se o broker voltar sem estado (container recriado, nó novo), as filas
+	// somem: redeclara a cada reconexão para os consumidores se recuperarem
+	// sozinhos, sem precisar reiniciar a API/worker.
+	d.Messaging.OnReconnect(func() error { return declareTopology(d.Messaging, queues) })
 	return d, nil
 }
 

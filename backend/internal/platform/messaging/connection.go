@@ -33,6 +33,9 @@ type Connection struct {
 
 	// backoff da reconexão, fixado na criação (lido pelo supervisor).
 	reconnectMin, reconnectMax time.Duration
+
+	hooksMu sync.Mutex
+	hooks   []func() error
 }
 
 // initialConnectBudget limita quanto tempo Connect insiste na primeira
@@ -155,9 +158,47 @@ func (c *Connection) reconnectWithBackoff() {
 		c.mu.Lock()
 		c.conn = conn
 		c.mu.Unlock()
+
+		// Um broker recriado (ou que perdeu o estado) volta sem as filas: sem
+		// redeclarar a topologia, os consumidores ficariam presos em
+		// NOT_FOUND e as publicações iriam para um exchange inexistente. Se o
+		// hook falha, a conexão é descartada e a tentativa conta como falha.
+		if err := c.runReconnectHooks(); err != nil {
+			c.logger.Warn("rabbitmq reconnected but setup failed, retrying", slog.Any("error", err), slog.Duration("retry_in", backoff))
+			_ = conn.Close()
+			select {
+			case <-c.done:
+				return
+			case <-time.After(backoff):
+			}
+			backoff = min(backoff*2, maxBackoff)
+			continue
+		}
 		c.logger.Info("rabbitmq reconnected")
 		return
 	}
+}
+
+// OnReconnect registra uma função executada a cada reconexão bem-sucedida,
+// antes de a conexão ser anunciada como restabelecida — tipicamente
+// redeclarar a topologia (DeclareTopology é idempotente). A função não
+// roda na conexão inicial: quem chama Connect já faz o setup em seguida.
+func (c *Connection) OnReconnect(fn func() error) {
+	c.hooksMu.Lock()
+	defer c.hooksMu.Unlock()
+	c.hooks = append(c.hooks, fn)
+}
+
+func (c *Connection) runReconnectHooks() error {
+	c.hooksMu.Lock()
+	hooks := append([]func() error(nil), c.hooks...)
+	c.hooksMu.Unlock()
+	for _, fn := range hooks {
+		if err := fn(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Channel abre um novo canal AMQP na conexão atual. Quem chama deve abrir

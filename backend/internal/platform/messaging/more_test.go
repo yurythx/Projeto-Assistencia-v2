@@ -234,6 +234,49 @@ func TestReconnectsAfterBrokerDrop(t *testing.T) {
 	t.Fatal("não reconectou depois da queda")
 }
 
+func TestReconnectRunsHooksAndRetriesOnHookFailure(t *testing.T) {
+	raw := brokerURL(t)
+	u, _ := url.Parse(raw)
+	p := newProxy(t, u.Host)
+	u.Host = p.ln.Addr().String()
+	orig, origMax := reconnectBackoffMin, reconnectBackoffMax
+	reconnectBackoffMin, reconnectBackoffMax = 20*time.Millisecond, 40*time.Millisecond
+	defer func() { reconnectBackoffMin, reconnectBackoffMax = orig, origMax }()
+
+	conn, err := Connect(context.Background(), u.String(), testLogger())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = conn.Close() }()
+
+	var calls atomic.Int32
+	conn.OnReconnect(func() error {
+		// A 1ª execução falha (ex.: broker ainda subindo): a conexão tem de
+		// ser descartada e o hook rodar de novo na próxima tentativa.
+		if calls.Add(1) == 1 {
+			return errors.New("setup falhou")
+		}
+		ch, err := conn.Channel()
+		if err != nil {
+			return err
+		}
+		return ch.Close()
+	})
+	if calls.Load() != 0 {
+		t.Fatal("hook não deve rodar na conexão inicial")
+	}
+
+	p.drop()
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if calls.Load() >= 2 && conn.Ping(context.Background()) == nil {
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("hook rodou %d vez(es); esperava nova tentativa após a falha", calls.Load())
+}
+
 func TestReconnectStopsOnClose(t *testing.T) {
 	raw := brokerURL(t)
 	u, _ := url.Parse(raw)
