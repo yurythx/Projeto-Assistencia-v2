@@ -33,7 +33,26 @@
           - ca-certificates
           - curl
           - gnupg
+          - qemu-guest-agent
         state: present
+
+    - name: Garantir que o qemu-guest-agent está habilitado e ativo
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        state: started
+        enabled: true
+      ignore_errors: true
+
+    - name: Criar arquivo de Swap de 4GB (evita OOM no build do frontend)
+      ansible.builtin.shell: |
+        if [ ! -f /swapfile ]; then
+          fallocate -l 4G /swapfile
+          chmod 600 /swapfile
+          mkswap /swapfile
+          swapon /swapfile
+          echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        fi
+      changed_when: false
 
     - name: Verificar se o Docker já está instalado
       ansible.builtin.command: docker --version
@@ -78,6 +97,12 @@
         state: started
         enabled: true
 
+    - name: Adicionar usuário ao grupo docker
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
     - name: Clonar ou atualizar o repositório
       ansible.builtin.git:
         repo: "{{ app_repo_url }}"
@@ -86,10 +111,23 @@
         force: false
       register: repo_state
 
+    - name: Ajustar propriedade do repositório para o usuário deploy
+      ansible.builtin.file:
+        path: "{{ app_repo_dest }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: true
+
+    - name: Configurar git safe.directory para evitar dubious ownership
+      ansible.builtin.command: git config --global --add safe.directory {{ app_repo_dest }}
+      become_user: "{{ ansible_user }}"
+      changed_when: false
+
     - name: Rodar scripts/deploy.sh (gera .env na 1ª vez, builda e sobe a stack)
       ansible.builtin.command: ./scripts/deploy.sh --no-pull {{ app_public_host }}
       args:
         chdir: "{{ app_repo_dest }}"
+      become_user: "{{ ansible_user }}"
       register: deploy_result
       changed_when: true
 
