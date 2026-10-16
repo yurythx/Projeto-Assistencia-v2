@@ -109,11 +109,12 @@ fi
 log "Build e subida dos serviços"
 "${COMPOSE[@]}" up -d --build --remove-orphans
 
-# Cada build deixa camadas órfãs no cache do BuildKit (chegou a 10GB num
-# disco de 38GB). Mantém só o cache da última semana — o suficiente pra
-# builds incrementais — e remove imagens sem tag que o build substituiu.
+# Cada build deixa camadas órfãs no cache do BuildKit (chegou a 10GB em
+# dois dias num disco de 38GB). Limita o cache a 3GB — o bastante pros
+# builds incrementais do Go e do Next — descartando o menos usado primeiro,
+# e remove imagens sem tag que o build substituiu.
 log "Limpando cache de build e imagens antigas"
-docker builder prune -f --filter until=168h >/dev/null
+docker builder prune -f --max-used-space 3gb >/dev/null
 docker image prune -f >/dev/null
 
 if [ "$ca_changed" = 1 ]; then
