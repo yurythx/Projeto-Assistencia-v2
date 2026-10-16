@@ -38,6 +38,7 @@ services:
     volumes:
     - rabbitmq_data:/var/lib/rabbitmq
     - ./deploy/rabbitmq.conf:/etc/rabbitmq/conf.d/consumer_timeout.conf:ro
+    - ./deploy/rabbitmq-management.conf:/etc/rabbitmq/conf.d/management.conf:ro
     networks:
     - nexus_internal
     healthcheck:

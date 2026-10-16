@@ -54,6 +54,23 @@
         fi
       changed_when: false
 
+    # vm.overcommit_memory=1: recomendação oficial do Redis — sem ela o fork
+    # do BGSAVE pode falhar mesmo com memória sobrando (o Redis avisa no boot).
+    # vm.swappiness=10: com swap ligado, prefere manter Postgres/Redis em RAM
+    # e só empurrar pro swap sob pressão real (ex.: build do frontend).
+    - name: Ajustar parâmetros de kernel (Redis e swap)
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/99-assistencia.conf
+        content: |
+          vm.overcommit_memory = 1
+          vm.swappiness = 10
+        mode: "0644"
+      register: sysctl_conf
+
+    - name: Aplicar parâmetros de kernel
+      ansible.builtin.command: sysctl --system
+      when: sysctl_conf.changed
+
     - name: Verificar se o Docker já está instalado
       ansible.builtin.command: docker --version
       register: docker_check
@@ -173,3 +190,15 @@
       ansible.builtin.debug:
         msg: "{{ estrutura_result.stdout_lines }}"
       tags: [estrutura, dados-oficiais]
+
+    # Backup diário do Postgres às 02:00 UTC (23:00 em Brasília), retenção
+    # de 7 dias em /var/backups/projeto-assistencia — scripts/backup-diario.sh.
+    - name: Agendar o backup diário do banco
+      ansible.builtin.cron:
+        name: assistencia-backup
+        cron_file: assistencia-backup
+        user: root
+        minute: "0"
+        hour: "2"
+        job: "{{ app_repo_dest }}/scripts/backup-diario.sh"
+      tags: [backup]
