@@ -277,6 +277,38 @@ func TestReconnectRunsHooksAndRetriesOnHookFailure(t *testing.T) {
 	t.Fatalf("hook rodou %d vez(es); esperava nova tentativa após a falha", calls.Load())
 }
 
+// Hook que nunca dá certo: a reconexão fica no backoff entre tentativas e
+// tem de parar quando a conexão é fechada.
+func TestReconnectHookFailureStopsOnClose(t *testing.T) {
+	raw := brokerURL(t)
+	u, _ := url.Parse(raw)
+	p := newProxy(t, u.Host)
+	u.Host = p.ln.Addr().String()
+	orig, origMax := reconnectBackoffMin, reconnectBackoffMax
+	reconnectBackoffMin, reconnectBackoffMax = time.Hour, time.Hour // fica esperando o backoff
+	defer func() { reconnectBackoffMin, reconnectBackoffMax = orig, origMax }()
+
+	conn, err := Connect(context.Background(), u.String(), testLogger())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var calls atomic.Int32
+	conn.OnReconnect(func() error {
+		calls.Add(1)
+		return errors.New("setup falhou")
+	})
+	p.drop()
+	deadline := time.Now().Add(5 * time.Second)
+	for calls.Load() == 0 && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	if calls.Load() == 0 {
+		t.Fatal("o hook deveria ter rodado na reconexão")
+	}
+	_ = conn.Close() // o supervisor sai do backoff e termina
+	time.Sleep(50 * time.Millisecond)
+}
+
 func TestReconnectStopsOnClose(t *testing.T) {
 	raw := brokerURL(t)
 	u, _ := url.Parse(raw)

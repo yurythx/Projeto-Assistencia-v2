@@ -201,8 +201,14 @@ func build(ctx context.Context, cfg *config.Config, component string) (*Dependen
 	// Se o broker voltar sem estado (container recriado, nó novo), as filas
 	// somem: redeclara a cada reconexão para os consumidores se recuperarem
 	// sozinhos, sem precisar reiniciar a API/worker.
-	d.Messaging.OnReconnect(func() error { return declareTopology(d.Messaging, queues) })
+	d.Messaging.OnReconnect(redeclararTopologia(d.Messaging, queues))
 	return d, nil
+}
+
+// redeclararTopologia é o hook de reconexão: declara de novo exchange e
+// filas (idempotente) na conexão restabelecida.
+func redeclararTopologia(conn *messaging.Connection, queues []messaging.QueueSpec) func() error {
+	return func() error { return declareTopology(conn, queues) }
 }
 
 // declareTopology declara exchanges e filas (núcleo + plugins) num canal

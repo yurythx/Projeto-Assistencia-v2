@@ -210,6 +210,24 @@ func TestDeclareTopologyNeedsAnOpenConnection(t *testing.T) {
 	}
 }
 
+// O hook de reconexão redeclara a topologia na conexão viva (e propaga o
+// erro quando ela caiu — a reconexão então conta a tentativa como falha).
+func TestRedeclararTopologiaNaReconexao(t *testing.T) {
+	cfg := infraConfig(t)
+	conn, err := messaging.Connect(context.Background(), cfg.RabbitMQ.URL, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hook := redeclararTopologia(conn, messaging.PlatformQueues())
+	if err := hook(); err != nil {
+		t.Fatalf("redeclarar na conexão viva: %v", err)
+	}
+	_ = conn.Close()
+	if err := hook(); err == nil {
+		t.Fatal("com a conexão fechada o hook deveria falhar")
+	}
+}
+
 func TestWorkerRunsAllProcessorsUntilCancelled(t *testing.T) {
 	cfg := infraConfig(t)
 	d, err := build(context.Background(), cfg, "worker")
