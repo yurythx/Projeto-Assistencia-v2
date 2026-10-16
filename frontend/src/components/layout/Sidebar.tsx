@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, BarChart3, FileBarChart, FileCheck2, LayoutDashboard, MonitorPlay, Settings, ShieldCheck, Users2, UsersRound, type LucideProps } from "lucide-react";
+import { Activity, BarChart3, FileBarChart, LayoutDashboard, MonitorPlay, Settings, ShieldCheck, Users2, UsersRound, type LucideProps } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, type ComponentType } from "react";
@@ -40,7 +40,6 @@ const MODULE_CHILDREN: Record<string, (can: (p: string) => boolean) => NavItem[]
     ...(can("sempras:gestao")
       ? [
           { href: "/sempras/painel", label: "Painel de gestão", icon: BarChart3 },
-          { href: "/sempras/pedidos", label: "Pedidos do titular", icon: FileCheck2 },
           { href: "/sempras/rma", label: "RMA/MDS", icon: FileBarChart },
         ]
       : []),

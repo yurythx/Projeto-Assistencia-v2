@@ -31,7 +31,7 @@ import ColetivosPage from "./coletivos/page";
 import FichaPage from "./cidadaos/[id]/page";
 
 const UNIDADES = [
-  { id: "u1", entidade_id: "e1", nome: "CRAS Central", sigla: "", ativa: true },
+  { id: "u1", entidade_id: "e1", nome: "CRAS Ana Carla", sigla: "", ativa: true },
   { id: "u2", entidade_id: "e1", nome: "CREAS", sigla: "", ativa: true },
 ];
 
@@ -71,7 +71,7 @@ describe("SEMPRAS — atendimento", () => {
         req.query.get("q") === "ninguem"
           ? { data: [] }
           : { data: [{ id: "c9", nome: "Maria", nome_social: "", cpf: "***.982.247-**", nis: "", data_nascimento: "", atendimentos_na_area: 2 }] },
-      "POST v1/sempras/cidadaos": { status: 201, data: { id: "c10", nome: "Nova Pessoa", nome_social: "", cpf: "", nis: "", data_nascimento: "2000-01-01" } },
+      "POST v1/sempras/cidadaos": { status: 201, data: { id: "c10", nome: "Nova Pessoa", nome_social: "", cpf: "529.982.247-25", nis: "", data_nascimento: "2000-01-01" } },
       "POST v1/sempras/unidades/u1/fila": { status: 201, data: item("2") },
       "POST v1/sempras/atendimentos/1/cancelar": { data: item("1", { status: "cancelado" }) },
     });
@@ -103,10 +103,15 @@ describe("SEMPRAS — atendimento", () => {
     await userEvent.click(screen.getByRole("button", { name: /Cadastrar/ }));
     const dialog = await screen.findByRole("dialog", { name: "Cadastrar munícipe" });
     await userEvent.type(within(dialog).getByLabelText("Nome civil *"), "Nova Pessoa");
+    // no CRAS, tentar salvar sem CPF gera erro exibido diretamente no modal
+    await userEvent.click(within(dialog).getByRole("button", { name: "Salvar cadastro" }));
+    expect(within(dialog).getByText(/Apenas o Centro POP possui exceção legal/)).toBeInTheDocument();
+    // preenche o CPF obrigatório e o nome da mãe
+    await userEvent.type(within(dialog).getByLabelText("CPF *"), "529.982.247-25");
     await userEvent.type(within(dialog).getByLabelText("Nome da mãe"), "Ana");
     await userEvent.click(within(dialog).getByRole("button", { name: "Salvar cadastro" }));
     expect(await screen.findByText("Sem histórico na área")).toBeInTheDocument();
-    expect(api.to("POST v1/sempras/cidadaos")[0]!.body).toMatchObject({ nome: "Nova Pessoa", nome_mae: "Ana", cpf: "" });
+    expect(api.to("POST v1/sempras/cidadaos")[0]!.body).toMatchObject({ nome: "Nova Pessoa", nome_mae: "Ana", cpf: "529.982.247-25" });
 
     // cancelar quem aguarda
     await userEvent.click(screen.getByRole("button", { name: "Cancelar N001" }));
@@ -207,7 +212,7 @@ describe("SEMPRAS — painel de gestão", () => {
     expect(totais.getByText("2")).toBeInTheDocument(); // unidades
     expect(totais.getByText("3")).toBeInTheDocument(); // na fila (1+2)
     expect(totais.getByText("5")).toBeInTheDocument(); // concluídos (4+1)
-    expect(await screen.findByText("CRAS Central")).toBeInTheDocument();
+    expect(await screen.findByText("CRAS Ana Carla")).toBeInTheDocument();
     expect(screen.getByText("CREAS")).toBeInTheDocument();
   });
 
@@ -254,7 +259,7 @@ describe("SEMPRAS — RMA/MDS", () => {
     const totais = within(await screen.findByRole("list", { name: "Totais da competência" }));
     expect(totais.getByText("14")).toBeInTheDocument(); // atendimentos (10+4)
     expect(totais.getByText("3")).toBeInTheDocument(); // PAIF ativos
-    expect(await screen.findByText("CRAS Central")).toBeInTheDocument();
+    expect(await screen.findByText("CRAS Ana Carla")).toBeInTheDocument();
     expect(screen.getByText("CREAS")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Competência"), { target: { value: "2026-11" } });
@@ -521,7 +526,7 @@ describe("SEMPRAS — ficha do munícipe", () => {
     renderApp(<FichaPage />);
     const lista = within(await screen.findByRole("list", { name: "Encaminhamentos" }));
     expect(lista.getByText(/precisa de acompanhamento especializado/)).toBeInTheDocument();
-    expect(lista.getByText("CRAS Central → CREAS")).toBeInTheDocument();
+    expect(lista.getByText("CRAS Ana Carla → CREAS")).toBeInTheDocument();
     expect(lista.getByText("Pendente")).toBeInTheDocument();
 
     await userEvent.selectOptions(screen.getByLabelText("Encaminhar para"), "u2");

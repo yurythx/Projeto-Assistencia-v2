@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Download, Lock, NotebookPen, Pencil, ShieldAlert, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, Download, Lock, NotebookPen, Pencil, ShieldAlert, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 
+import { CentroPopAtendimentoForm } from "@/components/sempras/CentroPopAtendimentoForm";
+import { CrasAtendimentoForm } from "@/components/sempras/CrasAtendimentoForm";
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
 import { fmtDate, fmtDateTime, useAction } from "@/components/nexus/useAction";
@@ -87,9 +89,12 @@ export default function FichaPage() {
   const [unidade, setUnidade] = useState("");
   const [tipo, setTipo] = useState("social");
   const [texto, setTexto] = useState("");
+  const [mostrarFormAtendimentoCras, setMostrarFormAtendimentoCras] = useState(false);
+  const [mostrarFormAtendimentoPop, setMostrarFormAtendimentoPop] = useState(false);
   const nomes = new Map((unidades.data ?? []).map((u) => [u.id, u.nome]));
   const unidadeId = unidade || unidades.data?.[0]?.id || "";
   const tipos = can(P.psicologia) ? TIPOS : TIPOS.filter((t) => t.value === "social");
+  const isCentroPopUnidade = /centro\s*pop/i.test(nomes.get(unidadeId) ?? "");
 
   async function registrar(e: FormEvent) {
     e.preventDefault();
@@ -693,7 +698,70 @@ export default function FichaPage() {
                   <CardTitle as="h2">Evoluções</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4 pb-5">
-                  <form onSubmit={registrar} className="mt-3 flex flex-col gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-surface-border pb-3">
+                    <span className="text-xs text-muted">
+                      {isCentroPopUnidade
+                        ? "Registro de evolução rápida ou atendimento especializado do Centro POP (Decreto 7.053/2009)."
+                        : "Registro de evolução rápida ou formulário técnico oficial do CRAS (MDS)."}
+                    </span>
+                    {isCentroPopUnidade ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={mostrarFormAtendimentoPop ? "secondary" : "primary"}
+                        onClick={() => setMostrarFormAtendimentoPop(!mostrarFormAtendimentoPop)}
+                      >
+                        <Sparkles size={14} className="mr-1" />
+                        {mostrarFormAtendimentoPop ? "Ocultar Atendimento Centro POP" : "Abrir Atendimento Técnico Centro POP"}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={mostrarFormAtendimentoCras ? "secondary" : "primary"}
+                        onClick={() => setMostrarFormAtendimentoCras(!mostrarFormAtendimentoCras)}
+                      >
+                        <ClipboardCheck size={14} className="mr-1" />
+                        {mostrarFormAtendimentoCras ? "Ocultar Formulário CRAS" : "Abrir Formulário Técnico CRAS (MDS)"}
+                      </Button>
+                    )}
+                  </div>
+
+                  {mostrarFormAtendimentoPop && isCentroPopUnidade ? (
+                    <div className="rounded-xl border border-primary/30 bg-surface p-4">
+                      <CentroPopAtendimentoForm
+                        cidadao={ficha.data!.cidadao}
+                        unidadeId={unidadeId}
+                        unidadeNome={nomes.get(unidadeId) ?? "Centro POP"}
+                        perfil={ficha.data!.centro_pop_perfil}
+                        onSalvo={() => {
+                          void ficha.mutate();
+                          setMostrarFormAtendimentoPop(false);
+                        }}
+                        onConcluido={() => {
+                          void ficha.mutate();
+                          setMostrarFormAtendimentoPop(false);
+                        }}
+                      />
+                    </div>
+                  ) : mostrarFormAtendimentoCras && !isCentroPopUnidade ? (
+                    <div className="rounded-xl border border-primary/30 bg-surface p-4">
+                      <CrasAtendimentoForm
+                        cidadao={ficha.data!.cidadao}
+                        unidadeId={unidadeId}
+                        unidadeNome={nomes.get(unidadeId) ?? "CRAS"}
+                        onSalvo={() => {
+                          void ficha.mutate();
+                          setMostrarFormAtendimentoCras(false);
+                        }}
+                        onConcluido={() => {
+                          void ficha.mutate();
+                          setMostrarFormAtendimentoCras(false);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <form onSubmit={registrar} className="mt-3 flex flex-col gap-3">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Select id="evo-unidade" label="Unidade" value={unidadeId} onChange={(e) => setUnidade(e.target.value)}
                         options={(unidades.data ?? []).map((u) => ({ value: u.id, label: u.nome }))} />
@@ -707,6 +775,7 @@ export default function FichaPage() {
                       </Button>
                     </div>
                   </form>
+                  )}
                   <ol aria-label="Evoluções" className="flex flex-col gap-3">
                     {ficha.data!.registros.map((r) => (
                       <li key={r.id} className="rounded-lg border border-surface-border p-3 text-sm">

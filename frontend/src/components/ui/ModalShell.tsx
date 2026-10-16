@@ -2,13 +2,18 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-export type ModalSize = "sm" | "md" | "lg" | "xl";
+export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
 
 const sizeClass: Record<ModalSize, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-2xl",
   xl: "max-w-3xl",
+  "2xl": "max-w-4xl",
+  "3xl": "max-w-5xl",
+  "4xl": "max-w-6xl",
+  "5xl": "max-w-7xl",
+  full: "max-w-[96vw]",
 };
 
 /**

@@ -702,8 +702,6 @@ INSERT INTO unidades (id, entidade_id, parent_id, nome, sigla, slug) VALUES ('0d
   ON CONFLICT (id) DO UPDATE SET parent_id = EXCLUDED.parent_id, nome = EXCLUDED.nome, sigla = EXCLUDED.sigla, slug = EXCLUDED.slug;
 INSERT INTO unidades (id, entidade_id, parent_id, nome, sigla, slug) VALUES ('5ae7ab4f-d688-5e91-a9cc-83b6f9f96887', '57a95844-3d87-5f0a-95ef-34349a9d7474', NULL, 'CRAS Ana Carla', '', 'cras-ana-carla')
   ON CONFLICT (id) DO UPDATE SET parent_id = EXCLUDED.parent_id, nome = EXCLUDED.nome, sigla = EXCLUDED.sigla, slug = EXCLUDED.slug;
-INSERT INTO unidades (id, entidade_id, parent_id, nome, sigla, slug) VALUES ('a1eb429d-5735-590d-9471-b6e535d7c84f', '57a95844-3d87-5f0a-95ef-34349a9d7474', NULL, 'CRAS Central', '', 'cras-central')
-  ON CONFLICT (id) DO UPDATE SET parent_id = EXCLUDED.parent_id, nome = EXCLUDED.nome, sigla = EXCLUDED.sigla, slug = EXCLUDED.slug;
 INSERT INTO unidades (id, entidade_id, parent_id, nome, sigla, slug) VALUES ('0fa8c1a9-d1d3-58ce-aa2c-b5275be2c8c3', '57a95844-3d87-5f0a-95ef-34349a9d7474', NULL, 'CRAS Conjunto São José', '', 'cras-conjunto-sao-jose')
   ON CONFLICT (id) DO UPDATE SET parent_id = EXCLUDED.parent_id, nome = EXCLUDED.nome, sigla = EXCLUDED.sigla, slug = EXCLUDED.slug;
 INSERT INTO unidades (id, entidade_id, parent_id, nome, sigla, slug) VALUES ('1d5e8e7d-28c3-5546-84b7-10af8cad2212', '57a95844-3d87-5f0a-95ef-34349a9d7474', NULL, 'CRAS Iguaçu', '', 'cras-iguacu')

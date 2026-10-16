@@ -9,9 +9,11 @@ export interface DialogProps {
   onClose: () => void;
   title: string;
   description?: string;
-  /** Largura máxima do modal. `md` (padrão) serve pra confirmações; `lg`/`xl`
+  /** Largura máxima do modal. `md` (padrão) serve pra confirmações; `lg`/`xl`/`2xl`/`3xl`/`4xl`/`5xl`/`full`
    *  pra modais com formulário, tabela ou lista. */
   size?: ModalSize;
+  className?: string;
+  contentClassName?: string;
   /** Rodapé fixo (não rola com o corpo) — ex.: botões de ação. O modal já
    *  põe o fio de separação e o espaçamento; o alinhamento fica com quem
    *  chama (ex.: `ml-auto` num botão pra jogá-lo à direita). */
@@ -30,6 +32,8 @@ export function Dialog({
   title,
   description,
   size = "md",
+  className = "",
+  contentClassName = "",
   footer,
   children,
 }: DialogProps) {
@@ -42,10 +46,11 @@ export function Dialog({
       open={open}
       onClose={onClose}
       size={size}
+      className={className}
       labelledBy={titleId}
       describedBy={description ? descId : undefined}
     >
-      <div className="flex max-h-[calc(100dvh-2rem)] flex-col p-5">
+      <div className="flex max-h-[calc(100dvh-2rem)] flex-col p-5 sm:p-6">
         <h2 id={titleId} className="shrink-0 text-base font-semibold">
           {title}
         </h2>
@@ -54,7 +59,7 @@ export function Dialog({
             {description}
           </p>
         )}
-        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">{children}</div>
+        <div className={`mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-0.5 ${contentClassName}`}>{children}</div>
         {footer && (
           <div className="mt-4 flex shrink-0 flex-wrap items-center gap-2 border-t border-surface-border pt-4">
             {footer}

@@ -1,8 +1,10 @@
 "use client";
 
+import { Download, Printer } from "lucide-react";
 import { useState } from "react";
 
 import { DataState } from "@/components/nexus/DataState";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { useApiQuery } from "@/lib/api/swr";
@@ -31,10 +33,78 @@ export function Rma() {
   const linhas = rma.data ?? [];
   const total = (campo: keyof Omit<RmaUnidade, "unidade">) => linhas.reduce((soma, l) => soma + l[campo], 0);
 
+  function exportarCsv() {
+    if (linhas.length === 0) return;
+    const colunas = [
+      "Unidade",
+      "Atendimentos",
+      "PAIF Ativos",
+      "Beneficios Concedidos",
+      "PAEFI Ativos",
+      "PAEFI Abertos no Mes",
+      "MSE Ativas",
+      "MSE Concluidas no Mes",
+      "Conselho Tutelar",
+      "Notificacoes CREAS",
+      "Casa Abrigo Ativos",
+      "Casa Abrigo Entradas no Mes",
+      "Encaminhamentos Enviados",
+      "Oficios CRAS Recebidos",
+      "Oficios CRAS Respondidos",
+      "Coletivo Participantes",
+    ];
+
+    const rows = linhas.map((l) => [
+      `"${l.unidade.nome.replace(/"/g, '""')}"`,
+      l.atendimentos,
+      l.paif_ativos,
+      l.beneficios_concedidos_no_mes,
+      l.paefi_casos_ativos,
+      l.paefi_casos_abertos_no_mes,
+      l.mse_ativas,
+      l.mse_concluidas_no_mes,
+      l.conselho_atendimentos_no_mes,
+      l.creas_notificacoes_recebidas_no_mes,
+      l.casa_abrigo_acolhidos_ativos,
+      l.casa_abrigo_entradas_no_mes,
+      l.encaminhamentos_enviados_no_mes,
+      l.oficios_cras_recebidos_no_mes,
+      l.oficios_cras_respondidos_no_mes,
+      l.coletivo_total_no_mes,
+    ]);
+
+    const csvContent = "\uFEFF" + [colunas.join(";"), ...rows.map((r) => r.join(";"))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `RMA_MDS_SEMPRAS_${competencia}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <Input id="rma-competencia" label="Competência" type="month" value={competencia}
-        onChange={(e) => setCompetencia(e.target.value)} className="max-w-[200px]" />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Input
+          id="rma-competencia"
+          label="Competência"
+          type="month"
+          value={competencia}
+          onChange={(e) => setCompetencia(e.target.value)}
+          className="max-w-[200px]"
+        />
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" onClick={exportarCsv} disabled={linhas.length === 0}>
+            <Download size={15} className="mr-1.5" /> Exportar CSV (Excel)
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => window.print()} disabled={linhas.length === 0}>
+            <Printer size={15} className="mr-1.5" /> Imprimir Relatório
+          </Button>
+        </div>
+      </div>
 
       <DataState loading={rma.isLoading} error={rma.error} onRetry={() => void rma.mutate()} empty={linhas.length === 0} emptyTitle="Nenhuma unidade">
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Totais da competência">

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { createPortal } from "react-dom";
 import { Toast, type ToastData, type ToastTone } from "@/components/ui/Toast";
 
 interface ToastContextValue {
@@ -115,6 +116,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [scheduleDismiss],
   );
 
+  // Monitora se existe algum <dialog open> nativo na tela. Se houver,
+  // faz portal do container de toasts para dentro do <dialog>, garantindo que
+  // os toasts fiquem no top-layer do navegador e nunca fiquem atrás do modal.
+  const [activeDialog, setActiveDialog] = useState<HTMLDialogElement | null>(null);
+
+  useEffect(() => {
+    const updateActiveDialog = () => {
+      const dialogs = Array.from(document.querySelectorAll("dialog"));
+      const openDialog = dialogs.find((d) => d.open) || null;
+      setActiveDialog(openDialog);
+    };
+
+    updateActiveDialog();
+    const observer = new MutationObserver(updateActiveDialog);
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["open"] });
+    return () => observer.disconnect();
+  }, []);
+
   // Limpa todos os timers pendentes no unmount.
   useEffect(() => {
     const timers = timersRef.current;
@@ -124,28 +143,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const toastContainer = (
+    <div
+      aria-live="polite"
+      role="status"
+      className="pointer-events-none fixed bottom-4 right-4 z-[9999] flex flex-col gap-2"
+    >
+      {toasts.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast toast={toast} onDismiss={dismiss} onPause={pause} onResume={resume} />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* z-[60], não z-50: LGPDConsentModal (o único overlay hand-rolled do
-          app, não o <dialog> nativo de ModalShell — esse já vence QUALQUER
-          z-index via top layer do navegador) também usa z-50. Empatado, quem
-          ficava por cima dependia só da ordem de montagem no DOM — funcionava
-          por coincidência, mas um toast de logout/login que disparasse bem
-          na hora em que o consentimento LGPD ainda não tinha sido aceito
-          (1ª visita) arriscava ficar atrás do backdrop escuro. Acima de
-          qualquer overlay hand-rolled deste app, de propósito. */}
-      <div
-        aria-live="polite"
-        role="status"
-        className="pointer-events-none fixed bottom-4 right-4 z-[60] flex flex-col gap-2"
-      >
-        {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto">
-            <Toast toast={toast} onDismiss={dismiss} onPause={pause} onResume={resume} />
-          </div>
-        ))}
-      </div>
+      {activeDialog ? createPortal(toastContainer, activeDialog) : toastContainer}
     </ToastContext.Provider>
   );
 }

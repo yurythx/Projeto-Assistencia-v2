@@ -45,7 +45,13 @@ function acoesDe(item: FilaItem, pode: (perm: string) => boolean): Acao[] {
 /** Fila do dia da unidade, atualizada em tempo real (tópico
  * sempras:fila:<unidade>; o frame não traz dado pessoal — a lista é
  * recarregada pela API). */
-export function Fila({ unidadeId }: { unidadeId: string }) {
+export function Fila({
+  unidadeId,
+  onAbrirFicha,
+}: {
+  unidadeId: string;
+  onAbrirFicha?: (cidadaoId: string) => void;
+}) {
   const { can } = useNexus();
   const { run, pending } = useAction();
   const [local, setLocal] = useState("");
@@ -54,24 +60,36 @@ export function Fila({ unidadeId }: { unidadeId: string }) {
 
   async function agir(item: FilaItem, acao: Acao) {
     const ok = await run(() => apiClient.post(`v1/sempras/atendimentos/${item.id}/${acao}`, { local }), ACOES[acao].ok);
-    if (ok) void fila.mutate();
+    if (ok) {
+      void fila.mutate();
+      if (acao === "chamar" && item.cidadao_id) {
+        onAbrirFicha?.(item.cidadao_id);
+      }
+    }
   }
 
   async function chamarProximo(e: FormEvent) {
     e.preventDefault();
     const out = await run(() => apiClient.post<FilaItem>(`v1/sempras/unidades/${unidadeId}/fila/proximo`, { local }));
-    if (out) void fila.mutate();
+    if (out) {
+      void fila.mutate();
+      if (out.data?.cidadao_id) {
+        onAbrirFicha?.(out.data.cidadao_id);
+      }
+    }
   }
 
   const itens = fila.data ?? [];
   const ativos = itens.filter((i) => ["aguardando", "chamado", "em_atendimento"].includes(i.status));
+  const podeAtender = can(P.atendimento) || can(P.psicologia);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle as="h2">Fila de hoje</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 pb-5">
-        {can(P.atendimento) && (
+        {podeAtender && (
           <form onSubmit={chamarProximo} className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <Input id="sempras-local" label="Sala ou guichê" value={local} onChange={(e) => setLocal(e.target.value)} maxLength={60} autoComplete="off" />
             <Button type="submit" loading={pending}>
@@ -90,7 +108,22 @@ export function Fila({ unidadeId }: { unidadeId: string }) {
                   <span className="font-mono text-lg font-semibold">{item.senha_exibida}</span>
                   <div>
                     <p className="font-medium">
-                      {can(P.atendimento) ? <Link href={`/sempras/cidadaos/${item.cidadao_id}`} className="underline">{item.nome}</Link> : item.nome}
+                      {podeAtender ? (
+                        <Link
+                          href={`/sempras/cidadaos/${item.cidadao_id}`}
+                          onClick={(e) => {
+                            if (onAbrirFicha) {
+                              e.preventDefault();
+                              onAbrirFicha(item.cidadao_id);
+                            }
+                          }}
+                          className="underline hover:text-primary"
+                        >
+                          {item.nome}
+                        </Link>
+                      ) : (
+                        <span>{item.nome}</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted">
                       {[item.tipo === "psicologico" ? "Psicológico" : "Social", item.prioridade && rotuloPrioridade(item.prioridade),
