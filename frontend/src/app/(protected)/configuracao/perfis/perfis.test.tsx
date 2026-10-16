@@ -91,7 +91,8 @@ describe("Configurações > Perfis", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Excluir Perfil x" }));
     const confirm = await screen.findByRole("dialog", { name: 'Excluir o perfil "Perfil x"?' });
     await userEvent.click(within(confirm).getByRole("button", { name: "Excluir" }));
-    expect(await screen.findByText("perfil em uso por lotações")).toBeInTheDocument();
+    // toast remontado no body ao fechar o <dialog>: espera o lugar definitivo
+    await waitFor(() => expect(screen.getByText("perfil em uso por lotações")).toBeInTheDocument());
     expect(api.to("DELETE v1/iam/perfis/x")).toHaveLength(1);
   });
 

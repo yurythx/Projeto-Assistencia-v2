@@ -215,7 +215,9 @@ describe("Wiki — página", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Excluir página" }));
     const confirm = await screen.findByRole("dialog", { name: 'Excluir "Página filha"?' });
     await userEvent.click(within(confirm).getByRole("button", { name: "Excluir" }));
-    expect(await screen.findByText("a página tem subpáginas")).toBeInTheDocument();
+    // O toast nasce dentro do <dialog> aberto (top layer) e é remontado no
+    // body quando ele fecha: espera o lugar definitivo, não o primeiro nó.
+    await waitFor(() => expect(screen.getByText("a página tem subpáginas")).toBeInTheDocument());
     expect(router.push).not.toHaveBeenCalled();
   });
 

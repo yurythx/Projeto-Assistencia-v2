@@ -129,8 +129,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     };
 
     updateActiveDialog();
+    // childList também: um <dialog> pode sair da tela desmontado (sem passar
+    // por open=false). Sem isso, o portal ficaria preso num nó fora do DOM e
+    // o toast — p.ex. o erro de uma exclusão recusada logo após o modal de
+    // confirmação — sumiria.
     const observer = new MutationObserver(updateActiveDialog);
-    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["open"] });
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["open"], childList: true });
     return () => observer.disconnect();
   }, []);
 

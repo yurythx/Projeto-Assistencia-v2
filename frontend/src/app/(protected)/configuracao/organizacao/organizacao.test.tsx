@@ -119,7 +119,8 @@ describe("Configurações > Organização", () => {
     await userEvent.click(screen.getByRole("button", { name: "Excluir Vigilância" }));
     const confirm = await screen.findByRole("dialog", { name: 'Excluir departamento "Vigilância"?' });
     await userEvent.click(within(confirm).getByRole("button", { name: "Excluir" }));
-    expect(await screen.findByText("departamento possui lotações vinculadas")).toBeInTheDocument();
+    // toast remontado no body ao fechar o <dialog>: espera o lugar definitivo
+    await waitFor(() => expect(screen.getByText("departamento possui lotações vinculadas")).toBeInTheDocument());
   });
 
   it("vazio e erro", async () => {
