@@ -181,6 +181,19 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			return err
 		},
 		"DeleteDocumentoCentroPop": func(db database.DBTX) error { return r.DeleteDocumentoCentroPop(ctx, db, id) },
+		"InsertAbordagem":          func(db database.DBTX) error { return r.InsertAbordagem(ctx, db, domain.Abordagem{ID: id}, id) },
+		"ListAbordagens": func(db database.DBTX) error {
+			_, err := r.ListAbordagens(ctx, db, id, time.Now(), time.Now())
+			return err
+		},
+		"AbordagensNaArea": func(db database.DBTX) error {
+			_, err := r.AbordagensNaArea(ctx, db, id, area)
+			return err
+		},
+		"ConfigurarUnidade": func(db database.DBTX) error { return r.ConfigurarUnidade(ctx, db, id, domain.UnidadeCras, true) },
+		"ConfigurarUnidade (tirar)": func(db database.DBTX) error {
+			return r.ConfigurarUnidade(ctx, db, id, "", false)
+		},
 		"InsertCasoCasaMulher": func(db database.DBTX) error {
 			return r.InsertCasoCasaMulher(ctx, db, domain.CasoCasaMulher{ID: id}, id)
 		},
@@ -300,7 +313,8 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"ListVisitantes", "GetVisitante", "ListTermos", "GetTermo", "GetPiaFicha", "ListPiaMetas", "GetPiaMeta",
 		"GetDocumento", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea", "GetCasoCasaMulher",
 		"CasosCasaMulherNaArea", "GetOficioCras", "OficiosCrasNaArea", "ListAtendimentosColetivos", "GetCentroPopPerfil",
-		"GetEncaminhamentoExterno", "EncaminhamentosExternosNaArea", "GetDocumentoCentroPop", "ListDocumentosCentroPop"} {
+		"GetEncaminhamentoExterno", "EncaminhamentosExternosNaArea", "GetDocumentoCentroPop", "ListDocumentosCentroPop",
+		"ListAbordagens", "AbordagensNaArea"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
@@ -311,7 +325,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"PaefiCasosNaArea", "MseMedidasNaArea", "NotificacoesCreasNaArea", "AcolhimentosNaArea", "ListIrmaos", "ListDiagnosticos",
 		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea",
 		"CasosCasaMulherNaArea", "OficiosCrasNaArea", "ListAtendimentosColetivos", "EncaminhamentosExternosNaArea",
-		"ListDocumentosCentroPop"} {
+		"ListDocumentosCentroPop", "ListAbordagens", "AbordagensNaArea"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}
@@ -1859,6 +1873,30 @@ func TestRmaPorTipo(t *testing.T) {
 	falhar(err)
 	falhar(r.InsertCasoCasaMulher(ctx, pool, caso, autor))
 
+	// Sexo e idade (fim do mês) das duas pessoas atendidas; abordagens.
+	if _, err := pool.Exec(ctx, `UPDATE sempras_cidadaos SET sexo = 'feminino', data_nascimento = '1990-01-01' WHERE id = $1`, antiga); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, `UPDATE sempras_cidadaos SET sexo = '', data_nascimento = NULL, nis = lpad((random() * 1e11)::bigint::text, 11, '0') WHERE id = $1`, nova); err != nil {
+		t.Fatal(err)
+	}
+	for _, ab := range []domain.AbordagemInput{
+		{CidadaoID: &antiga, Local: "Praça Brasil", Resultado: "aceitou_acolhimento", DataAbordagem: dentro},
+		{DescricaoPessoa: "homem, uns 40 anos", Local: "Rodoviária", Resultado: "recusou", DataAbordagem: dentro},
+		{CidadaoID: &antiga, Local: "Praça Brasil", Resultado: "orientado", DataAbordagem: antes},
+	} {
+		a, err := domain.NovaAbordagem(un, ab, time.Now())
+		falhar(err)
+		falhar(r.InsertAbordagem(ctx, pool, a, autor))
+	}
+	abordagens, err := r.ListAbordagens(ctx, pool, un, inicio, fim)
+	if err != nil || len(abordagens) != 2 {
+		t.Fatalf("ListAbordagens (só as do mês): %+v, %v", abordagens, err)
+	}
+	if lista, err := r.AbordagensNaArea(ctx, pool, antiga, domain.Area{Unidades: []uuid.UUID{un}}); err != nil || len(lista) != 2 {
+		t.Fatalf("AbordagensNaArea: %+v, %v", lista, err)
+	}
+
 	// Regressão: ofício recebido e atendimento coletivo no mês.
 	oficio, err := domain.NovoOficioCras(antiga, un, "Ministério Público", "10/2026", nil, "requisição de relatório")
 	falhar(err)
@@ -1890,12 +1928,16 @@ func TestRmaPorTipo(t *testing.T) {
 	case m.CasaMulherCasosAtivos != 1 || m.CasaMulherCasosNovosNoMes != 1 || m.CasaMulherRiscoAltoExtremo != 1 ||
 		m.CasaMulherAbrigadas != 1 || m.CasaMulherMedidasDeferidas != 1:
 		t.Errorf("Casa da Mulher: %+v", m)
+	case m.AbordagensNoMes != 2 || m.AbordagensAceitouAcolhimento != 1 || m.AbordagensRecusas != 1 || m.AbordagensPessoasIdentific != 1:
+		t.Errorf("abordagens: %+v", m)
+	case m.PessoasPorSexoFaixa["feminino|30-59"] != 1 || m.PessoasPorSexoFaixa["|"] != 1 || len(m.PessoasPorSexoFaixa) != 2:
+		t.Errorf("pessoas por sexo e faixa: %+v", m.PessoasPorSexoFaixa)
 	}
 
 	// Sem movimento: mapas vazios, não nulos.
 	vazia, _ := rmaUnidade(t, pool, r, autor)
 	sem, err := r.Rma(ctx, pool, []domain.Unidade{{ID: vazia}}, inicio, fim)
-	if err != nil || sem[0].AtendimentosPorDemanda == nil || sem[0].PaefiNovosPorViolacao == nil {
+	if err != nil || sem[0].AtendimentosPorDemanda == nil || sem[0].PaefiNovosPorViolacao == nil || sem[0].PessoasPorSexoFaixa == nil {
 		t.Fatalf("Rma sem movimento: %+v, %v", sem, err)
 	}
 }
@@ -1924,9 +1966,9 @@ func TestRmaFalhaEmCadaConsulta(t *testing.T) {
 				falha = dbtest.QueryResult{Rows: novaLinhaRuim(falha)}
 			}
 		}
-		// 16 consultas de contadores + 2 por chave (demandas, violações).
-		if n != 18 {
-			t.Errorf("o RMA falhou em %d consultas; esperava 18 (%+v)", n, falha)
+		// 17 consultas de contadores + 3 por chave (demandas, sexo/faixa, violações).
+		if n != 20 {
+			t.Errorf("o RMA falhou em %d consultas; esperava 20 (%+v)", n, falha)
 		}
 	}
 }
@@ -1981,5 +2023,25 @@ func TestCasoCasaMulherRoundTrip(t *testing.T) {
 	}
 	if lista, err := r.CasosCasaMulherNaArea(ctx, pool, cids[0], domain.Area{}); err != nil || len(lista) != 0 {
 		t.Fatalf("fora da área: %+v, %v", lista, err)
+	}
+}
+
+// O tipo é gravado, trocado e tirado (a unidade volta a não atender).
+func TestConfigurarUnidadeRoundTrip(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	un, _ := rmaUnidade(t, pool, r, dbtest.User(t, pool))
+	for _, c := range []struct {
+		tipo   string
+		painel bool
+	}{{domain.UnidadeCras, true}, {domain.UnidadeCreas, false}, {"", false}} {
+		if err := r.ConfigurarUnidade(ctx, pool, un, c.tipo, c.painel); err != nil {
+			t.Fatal(err)
+		}
+		u, err := r.GetUnidade(ctx, pool, un)
+		if err != nil || u.Tipo != c.tipo || u.PainelExibeNome != c.painel {
+			t.Fatalf("depois de configurar %q: %+v, %v", c.tipo, u, err)
+		}
 	}
 }

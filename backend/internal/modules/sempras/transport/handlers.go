@@ -36,6 +36,8 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	gestao := auth.RequirePermission(h.logger, auth.PermSemprasGestao)
 
 	r.Get("/sempras/unidades", h.Unidades)
+	r.With(gestao).Get("/sempras/unidades/configuracao", h.UnidadesParaConfigurar)
+	r.With(gestao).Put("/sempras/unidades/{id}/configuracao", h.ConfigurarUnidade)
 	r.With(gestao).Get("/sempras/painel", h.Painel)
 	r.With(gestao).Get("/sempras/relatorios/rma", h.Rma)
 
@@ -70,6 +72,8 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/paefi", h.RegistrarPaefiCaso)
 	r.With(atendimento).Post("/sempras/paefi/{id}/pia", h.MarcarPiaElaborado)
 	r.With(atendimento).Post("/sempras/paefi/{id}/encerrar", h.EncerrarPaefiCaso)
+	r.With(atendimento).Post("/sempras/unidades/{id}/abordagens", h.RegistrarAbordagem)
+	r.With(atendimento).Get("/sempras/unidades/{id}/abordagens", h.ListarAbordagens)
 	r.With(atendimento).Post("/sempras/cidadaos/{id}/casa-mulher", h.RegistrarCasoCasaMulher)
 	r.With(atendimento).Put("/sempras/casa-mulher/{id}", h.AtualizarCasoCasaMulher)
 	r.With(atendimento).Post("/sempras/casa-mulher/{id}/encerrar", h.EncerrarCasoCasaMulher)
@@ -185,6 +189,7 @@ type CidadaoRequest struct {
 	CPF            string `json:"cpf" validate:"max=20"`
 	NIS            string `json:"nis" validate:"max=20"`
 	DataNascimento string `json:"data_nascimento" validate:"max=10"`
+	Sexo           string `json:"sexo" validate:"omitempty,oneof=feminino masculino"`
 	NomeMae        string `json:"nome_mae" validate:"max=200"`
 	Telefone       string `json:"telefone" validate:"max=30"`
 	Endereco       string `json:"endereco" validate:"max=300"`
@@ -194,7 +199,7 @@ type CidadaoRequest struct {
 func (req CidadaoRequest) input() domain.CidadaoInput {
 	return domain.CidadaoInput{Nome: req.Nome, NomeSocial: req.NomeSocial, CPF: req.CPF, NIS: req.NIS,
 		DataNascimento: req.DataNascimento, NomeMae: req.NomeMae, Telefone: req.Telefone, Endereco: req.Endereco,
-		Anonimo: req.Anonimo}
+		Sexo: req.Sexo, Anonimo: req.Anonimo}
 }
 
 // Cadastrar grava um novo munícipe.
@@ -798,6 +803,97 @@ func (h *Handlers) EncerrarPaefiCaso(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httputil.WriteOK(w, p)
+}
+
+// AbordagemRequest é o registro de uma abordagem social (Centro POP).
+type AbordagemRequest struct {
+	CidadaoID         *uuid.UUID `json:"cidadao_id"`
+	DescricaoPessoa   string     `json:"descricao_pessoa" validate:"max=300"`
+	Local             string     `json:"local" validate:"required,min=3,max=300"`
+	DataAbordagem     time.Time  `json:"data_abordagem" validate:"required"`
+	Resultado         string     `json:"resultado" validate:"required,oneof=aceitou_acolhimento aceitou_encaminhamento orientado recusou"`
+	UsoDrogasAparente bool       `json:"uso_drogas_aparente"`
+	DemandaSaude      bool       `json:"demanda_saude"`
+	Observacoes       string     `json:"observacoes" validate:"max=2000"`
+}
+
+// RegistrarAbordagem registra uma abordagem social da unidade.
+func (h *Handlers) RegistrarAbordagem(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req AbordagemRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	a, err := h.svc.RegistrarAbordagem(r.Context(), identity(r), id, domain.AbordagemInput{CidadaoID: req.CidadaoID,
+		DescricaoPessoa: req.DescricaoPessoa, Local: req.Local, Resultado: req.Resultado, Obs: req.Observacoes,
+		DataAbordagem: req.DataAbordagem, UsoDrogasAparente: req.UsoDrogasAparente, DemandaSaude: req.DemandaSaude})
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteCreated(w, a)
+}
+
+// ListarAbordagens lista as abordagens da unidade no mês (?mes=2026-10,
+// padrão o mês atual).
+func (h *Handlers) ListarAbordagens(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	mes := httputil.Query(r, "mes", 10)
+	if mes == "" {
+		mes = time.Now().Format("2006-01")
+	}
+	out, err := h.svc.ListarAbordagens(r.Context(), identity(r), id, mes)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, out)
+}
+
+// ConfiguracaoUnidadeRequest é o tipo da unidade (ADR 031); tipo vazio tira
+// a configuração e a unidade deixa de atender.
+type ConfiguracaoUnidadeRequest struct {
+	Tipo            string `json:"tipo" validate:"omitempty,oneof=cras scfv creas centro_pop casa_mulher casa_abrigo conselho_tutelar"`
+	PainelExibeNome bool   `json:"painel_exibe_nome"`
+}
+
+// UnidadesParaConfigurar lista as unidades da SEMPRAS da gestão, com e sem tipo.
+func (h *Handlers) UnidadesParaConfigurar(w http.ResponseWriter, r *http.Request) {
+	out, err := h.svc.UnidadesParaConfigurar(r.Context(), identity(r))
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, out)
+}
+
+// ConfigurarUnidade define o tipo da unidade e o painel de chamada.
+func (h *Handlers) ConfigurarUnidade(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	var req ConfiguracaoUnidadeRequest
+	if err := httputil.Bind(w, r, &req); err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	u, err := h.svc.ConfigurarUnidade(r.Context(), identity(r), id, req.Tipo, req.PainelExibeNome)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, u)
 }
 
 // CasoCasaMulherRequest é a avaliação de um caso da Casa da Mulher (abertura

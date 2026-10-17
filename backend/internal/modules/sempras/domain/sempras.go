@@ -93,6 +93,7 @@ type Cidadao struct {
 	CPF            string    `json:"cpf"`
 	NIS            string    `json:"nis"`
 	DataNascimento string    `json:"data_nascimento"` // AAAA-MM-DD ou ""
+	Sexo           string    `json:"sexo"`            // feminino, masculino ou "" (não informado)
 	NomeMae        string    `json:"nome_mae"`
 	Telefone       string    `json:"telefone"`
 	Endereco       string    `json:"endereco"`
@@ -108,8 +109,12 @@ type Cidadao struct {
 // identificado", escolha de quem cadastra, não um padrão escondido.
 type CidadaoInput struct {
 	Nome, NomeSocial, CPF, NIS, DataNascimento, NomeMae, Telefone, Endereco string
+	Sexo                                                                    string
 	Anonimo                                                                 bool
 }
+
+// Sexos aceitos no cadastro ("" = não informado).
+var Sexos = []string{"", "feminino", "masculino"}
 
 // NomeExibicao respeita o nome social (Decreto 8.727/2016).
 func (c Cidadao) NomeExibicao() string {
@@ -224,6 +229,9 @@ func (in CidadaoInput) Normalizar(hoje time.Time) (Cidadao, error) {
 			return Cidadao{}, invalid("data de nascimento inválida (AAAA-MM-DD, não futura)")
 		}
 		c.DataNascimento = d
+	}
+	if c.Sexo = strings.TrimSpace(in.Sexo); !slices.Contains(Sexos, c.Sexo) {
+		return Cidadao{}, invalid("sexo inválido (feminino, masculino ou não informado)")
 	}
 	if c.CPF == "" && c.NIS == "" && (c.DataNascimento == "" || c.NomeMae == "") && !in.Anonimo {
 		return Cidadao{}, invalid("informe CPF, NIS ou data de nascimento e nome da mãe (ou marque cadastro anônimo)")
@@ -540,6 +548,7 @@ type Prontuario struct {
 	EncaminhamentosExternos []EncaminhamentoExterno `json:"encaminhamentos_externos"`
 	CentroPopDocumentos     []DocumentoCentroPop    `json:"centro_pop_documentos"`
 	CasaMulherCasos         []CasoCasaMulher        `json:"casa_mulher_casos"`
+	Abordagens              []Abordagem             `json:"abordagens"`
 	// Fora da área de quem consulta (ADR 031 §4): só o resumo das outras
 	// unidades e a evolução social das que encaminharam o munícipe para a
 	// área — o psicológico e os registros especializados nunca cruzam.
@@ -638,6 +647,9 @@ type RmaUnidade struct {
 
 	// Recepção (ADR 031 §3): entradas na fila no mês, por demanda.
 	AtendimentosPorDemanda map[string]int `json:"atendimentos_por_demanda"`
+	// Pessoas diferentes atendidas no mês por "sexo|faixa" (o recorte do
+	// MDS); sexo "" ou faixa "" = não informado.
+	PessoasPorSexoFaixa map[string]int `json:"pessoas_por_sexo_faixa"`
 
 	// RMA do CREAS (ADR 031, fase E) — PAEFI e MSE em meio aberto.
 	PaefiCasosInicioMes   int            `json:"paefi_casos_inicio_mes"`
@@ -655,6 +667,10 @@ type RmaUnidade struct {
 	PopPessoasComDoenca          int `json:"pop_pessoas_com_doenca"`
 	PopPessoasTrecheiras         int `json:"pop_pessoas_trecheiras"`
 	EncaminhamentosExternosNoMes int `json:"encaminhamentos_externos_no_mes"`
+	AbordagensNoMes              int `json:"abordagens_no_mes"`
+	AbordagensAceitouAcolhimento int `json:"abordagens_aceitou_acolhimento"`
+	AbordagensRecusas            int `json:"abordagens_recusas"`
+	AbordagensPessoasIdentific   int `json:"abordagens_pessoas_identificadas"`
 
 	// Casa da Mulher (indicadores municipais; o MDS não tem RMA próprio).
 	CasaMulherCasosAtivos      int `json:"casa_mulher_casos_ativos"`
@@ -1513,6 +1529,64 @@ func (c *CasoCasaMulher) Encerrar(motivo string, tecnico uuid.UUID, agora time.T
 	c.Status, c.MotivoEncerramento, c.TecnicoReferenciaID, c.DataEncerramento = CasaMulherStatusEncerrado, motivo, &tecnico, &agora
 	c.Abrigada, c.DataAbrigamento = false, nil
 	return nil
+}
+
+// ------------------------------------------- Centro POP: abordagem social
+
+// Resultados de uma abordagem social.
+var ResultadosAbordagem = []string{"aceitou_acolhimento", "aceitou_encaminhamento", "orientado", "recusou"}
+
+// Abordagem é uma busca ativa da equipe do Centro POP na rua: onde, quando,
+// a quem — o munícipe cadastrado (CidadaoID) ou só uma descrição, quando a
+// pessoa não se identifica — e o resultado.
+type Abordagem struct {
+	ID                uuid.UUID  `json:"id"`
+	UnidadeID         uuid.UUID  `json:"unidade_id"`
+	CidadaoID         *uuid.UUID `json:"cidadao_id"`
+	DescricaoPessoa   string     `json:"descricao_pessoa"`
+	Local             string     `json:"local"`
+	DataAbordagem     time.Time  `json:"data_abordagem"`
+	Resultado         string     `json:"resultado"`
+	UsoDrogasAparente bool       `json:"uso_drogas_aparente"`
+	DemandaSaude      bool       `json:"demanda_saude"`
+	Observacoes       string     `json:"observacoes"`
+	CreatedAt         time.Time  `json:"created_at"`
+}
+
+// AbordagemInput são os dados de uma abordagem.
+type AbordagemInput struct {
+	CidadaoID                              *uuid.UUID
+	DescricaoPessoa, Local, Resultado, Obs string
+	DataAbordagem                          time.Time
+	UsoDrogasAparente, DemandaSaude        bool
+}
+
+// NovaAbordagem valida e monta uma abordagem.
+func NovaAbordagem(unidade uuid.UUID, in AbordagemInput, agora time.Time) (Abordagem, error) {
+	desc, err := texto("descrição da pessoa", in.DescricaoPessoa, 0, 300)
+	if err != nil {
+		return Abordagem{}, err
+	}
+	if in.CidadaoID == nil && desc == "" {
+		return Abordagem{}, invalid("identifique o munícipe ou descreva a pessoa abordada")
+	}
+	local, err := texto("local", in.Local, 3, 300)
+	if err != nil {
+		return Abordagem{}, err
+	}
+	if !slices.Contains(ResultadosAbordagem, in.Resultado) {
+		return Abordagem{}, invalid("resultado da abordagem inválido")
+	}
+	if in.DataAbordagem.IsZero() || in.DataAbordagem.After(agora) {
+		return Abordagem{}, invalid("data da abordagem inválida (não pode ser futura)")
+	}
+	obs, err := texto("observações", in.Obs, 0, 2000)
+	if err != nil {
+		return Abordagem{}, err
+	}
+	return Abordagem{ID: uuid.New(), UnidadeID: unidade, CidadaoID: in.CidadaoID, DescricaoPessoa: desc, Local: local,
+		DataAbordagem: in.DataAbordagem, Resultado: in.Resultado, UsoDrogasAparente: in.UsoDrogasAparente,
+		DemandaSaude: in.DemandaSaude, Observacoes: obs, CreatedAt: agora}, nil
 }
 
 // --------------------------------------------------------------------- MSE

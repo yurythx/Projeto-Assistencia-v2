@@ -87,6 +87,8 @@ export interface Cidadao {
   cpf: string;
   nis: string;
   data_nascimento: string;
+  /** feminino, masculino ou "" (não informado) — o recorte do RMA do MDS. */
+  sexo?: "" | "feminino" | "masculino";
   nome_mae: string;
   telefone: string;
   endereco: string;
@@ -802,6 +804,7 @@ export interface Prontuario {
   encaminhamentos_externos: EncaminhamentoExterno[];
   centro_pop_documentos: DocumentoCentroPop[];
   casa_mulher_casos: CasoCasaMulher[];
+  abordagens: Abordagem[];
   /** Outras unidades em que o munícipe tem serviço em curso — sem conteúdo (ADR 031 §4). */
   outras_unidades: Acompanhamento[];
   /** Evolução social das unidades que encaminharam o munícipe para cá. */
@@ -884,6 +887,12 @@ export interface RmaUnidade {
   pop_pessoas_com_doenca: number;
   pop_pessoas_trecheiras: number;
   encaminhamentos_externos_no_mes: number;
+  abordagens_no_mes: number;
+  abordagens_aceitou_acolhimento: number;
+  abordagens_recusas: number;
+  abordagens_pessoas_identificadas: number;
+  /** Pessoas diferentes atendidas no mês por "sexo|faixa" ("" = não informado). */
+  pessoas_por_sexo_faixa: Record<string, number>;
   // Casa da Mulher
   casa_mulher_casos_ativos: number;
   casa_mulher_casos_novos_no_mes: number;
@@ -1047,4 +1056,38 @@ export const MOTIVOS_ENCERRAMENTO_CASA_MULHER: Record<MotivoEncerramentoCasaMulh
   transferencia_rede: "Transferência para outro serviço da rede",
   desistencia: "Desistência",
   outro: "Outro",
+};
+
+export const SEXOS = [
+  { value: "", label: "Não informado" },
+  { value: "feminino", label: "Feminino" },
+  { value: "masculino", label: "Masculino" },
+];
+
+/** Faixas etárias do RMA (idade no fim do mês). */
+export const FAIXAS_ETARIAS = ["0-6", "7-12", "13-17", "18-29", "30-59", "60+", ""] as const;
+
+// ------------------------------------------- Centro POP: abordagem social
+
+export type ResultadoAbordagem = "aceitou_acolhimento" | "aceitou_encaminhamento" | "orientado" | "recusou";
+
+export interface Abordagem {
+  id: string;
+  unidade_id: string;
+  cidadao_id: string | null;
+  descricao_pessoa: string;
+  local: string;
+  data_abordagem: string;
+  resultado: ResultadoAbordagem;
+  uso_drogas_aparente: boolean;
+  demanda_saude: boolean;
+  observacoes: string;
+  created_at: string;
+}
+
+export const RESULTADOS_ABORDAGEM: Record<ResultadoAbordagem, { label: string; tone: "success" | "info" | "neutral" | "warning" }> = {
+  aceitou_acolhimento: { label: "Aceitou acolhimento", tone: "success" },
+  aceitou_encaminhamento: { label: "Aceitou encaminhamento", tone: "info" },
+  orientado: { label: "Orientado", tone: "neutral" },
+  recusou: { label: "Recusou", tone: "warning" },
 };

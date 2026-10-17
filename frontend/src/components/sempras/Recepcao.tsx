@@ -29,6 +29,7 @@ import {
   CAMPOS_CIDADAO,
   P,
   PRIORIDADES,
+  SEXOS,
   TIPOS,
   TIPOS_UNIDADE,
   oferta,
@@ -182,6 +183,7 @@ export function Recepcao({
 
     const body = {
       ...Object.fromEntries(CAMPOS_CIDADAO.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()])),
+      sexo: String(fd.get("sexo") ?? ""),
       anonimo: isAnonimoChecked,
     };
 
@@ -669,6 +671,8 @@ export function Recepcao({
                 />
               );
             })}
+
+            <Select id="cad-sexo" name="sexo" label="Sexo" options={SEXOS} defaultValue="" />
 
             {/* Checkbox de exceção legal: Visível e ativo exclusivamente no Centro POP */}
             {isCentroPop ? (

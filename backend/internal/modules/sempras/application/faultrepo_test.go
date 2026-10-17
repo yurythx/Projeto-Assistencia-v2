@@ -489,6 +489,40 @@ func (fr *faultRepo) PaefiCasosNaArea(ctx context.Context, db database.DBTX, cid
 	return fr.inner.PaefiCasosNaArea(ctx, db, cidadao, area)
 }
 
+func (fr *faultRepo) ConfigurarUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID, tipo string, painelExibeNome bool) error {
+	if err := fr.hook("ConfigurarUnidade"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ConfigurarUnidade(ctx, db, unidade, tipo, painelExibeNome)
+}
+
+func (fr *faultRepo) InsertAbordagem(ctx context.Context, db database.DBTX, a domain.Abordagem, autor uuid.UUID) error {
+	if err := fr.hook("InsertAbordagem"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertAbordagem(ctx, db, a, autor)
+}
+
+func (fr *faultRepo) ListAbordagens(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio time.Time, fim time.Time) ([]domain.Abordagem, error) {
+	if err := fr.hook("ListAbordagens"); err != nil {
+		var z0 []domain.Abordagem
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListAbordagens(ctx, db, unidade, inicio, fim)
+}
+
+func (fr *faultRepo) AbordagensNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Abordagem, error) {
+	if err := fr.hook("AbordagensNaArea"); err != nil {
+		var z0 []domain.Abordagem
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.AbordagensNaArea(ctx, db, cidadao, area)
+}
+
 func (fr *faultRepo) InsertCasoCasaMulher(ctx context.Context, db database.DBTX, c domain.CasoCasaMulher, autor uuid.UUID) error {
 	if err := fr.hook("InsertCasoCasaMulher"); err != nil {
 		return err

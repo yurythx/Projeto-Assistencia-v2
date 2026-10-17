@@ -920,3 +920,40 @@ func TestCasoCasaMulher(t *testing.T) {
 		t.Errorf("reavaliar encerrado: %v", err)
 	}
 }
+
+func TestAbordagemESexo(t *testing.T) {
+	agora := time.Date(2026, 10, 16, 10, 0, 0, 0, time.UTC)
+	hoje := agora
+	// Sexo do cadastro: só feminino, masculino ou não informado.
+	if _, err := (CidadaoInput{Nome: "Ana", NIS: "12345678901", Sexo: "x"}).Normalizar(hoje); err == nil {
+		t.Error("sexo inválido deveria falhar")
+	}
+	if c, err := (CidadaoInput{Nome: "Ana", NIS: "12345678901", Sexo: " feminino "}).Normalizar(hoje); err != nil || c.Sexo != "feminino" {
+		t.Errorf("sexo: %+v, %v", c, err)
+	}
+
+	cid := uuid.New()
+	valida := AbordagemInput{CidadaoID: &cid, Local: "Praça Brasil", Resultado: "orientado", DataAbordagem: agora.Add(-time.Hour)}
+	for nome, mexe := range map[string]func(in *AbordagemInput){
+		"sem pessoa":         func(in *AbordagemInput) { in.CidadaoID = nil },
+		"descrição longa":    func(in *AbordagemInput) { in.DescricaoPessoa = strings.Repeat("x", 301) },
+		"local curto":        func(in *AbordagemInput) { in.Local = "ab" },
+		"resultado inválido": func(in *AbordagemInput) { in.Resultado = "x" },
+		"sem data":           func(in *AbordagemInput) { in.DataAbordagem = time.Time{} },
+		"data futura":        func(in *AbordagemInput) { in.DataAbordagem = agora.Add(time.Hour) },
+		"observações longas": func(in *AbordagemInput) { in.Obs = strings.Repeat("x", 2001) },
+	} {
+		in := valida
+		mexe(&in)
+		if _, err := NovaAbordagem(uuid.New(), in, agora); err == nil {
+			t.Errorf("%s: deveria falhar", nome)
+		}
+	}
+	// Sem cadastro, basta a descrição.
+	anonima := valida
+	anonima.CidadaoID, anonima.DescricaoPessoa = nil, " homem, uns 40 anos, sob a marquise "
+	a, err := NovaAbordagem(uuid.New(), anonima, agora)
+	if err != nil || a.DescricaoPessoa != "homem, uns 40 anos, sob a marquise" || a.CreatedAt != agora {
+		t.Fatalf("abordagem sem cadastro: %+v, %v", a, err)
+	}
+}

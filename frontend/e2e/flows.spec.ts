@@ -161,15 +161,14 @@ test.describe("Fluxos críticos", () => {
     await expect(page.locator("body")).toContainText("ata da reuni");
   });
 
-  test("SEMPRAS: atendimento, direitos do titular e decisão da gestão", async ({ page }) => {
+  test("SEMPRAS: atendimento por tipo de unidade, direitos do titular e decisão da gestão", async ({ page }) => {
     await asAdmin(page);
     const sufixo = uniq("e2e").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16);
 
-    // Unidade mínima pela API, sob a entidade "sempras" — o serviço só
+    // Unidades mínimas pela API, sob a entidade "sempras" — o serviço só
     // mostra pro admin/superintendente (cobertura total) as unidades da
-    // entidade de slug EXATO "sempras" (EntidadeSlug, application/service.go),
-    // nunca uma entidade qualquer; reaproveita a existente (deploy/estrutura
-    // ou fixture de outro teste) em vez de assumir que não existe.
+    // entidade de slug EXATO "sempras" (EntidadeSlug, application/service.go);
+    // reaproveita a existente (deploy/estrutura ou fixture de outro teste).
     const orgTree = await page.request.get("/api/backend/v1/iam/org-tree");
     expect(orgTree.ok(), await orgTree.text()).toBeTruthy();
     const arvore = (await orgTree.json()).data as { id: string; slug: string }[];
@@ -179,11 +178,14 @@ test.describe("Fluxos críticos", () => {
       expect(ent.ok(), await ent.text()).toBeTruthy();
       entidadeId = (await ent.json()).data.id;
     }
-    const unidade = await page.request.post("/api/backend/v1/iam/unidades", {
-      data: { nome: `CRAS E2E ${sufixo}`, slug: `cras-e2e-${sufixo}`, entidade_id: entidadeId, ativo: true },
-    });
-    expect(unidade.ok(), await unidade.text()).toBeTruthy();
+    const criarUnidade = async (nome: string, slug: string) => {
+      const res = await page.request.post("/api/backend/v1/iam/unidades", { data: { nome, slug, entidade_id: entidadeId, ativo: true } });
+      expect(res.ok(), await res.text()).toBeTruthy();
+      return (await res.json()).data.id as string;
+    };
     const unidadeNome = `CRAS E2E ${sufixo}`;
+    const crasId = await criarUnidade(unidadeNome, `cras-e2e-${sufixo}`);
+    const creasId = await criarUnidade(`CREAS E2E ${sufixo}`, `creas-e2e-${sufixo}`);
 
     // liga o módulo SEMPRAS, se ainda não estiver
     await page.goto("/configuracao/modulos");
@@ -192,28 +194,56 @@ test.describe("Fluxos críticos", () => {
     if (!(await toggle.isChecked())) await toggle.click();
     await expect(toggle).toBeChecked();
 
-    // recepção: busca (ninguém), cadastra e inclui na fila
+    // gestão: sem tipo a unidade não atende; a tela de Unidades dá o tipo
+    // (ADR 031). O CREAS vai pela API, o CRAS pela tela.
+    const creas = await page.request.put(`/api/backend/v1/sempras/unidades/${creasId}/configuracao`, {
+      data: { tipo: "creas", painel_exibe_nome: false },
+    });
+    expect(creas.ok(), await creas.text()).toBeTruthy();
+    await page.goto("/sempras/unidades");
+    const linhaCras = page.getByRole("row", { name: new RegExp(unidadeNome) });
+    await expect(linhaCras.getByText("Não atende", { exact: true })).toBeVisible();
+    await linhaCras.getByLabel(`Tipo de ${unidadeNome}`).selectOption("cras");
+    await linhaCras.getByRole("button", { name: "Salvar" }).click();
+    await expect(page.getByText("Unidade configurada")).toBeVisible();
+
+    // cada tipo tem o seu espaço: o CREAS não tem atendimentos coletivos.
+    await page.goto(`/sempras/u/${creasId}`);
+    await expect(page.getByRole("heading", { level: 1, name: `CREAS E2E ${sufixo}` })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Atendimentos coletivos/ })).toHaveCount(0);
+
+    // recepção do CRAS: busca (ninguém), cadastra com NIS e inclui na fila com a demanda
     const nome = uniq("Munícipe E2E");
-    await page.goto("/sempras");
-    await page.getByLabel("Unidade").selectOption({ label: unidadeNome });
+    const nis = String(Date.now()).slice(-11).padStart(11, "1");
+    await page.goto(`/sempras/u/${crasId}`);
+    await expect(page.getByRole("heading", { level: 1, name: unidadeNome })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Atendimentos coletivos/ })).toBeVisible();
     await page.getByLabel("CPF, NIS ou nome").fill(nome);
     await page.getByRole("button", { name: /Buscar/ }).click();
     await expect(page.getByText(/Ninguém encontrado/)).toBeVisible();
-    await page.getByRole("button", { name: /Cadastrar/ }).click();
+    await page.getByRole("button", { name: /Cadastrar/ }).first().click();
     const cadastro = page.getByRole("dialog", { name: "Cadastrar munícipe" });
     await cadastro.getByLabel("Nome civil *").fill(nome);
+    await cadastro.getByLabel("NIS", { exact: true }).fill(nis);
     await cadastro.getByLabel("Nome da mãe").fill("Mãe E2E");
     await cadastro.getByLabel("Data de nascimento").fill("1990-01-01");
+    await cadastro.getByLabel("Sexo").selectOption("feminino");
     await cadastro.getByRole("button", { name: "Salvar cadastro" }).click();
     await expect(page.getByText("Sem histórico na área")).toBeVisible();
+    await page.getByLabel("Demanda").first().selectOption("cadunico_bolsa_familia");
     await page.getByRole("button", { name: new RegExp(`Incluir ${nome} na fila`) }).click();
-    await expect(page.getByText(nome)).toBeVisible();
+    await expect(page.getByRole("list", { name: "Fila" }).getByText(nome)).toBeVisible();
 
-    // ficha: exerce os 3 direitos do titular (ADR 030 §8)
-    await page.getByRole("link", { name: "Ficha" }).click();
-    await expect(page).toHaveURL(/\/sempras\/cidadaos\/[0-9a-f-]{36}$/);
+    // ficha pela unidade em uso: só as seções do CRAS
+    const busca = await page.request.get(`/api/backend/v1/sempras/cidadaos?q=${nis}`);
+    expect(busca.ok(), await busca.text()).toBeTruthy();
+    const cidadaoId = (await busca.json()).data[0].id as string;
+    await page.goto(`/sempras/cidadaos/${cidadaoId}?unidade=${crasId}`);
     await expect(page.getByRole("heading", { name: nome })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "PAIF (CRAS)" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "PAEFI (CREAS)" })).toHaveCount(0);
 
+    // ficha: exerce os direitos do titular (ADR 030 §8)
     await page.getByRole("button", { name: "Editar" }).click();
     const editar = page.getByRole("dialog", { name: "Editar cadastro" });
     await editar.getByLabel("Telefone").fill("66999990000");
@@ -241,7 +271,7 @@ test.describe("Fluxos críticos", () => {
     await expect(page.getByRole("row").filter({ hasText: nome })).toHaveCount(0);
 
     // o cadastro perdeu os identificadores; o histórico da unidade continua.
-    await page.goto("/sempras");
+    await page.goto(`/sempras/u/${crasId}`);
     await page.getByLabel("CPF, NIS ou nome").fill("Munícipe anonimizado");
     await page.getByRole("button", { name: /Buscar/ }).click();
     await expect(page.getByText("Munícipe anonimizado").first()).toBeVisible();

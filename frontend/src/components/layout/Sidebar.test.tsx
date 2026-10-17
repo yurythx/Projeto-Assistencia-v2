@@ -51,6 +51,7 @@ describe("buildNav", () => {
     expect(comGestao.sections[0]!.items.map((i) => ({ href: i.href, label: i.label }))).toEqual([
       { href: "/sempras", label: "Atendimento" },
       { href: "/sempras/painel", label: "Painel de gestão" },
+      { href: "/sempras/unidades", label: "Unidades" },
       { href: "/sempras/rma", label: "RMA/MDS" },
     ]);
   });

@@ -47,6 +47,7 @@ import {
   CAMPOS_CIDADAO,
   DESTINOS_EXTERNOS,
   P,
+  SEXOS,
   STATUS_BENEFICIO,
   STATUS_ENCAMINHAMENTO_EXTERNO,
   TIPOS,
@@ -205,6 +206,7 @@ export function FichaModal({ cidadaoId, unidade, onClose, onCidadaoUpdated }: Fi
     const fd = new FormData(e.currentTarget);
     const body = {
       ...Object.fromEntries(CAMPOS_CIDADAO.map((c) => [c.name, String(fd.get(c.name) ?? "").trim()])),
+      sexo: String(fd.get("sexo") ?? ""),
       anonimo: fd.get("anonimo") === "on",
     };
     const ok = await runSalvar(
@@ -525,6 +527,7 @@ export function FichaModal({ cidadaoId, unidade, onClose, onCidadaoUpdated }: Fi
                         autoComplete="off"
                       />
                     ))}
+                    <Select id="edit-sexo" name="sexo" label="Sexo" options={SEXOS} defaultValue={cidadao.sexo ?? ""} />
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
                       <input
                         type="checkbox"

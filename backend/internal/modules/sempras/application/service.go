@@ -154,6 +154,51 @@ func (s *Service) Unidades(ctx context.Context, identity auth.Identity) ([]domai
 	return s.unidadesQueAtendem(ctx, domain.AreaDe(identity, domain.TodasAsPermissoes...))
 }
 
+// UnidadesParaConfigurar lista todas as unidades da SEMPRAS que identity
+// gere — inclusive as sem tipo, que ainda não atendem (ADR 031).
+func (s *Service) UnidadesParaConfigurar(ctx context.Context, identity auth.Identity) ([]domain.Unidade, error) {
+	area := domain.AreaDe(identity, auth.PermSemprasGestao)
+	if area.Vazia() {
+		return nil, domain.ErrForbidden
+	}
+	return s.repo.ListUnidades(ctx, s.pool, area, EntidadeSlug)
+}
+
+// ConfigurarUnidade define o tipo da unidade e se o painel de chamada mostra
+// o nome (ADR 031). Tipo "" tira a configuração: a unidade deixa de atender.
+// É da gestão — muda os serviços que toda a equipe da unidade enxerga.
+func (s *Service) ConfigurarUnidade(ctx context.Context, identity auth.Identity, id uuid.UUID, tipo string, painelExibeNome bool) (domain.Unidade, error) {
+	if tipo != "" && !slices.Contains(domain.TiposUnidade, tipo) {
+		return domain.Unidade{}, &domain.ValidationError{Msg: "tipo de unidade inválido"}
+	}
+	var u domain.Unidade
+	err := database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		var err error
+		if u, err = s.repo.GetUnidade(ctx, tx, id); err != nil {
+			return err
+		}
+		if !u.PodeAlguma(identity, domain.TodasAsPermissoes...) {
+			return domain.ErrNotFound
+		}
+		if !u.Pode(identity, auth.PermSemprasGestao) {
+			return domain.ErrForbidden
+		}
+		if err := s.repo.ConfigurarUnidade(ctx, tx, id, tipo, painelExibeNome); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.unidade.configurada", "unidade", id.String(),
+			map[string]any{"tipo": u.Tipo, "painel_exibe_nome": u.PainelExibeNome},
+			map[string]any{"tipo": tipo, "painel_exibe_nome": painelExibeNome})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Unidade{}, err
+	}
+	u.Tipo, u.PainelExibeNome = tipo, painelExibeNome && tipo != ""
+	u.Servicos, u.Demandas = domain.ServicosDoTipo(tipo), domain.DemandasDoTipo(tipo)
+	return u, nil
+}
+
 // unidadesQueAtendem lista as unidades da área que têm tipo (ADR 031): a
 // Sede e os setores administrativos da SEMPRAS não aparecem no seletor,
 // no painel nem no RMA.
@@ -220,6 +265,7 @@ func camposAlterados(antes, depois domain.Cidadao) []string {
 		{"nome", antes.Nome, depois.Nome}, {"nome_social", antes.NomeSocial, depois.NomeSocial},
 		{"cpf", antes.CPF, depois.CPF}, {"nis", antes.NIS, depois.NIS},
 		{"data_nascimento", antes.DataNascimento, depois.DataNascimento}, {"nome_mae", antes.NomeMae, depois.NomeMae},
+		{"sexo", antes.Sexo, depois.Sexo},
 		{"telefone", antes.Telefone, depois.Telefone}, {"endereco", antes.Endereco, depois.Endereco},
 	}
 	out := []string{}
@@ -341,6 +387,9 @@ func (s *Service) montarProntuario(ctx context.Context, tx pgx.Tx, identity auth
 		return domain.Prontuario{}, err
 	}
 	if p.CasaMulherCasos, err = s.repo.CasosCasaMulherNaArea(ctx, tx, id, area); err != nil {
+		return domain.Prontuario{}, err
+	}
+	if p.Abordagens, err = s.repo.AbordagensNaArea(ctx, tx, id, area); err != nil {
 		return domain.Prontuario{}, err
 	}
 	// O perfil de rua (saúde, uso de drogas) e os documentos são do
@@ -1856,6 +1905,52 @@ func (s *Service) EncerrarPaefiCaso(ctx context.Context, identity auth.Identity,
 		return domain.PaefiCaso{}, err
 	}
 	return p, nil
+}
+
+// ------------------------------------------- Centro POP: abordagem social
+
+// RegistrarAbordagem registra uma abordagem social da equipe do Centro POP.
+func (s *Service) RegistrarAbordagem(ctx context.Context, identity auth.Identity, unidade uuid.UUID, in domain.AbordagemInput) (domain.Abordagem, error) {
+	a, err := domain.NovaAbordagem(unidade, in, s.now())
+	if err != nil {
+		return domain.Abordagem{}, err
+	}
+	err = database.WithTx(ctx, s.pool, func(ctx context.Context, tx pgx.Tx) error {
+		u, err := s.unidade(ctx, tx, identity, unidade, domain.ServicoCentroPop, auth.PermSemprasAtendimento)
+		if err != nil {
+			return err
+		}
+		if !u.Ativa {
+			return domain.ErrUnidadeInativa
+		}
+		if a.CidadaoID != nil {
+			if _, err := s.repo.GetCidadao(ctx, tx, *a.CidadaoID, false); err != nil {
+				return err
+			}
+		}
+		if err := s.repo.InsertAbordagem(ctx, tx, a, identity.UserID); err != nil {
+			return err
+		}
+		e := audit.Meta(ctx, "sempras.abordagem.registrada", "sempras_abordagem", a.ID.String(), nil,
+			map[string]any{"unidade_id": unidade, "cidadao_id": a.CidadaoID, "resultado": a.Resultado})
+		return audit.NewWriter(tx).Record(ctx, e)
+	})
+	if err != nil {
+		return domain.Abordagem{}, err
+	}
+	return a, nil
+}
+
+// ListarAbordagens lista as abordagens da unidade num mês ("2026-10").
+func (s *Service) ListarAbordagens(ctx context.Context, identity auth.Identity, unidade uuid.UUID, competencia string) ([]domain.Abordagem, error) {
+	inicio, fim, err := domain.CompetenciaMes(competencia)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.unidade(ctx, s.pool, identity, unidade, domain.ServicoCentroPop, auth.PermSemprasAtendimento); err != nil {
+		return nil, err
+	}
+	return s.repo.ListAbordagens(ctx, s.pool, unidade, inicio, fim)
 }
 
 // ---------------------------------------------------------- Casa da Mulher

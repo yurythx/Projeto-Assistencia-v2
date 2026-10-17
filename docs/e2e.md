@@ -21,6 +21,7 @@ Os fluxos críticos de `flows.spec.ts`:
 - **Contato:** o visitante envia a mensagem e recebe um protocolo; a gestão faz a triagem.
 - **Signum:** envelope, cerimônia de assinatura (inclusive com senha errada, sem perder a sessão) e verificação pública do arquivo.
 - **Arquivos:** criação de pasta, envio direto ao MinIO por URL pré-assinada e download.
+- **SEMPRAS:** a gestão dá o tipo às unidades (tela Unidades e API); cada tipo tem o seu espaço (o CREAS sem coletivos); a recepção do CRAS cadastra com NIS e sexo, inclui na fila com a demanda; a ficha mostra só as seções do CRAS; direitos do titular e decisão da gestão.
 - **Auditoria:** a cadeia de hash da trilha segue íntegra.
 
 ## No CI

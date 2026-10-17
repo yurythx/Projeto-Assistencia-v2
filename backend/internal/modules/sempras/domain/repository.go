@@ -90,6 +90,14 @@ type Repository interface {
 	UpdatePaefiCaso(ctx context.Context, db database.DBTX, p PaefiCaso) error
 	PaefiCasosNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]PaefiCaso, error)
 
+	// ConfigurarUnidade grava o tipo e o painel da unidade (ADR 031); tipo ""
+	// tira a configuração — a unidade deixa de atender.
+	ConfigurarUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID, tipo string, painelExibeNome bool) error
+
+	InsertAbordagem(ctx context.Context, db database.DBTX, a Abordagem, autor uuid.UUID) error
+	ListAbordagens(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio, fim time.Time) ([]Abordagem, error)
+	AbordagensNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area Area) ([]Abordagem, error)
+
 	InsertCasoCasaMulher(ctx context.Context, db database.DBTX, c CasoCasaMulher, autor uuid.UUID) error
 	GetCasoCasaMulher(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (CasoCasaMulher, error)
 	UpdateCasoCasaMulher(ctx context.Context, db database.DBTX, c CasoCasaMulher) error

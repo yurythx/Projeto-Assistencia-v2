@@ -38,6 +38,7 @@ de plataforma que já exista (DRY):
 
 | **10. Atendimento por tipo de unidade** | [ADR 031](adr/031-sempras-atendimento-por-tipo-de-unidade.md): cada unidade tem o seu atendimento. Tipo da unidade como dado do módulo (`sempras_unidades`); catálogo de serviços por tipo checado no backend (o CRAS não abre PAEFI, o CREAS não acolhe, unidade sem tipo não atende); recepção com demanda e identificação por tipo (CRAS exige CPF ou NIS; anônimo só no Centro POP); painel de chamada só com a senha nas unidades sigilosas; espaço por unidade em `/sempras/u/<unidade>`; ficha só com as seções da unidade em uso, mais o resumo das outras unidades e a evolução social de quem encaminhou | Feito |
 | **10.1 RMA por tipo e Casa da Mulher** | Formulários do RMA para CRAS, CREAS, Centro POP e Casa da Mulher, mais as demandas da recepção (corrige ofícios e coletivos, que saíam zerados); caso da Casa da Mulher (Lei 11.340/2006): violências, risco, medida protetiva, Patrulha Maria da Penha, abrigamento sigiloso; cobertura do módulo de volta a 100% | Feito |
+| **10.2 Operação** | Tela de Unidades (a gestão dá o tipo, sem SQL); sexo no cadastro e recorte do RMA por sexo e faixa etária; abordagem social do Centro POP; grupos do AD do SCFV Padre Lothar e da Vila Olímpica (55 mapeamentos); backup diário com os documentos do MinIO e cópia externa opcional | Feito |
 
 ## Matriz de acesso
 
@@ -80,16 +81,18 @@ Convenção: `SEMPRAS_<UNIDADE>_<PERFIL>`, com o perfil em `RECEPCIONISTA`,
 | CRAS Rio Vermelho | `CRAS_RIO_VERMELHO` |
 | CRAS Sagrada Família | `CRAS_SAGRADA_FAMILIA` |
 | CREAS | `CREAS` |
+| SCFV Padre Lothar | `SCFV_PADRE_LOTHAR` |
+| Vila Olímpica | `VILA_OLIMPICA` |
 
 Exemplo: `SEMPRAS_CRAS_CENTRAL_TECNICO`. Depois que os grupos existirem,
-`deploy/sempras/mapeamentos-ad.sql` cria os mapeamentos. O SQL é
+`deploy/sempras/mapeamentos-ad.sql` cria os 55 mapeamentos (18 unidades × 3 perfis + Superintendência). O SQL é
 idempotente e localiza as unidades pelo slug da estrutura real.
 
 ## Como implantar
 
 1. `make estrutura-aplicar`: entidade SEMPRAS e as unidades.
 2. Migrations: `make migrate-up` cria as tabelas e os 4 perfis.
-3. `make sempras-mapeamentos`: os 49 mapeamentos dos grupos do AD
+3. `make sempras-mapeamentos`: o tipo das unidades e os 55 mapeamentos dos grupos do AD
    (`deploy/sempras/mapeamentos-ad.sql`).
    Antes de os grupos existirem, cadastre as lotações em Configurações →
    Usuários.

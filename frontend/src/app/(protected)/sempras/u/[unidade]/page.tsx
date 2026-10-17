@@ -8,6 +8,7 @@ import { ArrowLeftRight, MonitorPlay, User, Users2 } from "lucide-react";
 
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
+import { AbordagemSocial } from "@/components/sempras/AbordagemSocial";
 import { EncaminhamentosRecebidos } from "@/components/sempras/EncaminhamentosRecebidos";
 import { FichaModal } from "@/components/sempras/FichaModal";
 import { Fila } from "@/components/sempras/Fila";
@@ -105,6 +106,8 @@ export default function UnidadeAtendimentoPage() {
             )}
 
             {temFila && <Fila unidadeId={unidade.id} onAbrirFicha={setFichaCidadaoId} />}
+
+            {equipeTecnica && oferta(unidade, "centro_pop") && <AbordagemSocial unidadeId={unidade.id} />}
 
             {equipeTecnica && oferta(unidade, "encaminhamento") && (
               <EncaminhamentosRecebidos unidadeId={unidade.id} />

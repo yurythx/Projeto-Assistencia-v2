@@ -3740,6 +3740,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sempras/unidades/configuracao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/configuracao */
+        get: operations["getSemprasUnidadesConfiguracao"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/abordagens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/abordagens */
+        get: operations["getSemprasUnidadesIdAbordagens"];
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/unidades/{id}/abordagens */
+        post: operations["postSemprasUnidadesIdAbordagens"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sempras/unidades/{id}/coletivos": {
         parameters: {
             query?: never;
@@ -3752,6 +3787,23 @@ export interface paths {
         put?: never;
         /** SEMPRAS — Executar ação /sempras/unidades/{id}/coletivos */
         post: operations["postSemprasUnidadesIdColetivos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/configuracao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** SEMPRAS — Salvar /sempras/unidades/{id}/configuracao */
+        put: operations["putSemprasUnidadesIdConfiguracao"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6199,6 +6251,37 @@ export interface components {
             updated_at?: string;
             url: string;
         };
+        SemprasAbordagem: {
+            /** Format: uuid */
+            cidadao_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            data_abordagem: string;
+            demanda_saude: boolean;
+            descricao_pessoa: string;
+            /** Format: uuid */
+            id: string;
+            local: string;
+            observacoes: string;
+            resultado: string;
+            /** Format: uuid */
+            unidade_id: string;
+            uso_drogas_aparente: boolean;
+        };
+        SemprasAbordagemRequest: {
+            /** Format: uuid */
+            cidadao_id?: string | null;
+            /** Format: date-time */
+            data_abordagem: string;
+            demanda_saude?: boolean;
+            descricao_pessoa?: string;
+            local: string;
+            observacoes?: string;
+            /** @enum {string} */
+            resultado: "aceitou_acolhimento" | "aceitou_encaminhamento" | "orientado" | "recusou";
+            uso_drogas_aparente?: boolean;
+        };
         SemprasAcolhimento: {
             /** Format: uuid */
             cidadao_id: string;
@@ -6443,6 +6526,7 @@ export interface components {
             nome: string;
             nome_mae: string;
             nome_social: string;
+            sexo: string;
             telefone: string;
             /** Format: date-time */
             updated_at: string;
@@ -6456,6 +6540,8 @@ export interface components {
             nome: string;
             nome_mae?: string;
             nome_social?: string;
+            /** @enum {string} */
+            sexo?: "feminino" | "masculino";
             telefone?: string;
         };
         SemprasConclusaoMseRequest: {
@@ -6464,6 +6550,11 @@ export interface components {
         };
         SemprasConclusaoPiaMetaRequest: {
             concluida?: boolean;
+        };
+        SemprasConfiguracaoUnidadeRequest: {
+            painel_exibe_nome?: boolean;
+            /** @enum {string} */
+            tipo?: "cras" | "scfv" | "creas" | "centro_pop" | "casa_mulher" | "casa_abrigo" | "conselho_tutelar";
         };
         SemprasConselhoAtendimento: {
             /** Format: date-time */
@@ -6958,6 +7049,7 @@ export interface components {
             tipo: "plano" | "intervencao";
         };
         SemprasProntuario: {
+            abordagens: components["schemas"]["SemprasAbordagem"][];
             atendimentos: components["schemas"]["SemprasAtendimento"][];
             beneficios: components["schemas"]["SemprasBeneficio"][];
             casa_abrigo_acolhimentos: components["schemas"]["SemprasAcolhimento"][];
@@ -7019,6 +7111,10 @@ export interface components {
             nome_social: string;
         };
         SemprasRmaUnidade: {
+            abordagens_aceitou_acolhimento: number;
+            abordagens_no_mes: number;
+            abordagens_pessoas_identificadas: number;
+            abordagens_recusas: number;
             atendimentos: number;
             atendimentos_por_demanda: {
                 [key: string]: number;
@@ -7068,6 +7164,9 @@ export interface components {
             paif_bpc: number;
             paif_extrema_pobreza: number;
             paif_scfv_participantes: number;
+            pessoas_por_sexo_faixa: {
+                [key: string]: number;
+            };
             pop_pessoas_atendidas_no_mes: number;
             pop_pessoas_com_doenca: number;
             pop_pessoas_novas_no_mes: number;
@@ -15601,6 +15700,100 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    getSemprasUnidadesConfiguracao: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasUnidade"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdAbordagens: {
+        parameters: {
+            query?: {
+                mes?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasAbordagem"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasUnidadesIdAbordagens: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasAbordagemRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasAbordagem"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     getSemprasUnidadesIdColetivos: {
         parameters: {
             query?: {
@@ -15660,6 +15853,44 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Envelope"] & {
                         data?: components["schemas"]["SemprasAtendimentoColetivo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    putSemprasUnidadesIdConfiguracao: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasConfiguracaoUnidadeRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasUnidade"];
                     };
                 };
             };

@@ -89,6 +89,22 @@ func (r *Repository) GetUnidade(ctx context.Context, db database.DBTX, id uuid.U
 	return u, nil
 }
 
+// ConfigurarUnidade implementa domain.Repository.
+func (r *Repository) ConfigurarUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID, tipo string, painelExibeNome bool) error {
+	var err error
+	if tipo == "" {
+		_, err = db.Exec(ctx, `DELETE FROM sempras_unidades WHERE unidade_id = $1`, unidade)
+	} else {
+		_, err = db.Exec(ctx, `INSERT INTO sempras_unidades (unidade_id, tipo, painel_exibe_nome) VALUES ($1, $2, $3)
+			ON CONFLICT (unidade_id) DO UPDATE SET tipo = EXCLUDED.tipo, painel_exibe_nome = EXCLUDED.painel_exibe_nome,
+			updated_at = now()`, unidade, tipo, painelExibeNome)
+	}
+	if err != nil {
+		return wrap("ConfigurarUnidade", err)
+	}
+	return nil
+}
+
 // ListUnidades lista as unidades ativas da área. Com acesso a tudo, as da
 // entidade de slug entidadeSlug (a SEMPRAS) — e não as da prefeitura toda.
 func (r *Repository) ListUnidades(ctx context.Context, db database.DBTX, area domain.Area, entidadeSlug string) ([]domain.Unidade, error) {
@@ -105,11 +121,12 @@ func (r *Repository) ListUnidades(ctx context.Context, db database.DBTX, area do
 // ----------------------------------------------------------------- munícipe
 
 const cidadaoCols = `c.id, c.nome, c.nome_social, COALESCE(c.cpf, ''), COALESCE(c.nis, ''),
-	COALESCE(to_char(c.data_nascimento, 'YYYY-MM-DD'), ''), c.nome_mae, c.telefone, c.endereco, c.anonimo, c.created_at, c.updated_at`
+	COALESCE(to_char(c.data_nascimento, 'YYYY-MM-DD'), ''), c.sexo, c.nome_mae, c.telefone, c.endereco, c.anonimo,
+	c.created_at, c.updated_at`
 
 func scanCidadao(row pgx.Row) (domain.Cidadao, error) {
 	var c domain.Cidadao
-	err := row.Scan(&c.ID, &c.Nome, &c.NomeSocial, &c.CPF, &c.NIS, &c.DataNascimento, &c.NomeMae, &c.Telefone,
+	err := row.Scan(&c.ID, &c.Nome, &c.NomeSocial, &c.CPF, &c.NIS, &c.DataNascimento, &c.Sexo, &c.NomeMae, &c.Telefone,
 		&c.Endereco, &c.Anonimo, &c.CreatedAt, &c.UpdatedAt)
 	return c, err
 }
@@ -123,9 +140,9 @@ func documentoDuplicado(err error) bool {
 // InsertCidadao grava o cadastro (CPF/NIS repetido = ErrDocumentoDuplicado).
 func (r *Repository) InsertCidadao(ctx context.Context, db database.DBTX, c domain.Cidadao, autor uuid.UUID) error {
 	_, err := db.Exec(ctx, `INSERT INTO sempras_cidadaos
-		(id, nome, nome_social, cpf, nis, data_nascimento, nome_mae, telefone, endereco, anonimo, created_by, created_at, updated_at)
-		VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, '')::date, $7, $8, $9, $10, $11, $12, $12)`,
-		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo, autor, c.CreatedAt)
+		(id, nome, nome_social, cpf, nis, data_nascimento, nome_mae, telefone, endereco, anonimo, created_by, created_at, updated_at, sexo)
+		VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, '')::date, $7, $8, $9, $10, $11, $12, $12, $13)`,
+		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo, autor, c.CreatedAt, c.Sexo)
 	if documentoDuplicado(err) {
 		return domain.ErrDocumentoDuplicado
 	}
@@ -138,9 +155,10 @@ func (r *Repository) InsertCidadao(ctx context.Context, db database.DBTX, c doma
 // UpdateCidadao regrava os campos editáveis.
 func (r *Repository) UpdateCidadao(ctx context.Context, db database.DBTX, c domain.Cidadao) error {
 	_, err := db.Exec(ctx, `UPDATE sempras_cidadaos SET nome = $2, nome_social = $3, cpf = NULLIF($4, ''),
-		nis = NULLIF($5, ''), data_nascimento = NULLIF($6, '')::date, nome_mae = $7, telefone = $8, endereco = $9, anonimo = $10
+		nis = NULLIF($5, ''), data_nascimento = NULLIF($6, '')::date, nome_mae = $7, telefone = $8, endereco = $9, anonimo = $10,
+		sexo = $11
 		WHERE id = $1`,
-		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo)
+		c.ID, c.Nome, c.NomeSocial, c.CPF, c.NIS, c.DataNascimento, c.NomeMae, c.Telefone, c.Endereco, c.Anonimo, c.Sexo)
 	if documentoDuplicado(err) {
 		return domain.ErrDocumentoDuplicado
 	}
@@ -598,6 +616,17 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			},
 		},
 		{
+			`SELECT unidade_id, count(*),
+			 count(*) FILTER (WHERE resultado = 'aceitou_acolhimento'),
+			 count(*) FILTER (WHERE resultado = 'recusou'),
+			 count(DISTINCT cidadao_id)
+			 FROM sempras_abordagens
+			 WHERE unidade_id = ANY($1::uuid[]) AND data_abordagem >= $2 AND data_abordagem < $3 GROUP BY unidade_id`,
+			func(row pgx.Row, m *domain.RmaUnidade) error {
+				return row.Scan(&m.AbordagensNoMes, &m.AbordagensAceitouAcolhimento, &m.AbordagensRecusas, &m.AbordagensPessoasIdentific)
+			},
+		},
+		{
 			`SELECT unidade_id, count(*) FROM sempras_encaminhamentos_externos
 			 WHERE unidade_id = ANY($1::uuid[]) AND created_at >= $2 AND created_at < $3 GROUP BY unidade_id`,
 			func(row pgx.Row, m *domain.RmaUnidade) error { return row.Scan(&m.EncaminhamentosExternosNoMes) },
@@ -663,6 +692,21 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			func(m *domain.RmaUnidade) *map[string]int { return &m.AtendimentosPorDemanda },
 		},
 		{
+			`SELECT a.unidade_id, c.sexo || '|' || CASE
+			        WHEN c.data_nascimento IS NULL THEN ''
+			        WHEN date_part('year', age($3::date - 1, c.data_nascimento)) <= 6 THEN '0-6'
+			        WHEN date_part('year', age($3::date - 1, c.data_nascimento)) <= 12 THEN '7-12'
+			        WHEN date_part('year', age($3::date - 1, c.data_nascimento)) <= 17 THEN '13-17'
+			        WHEN date_part('year', age($3::date - 1, c.data_nascimento)) <= 29 THEN '18-29'
+			        WHEN date_part('year', age($3::date - 1, c.data_nascimento)) <= 59 THEN '30-59'
+			        ELSE '60+' END,
+			 count(DISTINCT a.cidadao_id)
+			 FROM sempras_atendimentos a JOIN sempras_cidadaos c ON c.id = a.cidadao_id
+			 WHERE a.unidade_id = ANY($1::uuid[]) AND a.created_at >= $2 AND a.created_at < $3
+			 GROUP BY 1, 2`,
+			func(m *domain.RmaUnidade) *map[string]int { return &m.PessoasPorSexoFaixa },
+		},
+		{
 			`SELECT unidade_id, v, count(*) FROM sempras_paefi_casos, unnest(violacoes) AS v
 			 WHERE unidade_id = ANY($1::uuid[]) AND data_abertura >= $2 AND data_abertura < $3
 			 GROUP BY unidade_id, v`,
@@ -688,6 +732,9 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 		}
 		if m.PaefiNovosPorViolacao == nil {
 			m.PaefiNovosPorViolacao = map[string]int{}
+		}
+		if m.PessoasPorSexoFaixa == nil {
+			m.PessoasPorSexoFaixa = map[string]int{}
 		}
 		resultado = append(resultado, m)
 	}
@@ -1236,6 +1283,53 @@ func (r *Repository) PaefiCasosNaArea(ctx context.Context, db database.DBTX, cid
 		return nil, wrap("PaefiCasosNaArea", err)
 	}
 	return collect(rows, "PaefiCasosNaArea", scanPaefiCaso)
+}
+
+// ------------------------------------------- Centro POP: abordagem social
+
+const abordagemCols = `a.id, a.unidade_id, a.cidadao_id, a.descricao_pessoa, a.local, a.data_abordagem, a.resultado,
+	a.uso_drogas_aparente, a.demanda_saude, a.observacoes, a.created_at`
+
+func scanAbordagem(row pgx.Row) (domain.Abordagem, error) {
+	var a domain.Abordagem
+	err := row.Scan(&a.ID, &a.UnidadeID, &a.CidadaoID, &a.DescricaoPessoa, &a.Local, &a.DataAbordagem, &a.Resultado,
+		&a.UsoDrogasAparente, &a.DemandaSaude, &a.Observacoes, &a.CreatedAt)
+	return a, err
+}
+
+// InsertAbordagem grava uma abordagem social.
+func (r *Repository) InsertAbordagem(ctx context.Context, db database.DBTX, a domain.Abordagem, autor uuid.UUID) error {
+	if _, err := db.Exec(ctx, `INSERT INTO sempras_abordagens
+		(id, unidade_id, cidadao_id, descricao_pessoa, local, data_abordagem, resultado, uso_drogas_aparente, demanda_saude,
+		 observacoes, registrado_por, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+		a.ID, a.UnidadeID, a.CidadaoID, a.DescricaoPessoa, a.Local, a.DataAbordagem, a.Resultado, a.UsoDrogasAparente,
+		a.DemandaSaude, a.Observacoes, autor, a.CreatedAt); err != nil {
+		return wrap("InsertAbordagem", err)
+	}
+	return nil
+}
+
+// ListAbordagens lista as abordagens da unidade no período.
+func (r *Repository) ListAbordagens(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio, fim time.Time) ([]domain.Abordagem, error) {
+	rows, err := db.Query(ctx, `SELECT `+abordagemCols+` FROM sempras_abordagens a
+		WHERE a.unidade_id = $1 AND a.data_abordagem >= $2 AND a.data_abordagem < $3
+		ORDER BY a.data_abordagem DESC LIMIT 500`, unidade, inicio, fim)
+	if err != nil {
+		return nil, wrap("ListAbordagens", err)
+	}
+	return collect(rows, "ListAbordagens", scanAbordagem)
+}
+
+// AbordagensNaArea lista as abordagens do munícipe nas unidades da área.
+func (r *Repository) AbordagensNaArea(ctx context.Context, db database.DBTX, cidadao uuid.UUID, area domain.Area) ([]domain.Abordagem, error) {
+	rows, err := db.Query(ctx, `SELECT `+abordagemCols+` FROM sempras_abordagens a JOIN unidades u ON u.id = a.unidade_id
+		WHERE a.cidadao_id = $4 AND `+areaSQL(1, 2, 3)+`
+		ORDER BY a.data_abordagem DESC LIMIT 200`, append(areaArgs(area), cidadao)...)
+	if err != nil {
+		return nil, wrap("AbordagensNaArea", err)
+	}
+	return collect(rows, "AbordagensNaArea", scanAbordagem)
 }
 
 // ---------------------------------------------------------- Casa da Mulher

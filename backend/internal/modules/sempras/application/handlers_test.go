@@ -76,12 +76,16 @@ func TestHandlersCaminhoFeliz(t *testing.T) {
 
 	// Cadastro, busca, painel e relatórios.
 	cid := pessoa()
+	a.id("POST", "/sempras/cidadaos", `{"nome":"Maria Teste","nis":"`+nis()+`","sexo":"feminino","data_nascimento":"1990-01-01"}`)
+	a.do(422, "POST", "/sempras/cidadaos", `{"nome":"Maria Teste","nis":"`+nis()+`","sexo":"outro"}`)
 	a.do(200, "GET", "/sempras/cidadaos/"+cid, "")
 	a.do(200, "GET", "/sempras/cidadaos?q=Pessoa", "")
 	a.do(200, "PUT", "/sempras/cidadaos/"+cid, `{"nome":"Pessoa Editada","nis":"`+nis()+`"}`)
 	a.do(200, "GET", "/sempras/unidades", "")
 	a.do(200, "GET", "/sempras/painel", "")
 	a.do(200, "GET", "/sempras/relatorios/rma?competencia=2026-10", "")
+	a.do(200, "GET", "/sempras/unidades/configuracao", "")
+	a.do(200, "PUT", "/sempras/unidades/"+c.unidade2.String()+"/configuracao", `{"tipo":"creas","painel_exibe_nome":false}`)
 
 	// Prontuário e direitos do titular.
 	a.do(200, "GET", "/sempras/cidadaos/"+cid+"/prontuario", "")
@@ -150,6 +154,14 @@ func TestHandlersCaminhoFeliz(t *testing.T) {
 	a.do(200, "GET", "/sempras/casa-abrigo-documentos/"+doc+"/download", "")
 	a.do(200, "DELETE", "/sempras/casa-abrigo-documentos/"+doc, "")
 	a.do(200, "POST", "/sempras/casa-abrigo/"+ac+"/desligar", `{"motivo":"reintegração familiar"}`)
+
+	// Centro POP: abordagem social (com e sem cadastro).
+	a.id("POST", "/sempras/unidades/"+pop+"/abordagens",
+		`{"cidadao_id":"`+cid+`","local":"Praça Brasil","resultado":"aceitou_acolhimento","data_abordagem":"2026-01-01T10:00:00Z"}`)
+	a.id("POST", "/sempras/unidades/"+pop+"/abordagens",
+		`{"descricao_pessoa":"homem, uns 40 anos","local":"Rodoviária","resultado":"recusou","data_abordagem":"2026-01-01T11:00:00Z"}`)
+	a.do(200, "GET", "/sempras/unidades/"+pop+"/abordagens?mes=2026-01", "")
+	a.do(200, "GET", "/sempras/unidades/"+pop+"/abordagens", "")
 
 	// Centro POP: perfil, encaminhamento externo, documentos.
 	a.do(200, "PUT", "/sempras/cidadaos/"+cid+"/centro-pop-perfil",

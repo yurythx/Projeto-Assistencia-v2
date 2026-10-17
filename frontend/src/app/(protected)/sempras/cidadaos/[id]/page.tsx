@@ -23,6 +23,7 @@ import { useNexus } from "@/lib/nexus/NexusProvider";
 import { mimeOf, putToTicket } from "@/lib/nexus/upload";
 import type { UploadTicket } from "@/lib/nexus/types";
 import { AcolhimentoItem } from "@/components/sempras/AcolhimentoItem";
+import { AbordagemSocial } from "@/components/sempras/AbordagemSocial";
 import { CasaMulherCard } from "@/components/sempras/CasaMulherCard";
 import { CentroPopPerfilCard } from "@/components/sempras/CentroPopPerfilCard";
 import {
@@ -74,6 +75,8 @@ import {
   type Unidade,
   type ViolacaoPaefi,
   ACOMPANHAMENTOS,
+  RESULTADOS_ABORDAGEM,
+  SEXOS,
   TIPOS_UNIDADE,
   oferta,
 } from "@/lib/sempras/types";
@@ -136,6 +139,7 @@ export default function FichaPage() {
     const fd = new FormData(e.currentTarget);
     const body = {
       ...Object.fromEntries(CAMPOS_CIDADAO.map((campo) => [campo.name, String(fd.get(campo.name) ?? "").trim()])),
+      sexo: String(fd.get("sexo") ?? ""),
       anonimo: fd.get("anonimo") === "on",
     };
     const ok = await runEditar(() => apiClient.put<Cidadao>(`v1/sempras/cidadaos/${id}`, body), "Cadastro atualizado");
@@ -1192,6 +1196,25 @@ export default function FichaPage() {
             </Card>
             )}
 
+            {oferta(unidadeAtual, "centro_pop") && (
+              <>
+                <AbordagemSocial unidadeId={unidadeId} cidadaoId={id} />
+                {(ficha.data!.abordagens ?? []).length > 0 && (
+                  <ul aria-label="Abordagens do munícipe" className="-mt-4 flex flex-col divide-y divide-surface-border rounded-xl border border-surface-border bg-surface">
+                    {ficha.data!.abordagens.map((a) => (
+                      <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                        <span>
+                          {fmtDateTime(a.data_abordagem)} · {a.local}
+                          {a.observacoes && <span className="text-muted"> · {a.observacoes}</span>}
+                        </span>
+                        <Badge tone={RESULTADOS_ABORDAGEM[a.resultado].tone}>{RESULTADOS_ABORDAGEM[a.resultado].label}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+
             {oferta(unidadeAtual, "casa_mulher") && (
               <CasaMulherCard cidadaoId={id} unidadeId={unidadeId} casos={ficha.data!.casa_mulher_casos ?? []}
                 nomeUnidade={(u) => nomes.get(u) ?? ""} onChanged={() => void ficha.mutate()} />
@@ -1610,6 +1633,7 @@ export default function FichaPage() {
                     <Input key={campo.name} id={`edit-${campo.name}`} name={campo.name} label={campo.label} type={campo.type}
                       maxLength={campo.max} defaultValue={c[campo.name]} required={campo.name === "nome"} autoComplete="off" />
                   ))}
+                  <Select id="edit-sexo" name="sexo" label="Sexo" options={SEXOS} defaultValue={c.sexo ?? ""} />
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="anonimo" defaultChecked={c.anonimo} />

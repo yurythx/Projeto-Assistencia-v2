@@ -67,6 +67,9 @@ func TestUnidadeDesativadaNaoRegistra(t *testing.T) {
 	_, err = s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo,
 		application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"negligencia_abandono"}})
 	inativa("acolhimento", err)
+	_, err = s.RegistrarAbordagem(ctx, c.identity, c.unPop, domain.AbordagemInput{DescricaoPessoa: "homem", Local: "Praça Brasil",
+		Resultado: "orientado", DataAbordagem: time.Now().Add(-time.Hour)})
+	inativa("abordagem", err)
 
 	// Origem ativa, destino desativado.
 	desativar(true, c.unidade)
@@ -117,6 +120,20 @@ func TestEntradasInvalidasNosCasosDeUso(t *testing.T) {
 	invalido("status do encaminhamento externo", err)
 	_, err = s.SolicitarPedido(ctx, c.identity, cid, domain.PedidoCorrecao, "")
 	invalido("justificativa do pedido", err)
+	_, err = s.RegistrarAbordagem(ctx, c.identity, c.unPop, domain.AbordagemInput{Local: "Praça Brasil", Resultado: "orientado",
+		DataAbordagem: time.Now().Add(-time.Hour)})
+	invalido("abordagem sem pessoa", err)
+	_, err = s.ListarAbordagens(ctx, c.identity, c.unPop, "outubro")
+	invalido("competência das abordagens", err)
+	ninguem := uuid.New()
+	if _, err := s.RegistrarAbordagem(ctx, c.identity, c.unPop, domain.AbordagemInput{CidadaoID: &ninguem, Local: "Praça Brasil",
+		Resultado: "orientado", DataAbordagem: time.Now().Add(-time.Hour)}); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("abordagem de munícipe inexistente: %v", err)
+	}
+	if _, err := s.RegistrarAbordagem(ctx, c.identity, c.unidade, domain.AbordagemInput{DescricaoPessoa: "homem", Local: "Praça Brasil",
+		Resultado: "orientado", DataAbordagem: time.Now().Add(-time.Hour)}); !errors.Is(err, domain.ErrServicoIndisponivel) {
+		t.Errorf("o CRAS não faz abordagem do Centro POP: %v", err)
+	}
 
 	// Ofício: responder sem número; responder duas vezes.
 	of, err := s.RegistrarOficioCras(ctx, c.identity, cid, c.unidade, "MPE", "1/2026", nil, "assunto do ofício")
@@ -245,5 +262,64 @@ func TestProntuarioComAcolhimentoPropagaFalhas(t *testing.T) {
 			}
 			break
 		}
+	}
+}
+
+// TestConfigurarUnidade: a gestão dá o tipo a uma unidade nova (que então
+// passa a atender), troca e tira; recepção e quem não alcança a unidade não.
+func TestConfigurarUnidade(t *testing.T) {
+	c := novoCenario(t)
+	s := c.limpo()
+	ctx := context.Background()
+	var ent uuid.UUID
+	if err := c.pool.QueryRow(ctx, `SELECT entidade_id FROM unidades WHERE id = $1`, c.unidade).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	nova := novaUnidade(t, c.pool, ent, "")
+	gestor := auth.Identity{UserID: c.identity.UserID, Scopes: []auth.Scope{{EntidadeID: &ent, Permissions: []string{"sempras:gestao"}}}}
+	gestor.Permissions = auth.EffectivePermissions(gestor.Scopes)
+	recepcao := auth.Identity{UserID: c.identity.UserID, Scopes: []auth.Scope{{EntidadeID: &ent, Permissions: []string{"sempras:recepcao"}}}}
+	recepcao.Permissions = auth.EffectivePermissions(recepcao.Scopes)
+
+	if _, err := s.UnidadesParaConfigurar(ctx, recepcao); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("listar sem gestão: %v", err)
+	}
+	todas, err := s.UnidadesParaConfigurar(ctx, gestor)
+	semTipo := false
+	for _, u := range todas {
+		semTipo = semTipo || (u.ID == nova && u.Tipo == "")
+	}
+	if err != nil || !semTipo {
+		t.Fatalf("a gestão vê a unidade sem tipo: %v", err)
+	}
+
+	if _, err := s.ConfigurarUnidade(ctx, gestor, nova, "x", true); err == nil {
+		t.Error("tipo inválido deveria falhar")
+	}
+	if _, err := s.ConfigurarUnidade(ctx, recepcao, nova, domain.UnidadeCras, true); !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("recepção não configura: %v", err)
+	}
+	if _, err := s.ConfigurarUnidade(ctx, semArea(c), nova, domain.UnidadeCras, true); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("quem não alcança a unidade não a vê: %v", err)
+	}
+	if _, err := s.ConfigurarUnidade(ctx, gestor, uuid.New(), domain.UnidadeCras, true); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("unidade inexistente: %v", err)
+	}
+	u, err := s.ConfigurarUnidade(ctx, gestor, nova, domain.UnidadeCentroPop, true)
+	if err != nil || u.Tipo != domain.UnidadeCentroPop || !u.PainelExibeNome || !u.Oferta(domain.ServicoCentroPop) {
+		t.Fatalf("configurar: %+v, %v", u, err)
+	}
+	// Configurada, ela atende: o seletor do gestor passa a mostrá-la.
+	us, _ := s.Unidades(ctx, gestor)
+	achou := false
+	for _, x := range us {
+		achou = achou || x.ID == nova
+	}
+	if !achou {
+		t.Error("a unidade configurada deveria aparecer no seletor")
+	}
+	u, err = s.ConfigurarUnidade(ctx, gestor, nova, "", true)
+	if err != nil || u.Tipo != "" || u.PainelExibeNome || len(u.Servicos) != 0 {
+		t.Fatalf("tirar a configuração: %+v, %v", u, err)
 	}
 }

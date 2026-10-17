@@ -552,6 +552,24 @@ func TestEveryRepositoryFailureIsPropagated(t *testing.T) {
 			_, err := s.EncerrarPaefiCaso(ctx, id, c.paefi(t).ID, "objetivos_alcancados")
 			return err
 		},
+		"UnidadesParaConfigurar": func(_ *testing.T, s *application.Service) error {
+			_, err := s.UnidadesParaConfigurar(ctx, id)
+			return err
+		},
+		"ConfigurarUnidade": func(_ *testing.T, s *application.Service) error {
+			_, err := s.ConfigurarUnidade(ctx, id, c.unidade, domain.UnidadeCras, true)
+			return err
+		},
+		"RegistrarAbordagem": func(t *testing.T, s *application.Service) error {
+			cid := c.cadastrar(t).ID
+			_, err := s.RegistrarAbordagem(ctx, id, c.unPop, domain.AbordagemInput{CidadaoID: &cid, Local: "Praça Brasil",
+				Resultado: "orientado", DataAbordagem: time.Now().Add(-time.Hour)})
+			return err
+		},
+		"ListarAbordagens": func(_ *testing.T, s *application.Service) error {
+			_, err := s.ListarAbordagens(ctx, id, c.unPop, time.Now().Format("2006-01"))
+			return err
+		},
 		"RegistrarCasoCasaMulher": func(t *testing.T, s *application.Service) error {
 			_, err := s.RegistrarCasoCasaMulher(ctx, id, c.cadastrar(t).ID, c.unMulher, casoMulherInput())
 			return err
@@ -1377,6 +1395,15 @@ func TestHandlersReportFailures(t *testing.T) {
 		{http.MethodPost, "/sempras/paefi/" + x + "/encerrar", `{"motivo":"objetivos_alcancados"}`, 500},
 		{http.MethodPost, "/sempras/paefi/zz/encerrar", `{}`, 400},
 		{http.MethodPost, "/sempras/paefi/" + x + "/encerrar", `{`, 400},
+		{http.MethodGet, "/sempras/unidades/configuracao", "", 500},
+		{http.MethodPut, "/sempras/unidades/" + u + "/configuracao", `{"tipo":"cras"}`, 500},
+		{http.MethodPut, "/sempras/unidades/zz/configuracao", `{}`, 400},
+		{http.MethodPut, "/sempras/unidades/" + u + "/configuracao", `{`, 400},
+		{http.MethodPost, "/sempras/unidades/" + u + "/abordagens", `{"local":"Praça Brasil","resultado":"orientado","data_abordagem":"2026-01-01T00:00:00Z","descricao_pessoa":"homem"}`, 500},
+		{http.MethodPost, "/sempras/unidades/zz/abordagens", `{}`, 400},
+		{http.MethodPost, "/sempras/unidades/" + u + "/abordagens", `{`, 400},
+		{http.MethodGet, "/sempras/unidades/" + u + "/abordagens?mes=2026-10", "", 500},
+		{http.MethodGet, "/sempras/unidades/zz/abordagens", "", 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-mulher", casoMulherBody(u), 500},
 		{http.MethodPost, "/sempras/cidadaos/zz/casa-mulher", `{}`, 400},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-mulher", `{`, 400},

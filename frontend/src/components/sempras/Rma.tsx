@@ -9,7 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useApiQuery } from "@/lib/api/swr";
-import { VIOLACOES_PAEFI, rotuloDemanda, type RmaUnidade, type TipoUnidade, type ViolacaoPaefi } from "@/lib/sempras/types";
+import {
+  FAIXAS_ETARIAS,
+  VIOLACOES_PAEFI,
+  rotuloDemanda,
+  type RmaUnidade,
+  type TipoUnidade,
+  type ViolacaoPaefi,
+} from "@/lib/sempras/types";
+
+const SEXOS_RMA = [
+  { chave: "feminino", rotulo: "Feminino" },
+  { chave: "masculino", rotulo: "Masculino" },
+  { chave: "", rotulo: "Não informado" },
+];
 
 function Numero({ valor, rotulo }: { valor: string | number; rotulo: string }) {
   return (
@@ -124,6 +137,10 @@ const FORMULARIOS: Record<string, { label: string; tipos: TipoUnidade[] | null; 
       col("Atendimentos realizados", (l) => l.atendimentos),
       col("Encaminhamentos para a rede", (l) => l.encaminhamentos_externos_no_mes),
       col("Benefícios concedidos", (l) => l.beneficios_concedidos_no_mes),
+      col("Abordagens no mês", (l) => l.abordagens_no_mes),
+      col("Abordagens — aceitou acolhimento", (l) => l.abordagens_aceitou_acolhimento),
+      col("Abordagens — recusas", (l) => l.abordagens_recusas),
+      col("Pessoas cadastradas abordadas", (l) => l.abordagens_pessoas_identificadas),
     ],
     destaques: [
       col("Pessoas atendidas", (l) => l.pop_pessoas_atendidas_no_mes),
@@ -170,6 +187,11 @@ export function Rma() {
     for (const [d, n] of Object.entries(l.atendimentos_por_demanda ?? {})) demandas.set(d, (demandas.get(d) ?? 0) + n);
   }
   const demandasOrdenadas = [...demandas.entries()].sort((a, b) => b[1] - a[1]);
+
+  // Pessoas diferentes atendidas por sexo e faixa etária (o recorte do MDS).
+  const porSexoFaixa = (sexo: string, faixa: string) =>
+    linhas.reduce((soma, l) => soma + (l.pessoas_por_sexo_faixa?.[`${sexo}|${faixa}`] ?? 0), 0);
+  const temSexoFaixa = linhas.some((l) => Object.keys(l.pessoas_por_sexo_faixa ?? {}).length > 0);
 
   function exportarCsv() {
     if (linhas.length === 0) return;
@@ -256,6 +278,38 @@ export function Rma() {
             </div>
           </CardContent>
         </Card>
+
+        {temSexoFaixa && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle as="h2">Pessoas atendidas por sexo e faixa etária</CardTitle>
+            </CardHeader>
+            <CardContent className="pb-5">
+              <div className="overflow-x-auto">
+                <table aria-label="Pessoas por sexo e faixa etária" className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-muted">
+                      <th scope="col" className="py-2">Sexo</th>
+                      {FAIXAS_ETARIAS.map((f) => (
+                        <th key={f || "sem"} scope="col">{f ? `${f} anos` : "Sem idade"}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SEXOS_RMA.map((sx) => (
+                      <tr key={sx.chave || "nao"} className="border-t border-surface-border">
+                        <th scope="row" className="py-2 text-left font-medium">{sx.rotulo}</th>
+                        {FAIXAS_ETARIAS.map((f) => (
+                          <td key={f || "sem"}>{porSexoFaixa(sx.chave, f)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {demandasOrdenadas.length > 0 && (
           <Card className="mt-6">

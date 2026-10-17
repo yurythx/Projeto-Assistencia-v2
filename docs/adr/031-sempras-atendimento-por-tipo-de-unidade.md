@@ -1,6 +1,6 @@
 # 031 — SEMPRAS: cada tipo de unidade com o seu próprio atendimento
 
-- **Status:** Aceito e implementado (fases A a F)
+- **Status:** Aceito e implementado (fases A a G)
 - **Data:** 2026-10-16
 - **Revisa:** [ADR 030](030-sempras-atendimento-socioassistencial.md) §1 (a premissa de que "as 16 unidades têm a mesma jornada")
 - **Referência:** `protocolo_digital/docs/RELATORIO_TECNICO_MODULOS_ASSISTENCIA_SOCIAL.md` e `ARQUITETURA_SEGURANCA_SUAS_RBAC.md` (legado)
@@ -148,6 +148,7 @@ legado, só que com o tipo da unidade em vez do nome do setor.
 | **D. Recepção por tipo** | Coluna `demanda`, listas por tipo e regra de identificação por tipo |
 | **E. RMA por tipo** | Formulários do MDS para CREAS e Centro POP |
 | **F. Casa da Mulher** | O caso de acompanhamento da mulher (Lei 11.340/2006) como serviço `casa_mulher` |
+| **G. Operação** | Tela de Unidades (a gestão dá o tipo), sexo no cadastro e recorte do RMA por sexo e faixa etária, abordagem social do Centro POP |
 
 ## Decisões das questões em aberto (2026-10-16)
 
@@ -224,3 +225,22 @@ houve abrigamento, nunca o relato.
 
 O caso **não entra** no resumo "também acompanhado por" das outras
 unidades: revelaria a situação de violência a quem não atende a mulher.
+
+## Fase G — operação
+
+- **Tipo pela gestão:** `GET /sempras/unidades/configuracao` e
+  `PUT /sempras/unidades/{id}/configuracao` (`sempras:gestao`), com a tela
+  `/sempras/unidades`. Uma unidade nova da estrutura (um CRAS que abriu)
+  ganha o tipo sem SQL, e o painel de chamada já vem com o padrão do tipo.
+  Tipo vazio tira a configuração: a unidade deixa de atender, e o histórico
+  dela é mantido. A troca fica na auditoria (antes e depois).
+- **Sexo do munícipe** (migração `000168`): feminino, masculino ou não
+  informado. O RMA traz as pessoas diferentes atendidas no mês por sexo e
+  faixa etária (0–6, 7–12, 13–17, 18–29, 30–59, 60+), com a idade contada
+  no fim do mês. A anonimização mantém o sexo, porque ele não identifica
+  ninguém e entra nas contagens.
+- **Abordagem social** (migração `000169`, serviço `centro_pop`): a busca
+  ativa da equipe na rua. Registra local, quando, a pessoa (o cadastro ou
+  só uma descrição) e o resultado (aceitou acolhimento ou encaminhamento,
+  orientado, recusou). O RMA do Centro POP passa a contar abordagens,
+  aceites e recusas. O legado tinha o model, mas nenhuma tela.

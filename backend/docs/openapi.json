@@ -5678,6 +5678,112 @@
         "type": "object",
         "x-nexus-generated": true
       },
+      "SemprasAbordagem": {
+        "properties": {
+          "cidadao_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "data_abordagem": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "demanda_saude": {
+            "type": "boolean"
+          },
+          "descricao_pessoa": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "local": {
+            "type": "string"
+          },
+          "observacoes": {
+            "type": "string"
+          },
+          "resultado": {
+            "type": "string"
+          },
+          "unidade_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "uso_drogas_aparente": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cidadao_id",
+          "created_at",
+          "data_abordagem",
+          "demanda_saude",
+          "descricao_pessoa",
+          "id",
+          "local",
+          "observacoes",
+          "resultado",
+          "unidade_id",
+          "uso_drogas_aparente"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasAbordagemRequest": {
+        "properties": {
+          "cidadao_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "data_abordagem": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "demanda_saude": {
+            "type": "boolean"
+          },
+          "descricao_pessoa": {
+            "maxLength": 300,
+            "type": "string"
+          },
+          "local": {
+            "maxLength": 300,
+            "minLength": 3,
+            "type": "string"
+          },
+          "observacoes": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "resultado": {
+            "enum": [
+              "aceitou_acolhimento",
+              "aceitou_encaminhamento",
+              "orientado",
+              "recusou"
+            ],
+            "type": "string"
+          },
+          "uso_drogas_aparente": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data_abordagem",
+          "local",
+          "resultado"
+        ],
+        "type": "object",
+        "x-nexus-generated": true
+      },
       "SemprasAcolhimento": {
         "properties": {
           "cidadao_id": {
@@ -6588,6 +6694,9 @@
           "nome_social": {
             "type": "string"
           },
+          "sexo": {
+            "type": "string"
+          },
           "telefone": {
             "type": "string"
           },
@@ -6607,6 +6716,7 @@
           "nome",
           "nome_mae",
           "nome_social",
+          "sexo",
           "telefone",
           "updated_at"
         ],
@@ -6646,6 +6756,13 @@
             "maxLength": 200,
             "type": "string"
           },
+          "sexo": {
+            "enum": [
+              "feminino",
+              "masculino"
+            ],
+            "type": "string"
+          },
           "telefone": {
             "maxLength": 30,
             "type": "string"
@@ -6678,6 +6795,27 @@
         "properties": {
           "concluida": {
             "type": "boolean"
+          }
+        },
+        "type": "object",
+        "x-nexus-generated": true
+      },
+      "SemprasConfiguracaoUnidadeRequest": {
+        "properties": {
+          "painel_exibe_nome": {
+            "type": "boolean"
+          },
+          "tipo": {
+            "enum": [
+              "cras",
+              "scfv",
+              "creas",
+              "centro_pop",
+              "casa_mulher",
+              "casa_abrigo",
+              "conselho_tutelar"
+            ],
+            "type": "string"
           }
         },
         "type": "object",
@@ -8410,6 +8548,12 @@
       },
       "SemprasProntuario": {
         "properties": {
+          "abordagens": {
+            "items": {
+              "$ref": "#/components/schemas/SemprasAbordagem"
+            },
+            "type": "array"
+          },
           "atendimentos": {
             "items": {
               "$ref": "#/components/schemas/SemprasAtendimento"
@@ -8525,6 +8669,7 @@
           }
         },
         "required": [
+          "abordagens",
           "atendimentos",
           "beneficios",
           "casa_abrigo_acolhimentos",
@@ -8687,6 +8832,18 @@
       },
       "SemprasRmaUnidade": {
         "properties": {
+          "abordagens_aceitou_acolhimento": {
+            "type": "integer"
+          },
+          "abordagens_no_mes": {
+            "type": "integer"
+          },
+          "abordagens_pessoas_identificadas": {
+            "type": "integer"
+          },
+          "abordagens_recusas": {
+            "type": "integer"
+          },
           "atendimentos": {
             "type": "integer"
           },
@@ -8828,6 +8985,12 @@
           "paif_scfv_participantes": {
             "type": "integer"
           },
+          "pessoas_por_sexo_faixa": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
           "pop_pessoas_atendidas_no_mes": {
             "type": "integer"
           },
@@ -8848,6 +9011,10 @@
           }
         },
         "required": [
+          "abordagens_aceitou_acolhimento",
+          "abordagens_no_mes",
+          "abordagens_pessoas_identificadas",
+          "abordagens_recusas",
           "atendimentos",
           "atendimentos_por_demanda",
           "atendimentos_psicologicos",
@@ -8893,6 +9060,7 @@
           "paif_bpc",
           "paif_extrema_pobreza",
           "paif_scfv_participantes",
+          "pessoas_por_sexo_faixa",
           "pop_pessoas_atendidas_no_mes",
           "pop_pessoas_com_doenca",
           "pop_pessoas_novas_no_mes",
@@ -26583,6 +26751,207 @@
         ]
       }
     },
+    "/api/v1/sempras/unidades/configuracao": {
+      "get": {
+        "operationId": "getSemprasUnidadesConfiguracao",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasUnidade"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/unidades/configuracao",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/unidades/{id}/abordagens": {
+      "get": {
+        "operationId": "getSemprasUnidadesIdAbordagens",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mes",
+            "required": false,
+            "schema": {
+              "maxLength": 10,
+              "type": "string"
+            },
+            "x-nexus-generated": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "items": {
+                            "$ref": "#/components/schemas/SemprasAbordagem"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Listar/consultar /sempras/unidades/{id}/abordagens",
+        "tags": [
+          "sempras"
+        ]
+      },
+      "post": {
+        "operationId": "postSemprasUnidadesIdAbordagens",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasAbordagemRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasAbordagem"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Executar ação /sempras/unidades/{id}/abordagens",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
     "/api/v1/sempras/unidades/{id}/coletivos": {
       "get": {
         "operationId": "getSemprasUnidadesIdColetivos",
@@ -26725,6 +27094,81 @@
           }
         ],
         "summary": "SEMPRAS — Executar ação /sempras/unidades/{id}/coletivos",
+        "tags": [
+          "sempras"
+        ]
+      }
+    },
+    "/api/v1/sempras/unidades/{id}/configuracao": {
+      "put": {
+        "operationId": "putSemprasUnidadesIdConfiguracao",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemprasConfiguracaoUnidadeRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-nexus-generated": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Envelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SemprasUnidade"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Sucesso — payload em `data`.",
+            "x-nexus-generated": true
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModuleDisabledOrNotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SEMPRAS — Salvar /sempras/unidades/{id}/configuracao",
         "tags": [
           "sempras"
         ]
