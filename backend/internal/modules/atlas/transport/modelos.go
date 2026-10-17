@@ -107,6 +107,7 @@ func (h *Handlers) ArquivoModelo(w http.ResponseWriter, r *http.Request) {
 // formulario lê o multipart: os campos e o arquivo (obrigatório).
 func (h *Handlers) formulario(w http.ResponseWriter, r *http.Request) (application.ArquivoEnviado, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxCorpoModelo)
+	// #nosec G120 -- o corpo já está limitado pelo MaxBytesReader acima (maxCorpoModelo).
 	if err := r.ParseMultipartForm(maxCorpoModelo); err != nil {
 		return application.ArquivoEnviado{}, apperrors.BadRequest("envie um formulário multipart de até 10 MB")
 	}

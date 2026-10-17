@@ -227,6 +227,9 @@ export function CrasAtendimentoForm({
         if (shouldFinalize && itemFilaId) {
           await apiClient.post(`v1/sempras/atendimentos/${itemFilaId}/concluir`);
         }
+        // run() devolve o retorno da função: sem ele, o sucesso viraria
+        // "undefined" e os callbacks (onSalvo/onConcluido) nunca rodariam.
+        return true;
       },
       shouldFinalize
         ? "Atendimento CRAS concluído e finalizado com sucesso!"

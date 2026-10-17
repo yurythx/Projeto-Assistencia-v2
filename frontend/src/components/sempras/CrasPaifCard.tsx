@@ -109,6 +109,9 @@ export function CrasPaifCard({
             texto: `[PAIF — INCLUSÃO NO SCFV] Data: ${dataInclusao} | Novos integrantes inseridos no SCFV: ${novosScfvDetalhe.trim()}`,
           });
         }
+        // run() devolve o retorno da função: sem ele, o sucesso viraria
+        // "undefined" e o modal nunca fecharia.
+        return true;
       },
       "Família inserida no acompanhamento do PAIF com sucesso!"
     );

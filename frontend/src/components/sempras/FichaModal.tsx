@@ -252,6 +252,7 @@ export function FichaModal({ cidadaoId, unidade, onClose, onCidadaoUpdated }: Fi
       );
       await putToTicket(ticketRes.data.upload, file);
       await apiClient.post(`v1/sempras/centro-pop-documentos/${ticketRes.data.documento.id}/confirm`);
+      return true; // sem retorno, run() devolveria undefined e a lista não recarregaria
     }, "Documento enviado e anexado ao prontuário");
     if (ok) void ficha.mutate();
   }
