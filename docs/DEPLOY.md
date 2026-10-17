@@ -137,6 +137,31 @@ emissão e um relógio atrasado os vê como "ainda não válidos".
 
 Com domínio e certificado oficiais, troque `tls internal` no Caddyfile.
 
+## Monitoramento
+
+`scripts/monitor.sh` roda a cada 5 minutos (`--install-cron`, ou pelo
+playbook) e verifica:
+
+- a API (`/health`);
+- os containers (todos `healthy`);
+- o disco (abaixo de 80%);
+- a idade do último backup (menos de 26 horas).
+
+Ele avisa só quando algo quebra e quando volta, sem repetir o mesmo alerta.
+Para ver o estado agora: `sudo scripts/monitor.sh --status`.
+
+O canal fica em `/etc/default/assistencia-monitor`, gravado pelo playbook a
+partir do inventário:
+
+```bash
+ALERT_WEBHOOK_URL="https://..."     # Slack, Google Chat, Teams (Incoming Webhook), Discord (/slack)
+ALERT_TELEGRAM_TOKEN="..."          # ou um bot do Telegram
+ALERT_TELEGRAM_CHAT="..."
+```
+
+Sem canal configurado, os alertas vão só para o syslog
+(`journalctl -t assistencia-monitor`) e ninguém é avisado.
+
 ## Backup e restauração
 
 ```bash

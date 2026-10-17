@@ -11,3 +11,7 @@ app_repo_url=https://github.com/yurythx/projeto-assistencia-v2.git
 app_repo_dest=/opt/projeto-assistencia-v2
 # Cópia do backup diário para fora da VM (rsync por SSH). Vazio = só local.
 backup_remote=
+# Canal dos alertas do monitor (scripts/monitor.sh). Um dos dois:
+alert_webhook_url=
+alert_telegram_token=
+alert_telegram_chat=

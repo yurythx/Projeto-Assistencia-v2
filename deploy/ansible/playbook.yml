@@ -230,3 +230,25 @@
         path: /etc/cron.d/assistencia-backup
         state: absent
       tags: [backup]
+
+    # Monitor (scripts/monitor.sh): API, containers, disco e idade do último
+    # backup a cada 5 minutos; avisa só quando o estado muda. O canal vem do
+    # inventário (alert_webhook_url — Slack/Google Chat/Teams/Discord — ou
+    # alert_telegram_token + alert_telegram_chat). Sem canal, só o syslog.
+    - name: Configurar o canal dos alertas do monitor
+      ansible.builtin.copy:
+        dest: /etc/default/assistencia-monitor
+        content: |
+          ALERT_WEBHOOK_URL="{{ alert_webhook_url | default('') }}"
+          ALERT_TELEGRAM_TOKEN="{{ alert_telegram_token | default('') }}"
+          ALERT_TELEGRAM_CHAT="{{ alert_telegram_chat | default('') }}"
+          HOST_LABEL="{{ inventory_hostname }}"
+        mode: "0600"
+      tags: [monitor]
+
+    - name: Agendar o monitor
+      ansible.builtin.command: ./scripts/monitor.sh --install-cron
+      args:
+        chdir: "{{ app_repo_dest }}"
+        creates: /etc/cron.d/assistencia-monitor
+      tags: [monitor]

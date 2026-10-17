@@ -194,7 +194,15 @@ jobs:
 
       # Equivalente ao govulncheck do backend: dependência com CVE alta ou
       # crítica quebra o build (ex.: RCE do Next 16.3.2, GHSA-2xp9-vwfh-vxw4).
-      - name: Vulnerability audit (npm audit) — bloqueante
+      # Bloqueia pelo que vai para produção (--omit=dev). As ferramentas de
+      # desenvolvimento (lint, build) não chegam ao servidor e às vezes
+      # carregam CVE sem versão corrigida (ex.: braces via eslint-config-next,
+      # faixa "*"); essas aparecem no passo seguinte, sem quebrar o build.
+      - name: Vulnerability audit (npm audit, produção) — bloqueante
+        run: cd frontend && npm audit --omit=dev --audit-level=high
+
+      - name: Vulnerability audit (npm audit, desenvolvimento) — informativo
+        continue-on-error: true
         run: cd frontend && npm audit --audit-level=high
 
       - name: ESLint & e-MAG Accessibility Check (jsx-a11y via eslint-config-next)
