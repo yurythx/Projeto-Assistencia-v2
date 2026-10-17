@@ -72,3 +72,7 @@ deploy/ansible/inventory.ini
 # Legado de referência (protocolo_digital): fica ao lado do código só para
 # consulta e tem tokens/credenciais do sistema antigo — nunca versionar.
 protocolo_digital/
+
+# Sistema "Casa Abrigo 4.0" que a unidade usa hoje (referência do ADR 032):
+# tem .env com credenciais (banco, AD, chaves) e logs — nunca vai para o git.
+casa_abrigo/

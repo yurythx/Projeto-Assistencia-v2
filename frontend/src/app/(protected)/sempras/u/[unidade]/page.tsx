@@ -9,6 +9,7 @@ import { ArrowLeftRight, MonitorPlay, User, Users2 } from "lucide-react";
 import { DataState } from "@/components/nexus/DataState";
 import { PageHeader } from "@/components/nexus/PageHeader";
 import { AbordagemSocial } from "@/components/sempras/AbordagemSocial";
+import { CasaAbrigoWorkspace } from "@/components/sempras/casa-abrigo/CasaAbrigoWorkspace";
 import { EncaminhamentosRecebidos } from "@/components/sempras/EncaminhamentosRecebidos";
 import { FichaModal } from "@/components/sempras/FichaModal";
 import { Fila } from "@/components/sempras/Fila";
@@ -34,6 +35,7 @@ export default function UnidadeAtendimentoPage() {
   const unidade = lista.find((u) => u.id === id);
   const tipo = unidade ? TIPOS_UNIDADE[unidade.tipo] : undefined;
   const temFila = oferta(unidade, "fila");
+  const casaAbrigo = oferta(unidade, "acolhimento");
   const equipeTecnica = can(P.atendimento) || can(P.psicologia);
 
   const papel = can(P.psicologia)
@@ -100,8 +102,21 @@ export default function UnidadeAtendimentoPage() {
               </CardContent>
             </Card>
 
-            {/* Sem fila (Casa Abrigo), a equipe técnica também busca o munícipe. */}
-            {(can(P.recepcao) || (!temFila && equipeTecnica)) && (
+            {/* Casa Abrigo: as telas do sistema da unidade em abas (ADR 032). */}
+            {casaAbrigo && equipeTecnica && (
+              <CasaAbrigoWorkspace
+                unidadeId={unidade.id}
+                extras={
+                  <>
+                    <Recepcao unidade={unidade} onIncluido={atualizarFila} onAbrirFicha={setFichaCidadaoId} />
+                    {oferta(unidade, "encaminhamento") && <EncaminhamentosRecebidos unidadeId={unidade.id} />}
+                  </>
+                }
+              />
+            )}
+
+            {/* Sem fila, a equipe técnica também busca o munícipe. */}
+            {!casaAbrigo && (can(P.recepcao) || (!temFila && equipeTecnica)) && (
               <Recepcao unidade={unidade} onIncluido={atualizarFila} onAbrirFicha={setFichaCidadaoId} />
             )}
 
@@ -109,7 +124,7 @@ export default function UnidadeAtendimentoPage() {
 
             {equipeTecnica && oferta(unidade, "centro_pop") && <AbordagemSocial unidadeId={unidade.id} />}
 
-            {equipeTecnica && oferta(unidade, "encaminhamento") && (
+            {!casaAbrigo && equipeTecnica && oferta(unidade, "encaminhamento") && (
               <EncaminhamentosRecebidos unidadeId={unidade.id} />
             )}
 

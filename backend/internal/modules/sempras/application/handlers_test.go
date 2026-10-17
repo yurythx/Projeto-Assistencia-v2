@@ -69,8 +69,8 @@ func (a api) id(method, path, body string) string {
 func TestHandlersCaminhoFeliz(t *testing.T) {
 	c := novoCenario(t)
 	a := novaAPI(t, c)
-	cras, creas, pop, abrigo, conselho, mulher := c.unidade.String(), c.unCreas.String(), c.unPop.String(),
-		c.unAbrigo.String(), c.unConselho.String(), c.unMulher.String()
+	cras, creas, pop, conselho, mulher := c.unidade.String(), c.unCreas.String(), c.unPop.String(),
+		c.unConselho.String(), c.unMulher.String()
 	nis := func() string { return fmt.Sprintf("%011d", rand.Int64N(1e11)) }
 	pessoa := func() string { return a.id("POST", "/sempras/cidadaos", `{"nome":"Pessoa Teste","nis":"`+nis()+`"}`) }
 
@@ -130,30 +130,6 @@ func TestHandlersCaminhoFeliz(t *testing.T) {
 	cm := a.id("POST", "/sempras/cidadaos/"+cid+"/casa-mulher", casoMulherBody(mulher))
 	a.do(200, "PUT", "/sempras/casa-mulher/"+cm, casoMulherBody(""))
 	a.do(200, "POST", "/sempras/casa-mulher/"+cm+"/encerrar", `{"motivo":"superacao_violencia"}`)
-
-	// Casa Abrigo: acolhimento e tudo o que pende dele.
-	ac := a.id("POST", "/sempras/cidadaos/"+pessoa()+"/casa-abrigo",
-		`{"unidade_id":"`+abrigo+`","sexo":"feminino","motivos":["negligencia_abandono"]}`)
-	a.do(200, "PUT", "/sempras/casa-abrigo/"+ac, `{"unidade_id":"`+abrigo+`","sexo":"feminino","motivos":["orfandade_ausencia_responsavel"]}`)
-	irmao := a.id("POST", "/sempras/casa-abrigo/"+ac+"/irmaos", `{"nome":"Irmão"}`)
-	a.do(200, "DELETE", "/sempras/casa-abrigo-irmaos/"+irmao, "")
-	diag := a.id("POST", "/sempras/casa-abrigo/"+ac+"/diagnosticos", `{"categoria":"doenca","diagnostico":"asma"}`)
-	a.do(200, "DELETE", "/sempras/casa-abrigo-diagnosticos/"+diag, "")
-	vis := a.id("POST", "/sempras/casa-abrigo/"+ac+"/visitantes", `{"nome_visitante":"Avó","data_visita":"2026-10-10T00:00:00Z"}`)
-	a.do(200, "DELETE", "/sempras/casa-abrigo-visitantes/"+vis, "")
-	termo := a.id("POST", "/sempras/casa-abrigo/"+ac+"/termos", `{"tipo_termo":"passeio","data_termo":"2026-10-10T00:00:00Z"}`)
-	a.do(200, "DELETE", "/sempras/casa-abrigo-termos/"+termo, "")
-	a.do(200, "PUT", "/sempras/casa-abrigo/"+ac+"/pia", `{"escola":"EMEB Centro"}`)
-	meta := a.id("POST", "/sempras/casa-abrigo/"+ac+"/pia-metas", `{"tipo":"plano","descricao":"retomar a escola"}`)
-	a.do(200, "POST", "/sempras/casa-abrigo-pia-metas/"+meta+"/concluir", `{"concluida":true}`)
-	a.do(200, "DELETE", "/sempras/casa-abrigo-pia-metas/"+meta, "")
-	up := a.do(201, "POST", "/sempras/casa-abrigo/"+ac+"/documentos/uploads",
-		`{"tipo":"acolhido","filename":"doc.pdf","content_type":"application/pdf","size":8}`)
-	doc := enviar(t, c, up)
-	a.do(200, "POST", "/sempras/casa-abrigo-documentos/"+doc+"/confirm", "")
-	a.do(200, "GET", "/sempras/casa-abrigo-documentos/"+doc+"/download", "")
-	a.do(200, "DELETE", "/sempras/casa-abrigo-documentos/"+doc, "")
-	a.do(200, "POST", "/sempras/casa-abrigo/"+ac+"/desligar", `{"motivo":"reintegração familiar"}`)
 
 	// Centro POP: abordagem social (com e sem cadastro).
 	a.id("POST", "/sempras/unidades/"+pop+"/abordagens",

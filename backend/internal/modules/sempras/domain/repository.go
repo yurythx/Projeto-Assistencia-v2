@@ -159,6 +159,26 @@ type Repository interface {
 	ListDocumentos(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]DocumentoCasaAbrigo, error)
 	DeleteDocumento(ctx context.Context, db database.DBTX, id uuid.UUID) error
 
+	// Casa Abrigo: telas da unidade (ADR 032)
+	UpdateVisitante(ctx context.Context, db database.DBTX, v Visitante) error
+	ListVisitantesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]Visitante, error)
+	ListTermosDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]Termo, error)
+	AcolhidosDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]AcolhidoResumo, error)
+	MetasPendentesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]MetaPendente, error)
+	EvolucoesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]EvolucaoAcolhido, error)
+	InsertAnotacaoDiario(ctx context.Context, db database.DBTX, a AnotacaoDiario, autor uuid.UUID) error
+	ListDiario(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio, fim time.Time) ([]AnotacaoDiario, error)
+	InsertRelatorio(ctx context.Context, db database.DBTX, r RelatorioCasaAbrigo, autor uuid.UUID) error
+	GetRelatorio(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (RelatorioCasaAbrigo, error)
+	UpdateRelatorio(ctx context.Context, db database.DBTX, r RelatorioCasaAbrigo) error
+	DeleteRelatorio(ctx context.Context, db database.DBTX, id uuid.UUID) error
+	ListRelatorios(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]RelatorioCasaAbrigo, error)
+	InsertTarefa(ctx context.Context, db database.DBTX, t TarefaCasaAbrigo, autor uuid.UUID) error
+	GetTarefa(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (TarefaCasaAbrigo, error)
+	UpdateTarefa(ctx context.Context, db database.DBTX, t TarefaCasaAbrigo) error
+	DeleteTarefa(ctx context.Context, db database.DBTX, id uuid.UUID) error
+	ListTarefas(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]TarefaCasaAbrigo, error)
+
 	// Centro POP
 	UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p CentroPopPerfil, autor uuid.UUID) error
 	GetCentroPopPerfil(ctx context.Context, db database.DBTX, cidadao uuid.UUID) (CentroPopPerfil, error)

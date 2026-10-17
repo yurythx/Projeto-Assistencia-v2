@@ -312,4 +312,16 @@ dialog[open]::backdrop {
   #main-content {
     padding: 0 !important;
   }
+  /* Casa Abrigo: termo e relatório escrito saem sozinhos na folha. */
+  body:has(.folha-impressao) * {
+    visibility: hidden;
+  }
+  .folha-impressao,
+  .folha-impressao * {
+    visibility: visible;
+  }
+  .folha-impressao {
+    position: absolute;
+    inset: 0 0 auto 0;
+  }
 }

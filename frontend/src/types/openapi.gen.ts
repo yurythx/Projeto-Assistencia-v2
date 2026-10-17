@@ -2752,7 +2752,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** SEMPRAS — Salvar /sempras/casa-abrigo-pia-metas/{id} */
+        put: operations["putSemprasCasaAbrigoPiaMetasId"];
         post?: never;
         /**
          * SEMPRAS — Excluir /sempras/casa-abrigo-pia-metas/{id}
@@ -2779,6 +2780,42 @@ export interface paths {
          */
         post: operations["postSemprasCasaAbrigoPiaMetasIdConcluir"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/casa-abrigo-relatorios/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** SEMPRAS — Salvar /sempras/casa-abrigo-relatorios/{id} */
+        put: operations["putSemprasCasaAbrigoRelatoriosId"];
+        post?: never;
+        /** SEMPRAS — Excluir /sempras/casa-abrigo-relatorios/{id} */
+        delete: operations["deleteSemprasCasaAbrigoRelatoriosId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/casa-abrigo-tarefas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** SEMPRAS — Salvar /sempras/casa-abrigo-tarefas/{id} */
+        put: operations["putSemprasCasaAbrigoTarefasId"];
+        post?: never;
+        /** SEMPRAS — Excluir /sempras/casa-abrigo-tarefas/{id} */
+        delete: operations["deleteSemprasCasaAbrigoTarefasId"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2824,7 +2861,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/sempras/casa-abrigo/{id}": {
+    "/api/v1/sempras/casa-abrigo-visitantes/{id}/saida": {
         parameters: {
             query?: never;
             header?: never;
@@ -2832,6 +2869,24 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/casa-abrigo-visitantes/{id}/saida */
+        post: operations["postSemprasCasaAbrigoVisitantesIdSaida"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/casa-abrigo/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Obter /sempras/casa-abrigo/{id} */
+        get: operations["getSemprasCasaAbrigoId"];
         /**
          * SEMPRAS — Salvar /sempras/casa-abrigo/{id}
          * @description Exige uma permissão específica (recurso:ação) declarada no manifesto do módulo — ver GET /api/v1/iam/permissions.
@@ -3769,6 +3824,146 @@ export interface paths {
         put?: never;
         /** SEMPRAS — Executar ação /sempras/unidades/{id}/abordagens */
         post: operations["postSemprasUnidadesIdAbordagens"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo */
+        get: operations["getSemprasUnidadesIdCasaAbrigo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/diario": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/diario */
+        get: operations["getSemprasUnidadesIdCasaAbrigoDiario"];
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/unidades/{id}/casa-abrigo/diario */
+        post: operations["postSemprasUnidadesIdCasaAbrigoDiario"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/estatisticas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/estatisticas */
+        get: operations["getSemprasUnidadesIdCasaAbrigoEstatisticas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/evolucoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/evolucoes */
+        get: operations["getSemprasUnidadesIdCasaAbrigoEvolucoes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/relatorios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/relatorios */
+        get: operations["getSemprasUnidadesIdCasaAbrigoRelatorios"];
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/unidades/{id}/casa-abrigo/relatorios */
+        post: operations["postSemprasUnidadesIdCasaAbrigoRelatorios"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/tarefas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/tarefas */
+        get: operations["getSemprasUnidadesIdCasaAbrigoTarefas"];
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/unidades/{id}/casa-abrigo/tarefas */
+        post: operations["postSemprasUnidadesIdCasaAbrigoTarefas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/termos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/termos */
+        get: operations["getSemprasUnidadesIdCasaAbrigoTermos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sempras/unidades/{id}/casa-abrigo/visitantes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/unidades/{id}/casa-abrigo/visitantes */
+        get: operations["getSemprasUnidadesIdCasaAbrigoVisitantes"];
+        put?: never;
+        /** SEMPRAS — Executar ação /sempras/unidades/{id}/casa-abrigo/visitantes */
+        post: operations["postSemprasUnidadesIdCasaAbrigoVisitantes"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6282,65 +6477,275 @@ export interface components {
             resultado: "aceitou_acolhimento" | "aceitou_encaminhamento" | "orientado" | "recusou";
             uso_drogas_aparente?: boolean;
         };
-        SemprasAcolhimento: {
+        SemprasAcolhidoResumo: {
+            /** Format: uuid */
+            acolhimento_id: string;
             /** Format: uuid */
             cidadao_id: string;
+            /** Format: date-time */
+            data_desligamento: string | null;
+            /** Format: date-time */
+            data_entrada: string;
+            data_nascimento: string;
+            desligamento_tipo: string;
+            documento_acolhido: boolean;
+            documento_responsavel: boolean;
+            guia_acolhimento: string;
+            idade: number;
+            motivos: string[];
+            nome: string;
+            nome_social: string;
+            /** Format: date-time */
+            pia_atualizado_em: string | null;
+            processo_judicial: string;
+            /** Format: date-time */
+            proxima_reavaliacao_pia: string;
+            sexo: string;
+            situacao_juridica: string;
+            status: string;
+        };
+        SemprasAcolhimento: {
+            ameaca_morte: string;
+            apelido: string;
+            beneficio_governo: string;
+            beneficio_qual: string;
+            /** Format: uuid */
+            cidadao_id: string;
+            cna: string;
+            cncad: string;
             conselheiro_nome: string;
             conselheiro_telefone: string;
             /** Format: date-time */
             data_desligamento: string | null;
             /** Format: date-time */
             data_entrada: string;
+            /** Format: date-time */
+            data_guia: string | null;
+            /** Format: date-time */
+            data_guia_desligamento: string | null;
+            /** Format: date-time */
+            data_situacao_juridica: string | null;
+            dependencia_quimica: string;
             /** Format: uuid */
             desligado_por: string | null;
+            desligamento_tipo: string;
             diagnosticos: components["schemas"]["SemprasDiagnostico"][];
             documentos: components["schemas"]["SemprasDocumentoCasaAbrigo"][];
+            estuda: string;
+            filiacao_1: string;
+            filiacao_2: string;
             guia_acolhimento: string;
-            historico_acolhido_anteriormente: boolean;
-            historico_irmaos_outra_unidade: boolean;
+            guia_desligamento: string;
+            historico_acolhido_anteriormente: string;
+            historico_irmaos_nesta_unidade: string;
+            historico_irmaos_outra_unidade: string;
             /** Format: uuid */
             id: string;
+            identidade_genero: string;
             irmaos: components["schemas"]["SemprasIrmao"][];
+            laudo_medico: string;
+            laudo_medico_descricao: string;
+            medicacao_continua: string;
             motivo_desligamento: string;
             motivos: string[];
             observacoes_gerais: string;
+            orientacao_sexual: string;
+            outro_motivo: string;
+            pcd: boolean;
             pia: components["schemas"]["SemprasPiaFicha"] | null;
             pia_metas: components["schemas"]["SemprasPiaMeta"][];
+            possui_transtorno: string;
             processo_judicial: string;
+            processo_judicial_2: string;
+            programa_social: string;
+            raca_cor: string;
+            recebe_visita: string;
             /** Format: uuid */
             registrado_por: string | null;
-            responsavel_endereco: string;
+            relacao_trabalho: string;
+            responsavel_apelido: string;
+            responsavel_bairro: string;
+            responsavel_celular: string;
+            responsavel_cep: string;
+            responsavel_cidade: string;
+            responsavel_complemento: string;
+            responsavel_cpf: string;
+            responsavel_email: string;
+            responsavel_logradouro: string;
+            responsavel_nao_possui: boolean;
+            /** Format: date-time */
+            responsavel_nascimento: string | null;
             responsavel_nis: string;
             responsavel_nome: string;
+            responsavel_nome_social: string;
+            responsavel_numero: string;
+            responsavel_sexo: string;
             responsavel_telefone: string;
+            responsavel_uf: string;
             responsavel_vinculo: string;
             sexo: string;
+            situacao_especial: boolean;
             situacao_juridica: string;
             status: string;
             termos: components["schemas"]["SemprasTermo"][];
+            transtorno_descricao: string;
+            /** Format: uuid */
+            unidade_id: string;
+            visitantes: components["schemas"]["SemprasVisitante"][];
+        };
+        SemprasAcolhimentoDetalhe: {
+            ameaca_morte: string;
+            apelido: string;
+            beneficio_governo: string;
+            beneficio_qual: string;
+            cidadao: components["schemas"]["SemprasCidadao"];
+            /** Format: uuid */
+            cidadao_id: string;
+            cna: string;
+            cncad: string;
+            conselheiro_nome: string;
+            conselheiro_telefone: string;
+            /** Format: date-time */
+            data_desligamento: string | null;
+            /** Format: date-time */
+            data_entrada: string;
+            /** Format: date-time */
+            data_guia: string | null;
+            /** Format: date-time */
+            data_guia_desligamento: string | null;
+            /** Format: date-time */
+            data_situacao_juridica: string | null;
+            dependencia_quimica: string;
+            /** Format: uuid */
+            desligado_por: string | null;
+            desligamento_tipo: string;
+            diagnosticos: components["schemas"]["SemprasDiagnostico"][];
+            documentos: components["schemas"]["SemprasDocumentoCasaAbrigo"][];
+            estuda: string;
+            filiacao_1: string;
+            filiacao_2: string;
+            guia_acolhimento: string;
+            guia_desligamento: string;
+            historico_acolhido_anteriormente: string;
+            historico_irmaos_nesta_unidade: string;
+            historico_irmaos_outra_unidade: string;
+            /** Format: uuid */
+            id: string;
+            identidade_genero: string;
+            irmaos: components["schemas"]["SemprasIrmao"][];
+            laudo_medico: string;
+            laudo_medico_descricao: string;
+            medicacao_continua: string;
+            motivo_desligamento: string;
+            motivos: string[];
+            observacoes_gerais: string;
+            orientacao_sexual: string;
+            outro_motivo: string;
+            pcd: boolean;
+            pia: components["schemas"]["SemprasPiaFicha"] | null;
+            pia_metas: components["schemas"]["SemprasPiaMeta"][];
+            possui_transtorno: string;
+            processo_judicial: string;
+            processo_judicial_2: string;
+            programa_social: string;
+            raca_cor: string;
+            recebe_visita: string;
+            /** Format: uuid */
+            registrado_por: string | null;
+            relacao_trabalho: string;
+            responsavel_apelido: string;
+            responsavel_bairro: string;
+            responsavel_celular: string;
+            responsavel_cep: string;
+            responsavel_cidade: string;
+            responsavel_complemento: string;
+            responsavel_cpf: string;
+            responsavel_email: string;
+            responsavel_logradouro: string;
+            responsavel_nao_possui: boolean;
+            /** Format: date-time */
+            responsavel_nascimento: string | null;
+            responsavel_nis: string;
+            responsavel_nome: string;
+            responsavel_nome_social: string;
+            responsavel_numero: string;
+            responsavel_sexo: string;
+            responsavel_telefone: string;
+            responsavel_uf: string;
+            responsavel_vinculo: string;
+            sexo: string;
+            situacao_especial: boolean;
+            situacao_juridica: string;
+            status: string;
+            termos: components["schemas"]["SemprasTermo"][];
+            transtorno_descricao: string;
             /** Format: uuid */
             unidade_id: string;
             visitantes: components["schemas"]["SemprasVisitante"][];
         };
         SemprasAcolhimentoRequest: {
+            ameaca_morte?: string;
+            apelido?: string;
+            beneficio_governo?: string;
+            beneficio_qual?: string;
+            cna?: string;
+            cncad?: string;
             conselheiro_nome?: string;
             conselheiro_telefone?: string;
+            /** Format: date-time */
+            data_entrada: string;
+            /** Format: date-time */
+            data_guia?: string | null;
+            /** Format: date-time */
+            data_situacao_juridica?: string | null;
+            dependencia_quimica?: string;
+            estuda?: string;
+            filiacao_1?: string;
+            filiacao_2?: string;
             guia_acolhimento?: string;
-            historico_acolhido_anteriormente?: boolean;
-            historico_irmaos_outra_unidade?: boolean;
-            motivos: string[];
+            historico_acolhido_anteriormente?: string;
+            historico_irmaos_nesta_unidade?: string;
+            historico_irmaos_outra_unidade?: string;
+            identidade_genero?: string;
+            laudo_medico?: string;
+            laudo_medico_descricao?: string;
+            medicacao_continua?: string;
+            motivos?: string[];
             observacoes_gerais?: string;
+            orientacao_sexual?: string;
+            outro_motivo?: string;
+            pcd?: boolean;
+            possui_transtorno?: string;
             processo_judicial?: string;
-            responsavel_endereco?: string;
+            processo_judicial_2?: string;
+            programa_social?: string;
+            raca_cor?: string;
+            recebe_visita?: string;
+            relacao_trabalho?: string;
+            responsavel_apelido?: string;
+            responsavel_bairro?: string;
+            responsavel_celular?: string;
+            responsavel_cep?: string;
+            responsavel_cidade?: string;
+            responsavel_complemento?: string;
+            responsavel_cpf?: string;
+            responsavel_email?: string;
+            responsavel_logradouro?: string;
+            responsavel_nao_possui?: boolean;
+            /** Format: date-time */
+            responsavel_nascimento?: string | null;
             responsavel_nis?: string;
             responsavel_nome?: string;
+            responsavel_nome_social?: string;
+            responsavel_numero?: string;
+            responsavel_sexo?: string;
             responsavel_telefone?: string;
+            responsavel_uf?: string;
             responsavel_vinculo?: string;
-            /** @enum {string} */
-            sexo: "masculino" | "feminino";
+            sexo?: string;
+            situacao_especial?: boolean;
             situacao_juridica?: string;
-            /** Format: uuid */
-            unidade_id: string;
+            transtorno_descricao?: string;
         };
         SemprasAcompanhamento: {
             ativos: string[];
@@ -6348,6 +6753,40 @@ export interface components {
             /** Format: uuid */
             unidade_id: string;
             unidade_nome: string;
+        };
+        SemprasAlerta: {
+            /** Format: uuid */
+            acolhimento_id?: string;
+            dias: number;
+            mensagem: string;
+            nivel: string;
+            /** Format: date-time */
+            prazo: string;
+            /** Format: uuid */
+            ref_id: string;
+            tipo: string;
+        };
+        SemprasAnotacaoDiario: {
+            acolhido_nome?: string;
+            /** Format: uuid */
+            acolhimento_id: string | null;
+            autor_nome: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            data_referencia: string;
+            /** Format: uuid */
+            id: string;
+            texto: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
+        SemprasAnotacaoDiarioRequest: {
+            /** Format: uuid */
+            acolhimento_id?: string | null;
+            /** Format: date-time */
+            data_referencia: string;
+            texto: string;
         };
         SemprasAtendimento: {
             /** Format: date-time */
@@ -6621,7 +7060,13 @@ export interface components {
             justificativa?: string;
         };
         SemprasDesligamentoRequest: {
+            /** Format: date-time */
+            data_guia?: string | null;
+            /** Format: date-time */
+            data_saida: string;
+            guia?: string;
             motivo: string;
+            tipo: string;
         };
         SemprasDiagnostico: {
             /** Format: uuid */
@@ -6743,6 +7188,45 @@ export interface components {
             /** @enum {string} */
             tipo: "social" | "psicologico";
         };
+        SemprasEstatisticasCasaAbrigo: {
+            adocoes: number;
+            adolescentes: number;
+            ate: string;
+            ativos_no_fim: number;
+            criancas: number;
+            de: string;
+            entradas: number;
+            meninas: number;
+            meninos: number;
+            motivos: {
+                [key: string]: number;
+            };
+            reintegracoes: number;
+            saidas: number;
+            saidas_por_tipo: {
+                [key: string]: number;
+            };
+            transferencias: number;
+        };
+        SemprasEvolucaoAcolhido: {
+            acolhido_nome: string;
+            /** Format: uuid */
+            atendimento_id: string | null;
+            /** Format: uuid */
+            autor_id: string | null;
+            autor_nome: string;
+            /** Format: uuid */
+            cidadao_id: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            id: string;
+            sigiloso: boolean;
+            texto: string;
+            tipo: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
         SemprasExclusaoPaifRequest: {
             motivo: string;
         };
@@ -6861,6 +7345,74 @@ export interface components {
             /** Format: uuid */
             unidade_id: string;
         };
+        SemprasNovoAcolhimentoRequest: {
+            ameaca_morte?: string;
+            apelido?: string;
+            beneficio_governo?: string;
+            beneficio_qual?: string;
+            cna?: string;
+            cncad?: string;
+            conselheiro_nome?: string;
+            conselheiro_telefone?: string;
+            /** Format: date-time */
+            data_entrada: string;
+            /** Format: date-time */
+            data_guia?: string | null;
+            /** Format: date-time */
+            data_situacao_juridica?: string | null;
+            dependencia_quimica?: string;
+            diagnosticos?: components["schemas"]["SemprasDiagnosticoRequest"][];
+            estuda?: string;
+            filiacao_1?: string;
+            filiacao_2?: string;
+            guia_acolhimento?: string;
+            historico_acolhido_anteriormente?: string;
+            historico_irmaos_nesta_unidade?: string;
+            historico_irmaos_outra_unidade?: string;
+            identidade_genero?: string;
+            irmaos?: components["schemas"]["SemprasIrmaoRequest"][];
+            laudo_medico?: string;
+            laudo_medico_descricao?: string;
+            medicacao_continua?: string;
+            motivos?: string[];
+            observacoes_gerais?: string;
+            orientacao_sexual?: string;
+            outro_motivo?: string;
+            pcd?: boolean;
+            possui_transtorno?: string;
+            processo_judicial?: string;
+            processo_judicial_2?: string;
+            programa_social?: string;
+            raca_cor?: string;
+            recebe_visita?: string;
+            relacao_trabalho?: string;
+            responsavel_apelido?: string;
+            responsavel_bairro?: string;
+            responsavel_celular?: string;
+            responsavel_cep?: string;
+            responsavel_cidade?: string;
+            responsavel_complemento?: string;
+            responsavel_cpf?: string;
+            responsavel_email?: string;
+            responsavel_logradouro?: string;
+            responsavel_nao_possui?: boolean;
+            /** Format: date-time */
+            responsavel_nascimento?: string | null;
+            responsavel_nis?: string;
+            responsavel_nome?: string;
+            responsavel_nome_social?: string;
+            responsavel_numero?: string;
+            responsavel_sexo?: string;
+            responsavel_telefone?: string;
+            responsavel_uf?: string;
+            responsavel_vinculo?: string;
+            sexo?: string;
+            situacao_especial?: boolean;
+            situacao_juridica?: string;
+            transtorno_descricao?: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
         SemprasOficioCras: {
             assunto: string;
             /** Format: uuid */
@@ -6952,6 +7504,16 @@ export interface components {
             /** Format: uuid */
             unidade_id: string;
         };
+        SemprasPainelCasaAbrigo: {
+            acolhidos: components["schemas"]["SemprasAcolhidoResumo"][];
+            adolescentes: number;
+            alertas: components["schemas"]["SemprasAlerta"][];
+            ativos: number;
+            criancas: number;
+            desacolhidos: number;
+            desligados: components["schemas"]["SemprasAcolhidoResumo"][];
+            pias_vencendo: number;
+        };
         SemprasPainelUnidade: {
             aguardando: number;
             concluidos: number;
@@ -6998,29 +7560,73 @@ export interface components {
             atualizado_em: string;
             /** Format: uuid */
             atualizado_por: string | null;
+            aula_reforco: boolean;
             cartao_sus: string;
             contato_familiar: string;
+            deficiencias_restricoes: string;
+            doc_cartao_sus: boolean;
+            doc_carteira_vacinacao: boolean;
+            doc_certidao_nascimento: boolean;
+            doc_nis: boolean;
+            doc_rg_cpf: boolean;
             escola: string;
+            frequencia_escolar: string;
             historico_familiar: string;
+            intervencao_estrategias: string;
+            intervencao_metas_prazos: string;
+            intervencao_objetivos: string;
             matricula_escolar: string;
             medicamentos: string;
+            moradia_anterior: string;
+            nacionalidade: string;
+            naturalidade: string;
+            observacoes_comportamentais: string;
+            observacoes_familia: string;
+            periodo_escolar: string;
+            possui_beneficios: boolean;
+            religiao: string;
             serie_escolar: string;
+            sinais_violencia_fisica: boolean;
+            tratamento_medico_psicologico: boolean;
+            tratamento_odontologico: boolean;
             vacinacao_atualizada: boolean;
             visitas_autorizadas: string;
         };
-        SemprasPiaFichaRequest: {
+        SemprasPiaFichaDados: {
             alergias?: string;
             atividades_fim_semana?: string;
             atividades_manha?: string;
             atividades_noite?: string;
             atividades_tarde?: string;
+            aula_reforco?: boolean;
             cartao_sus?: string;
             contato_familiar?: string;
+            deficiencias_restricoes?: string;
+            doc_cartao_sus?: boolean;
+            doc_carteira_vacinacao?: boolean;
+            doc_certidao_nascimento?: boolean;
+            doc_nis?: boolean;
+            doc_rg_cpf?: boolean;
             escola?: string;
+            frequencia_escolar?: string;
             historico_familiar?: string;
+            intervencao_estrategias?: string;
+            intervencao_metas_prazos?: string;
+            intervencao_objetivos?: string;
             matricula_escolar?: string;
             medicamentos?: string;
+            moradia_anterior?: string;
+            nacionalidade?: string;
+            naturalidade?: string;
+            observacoes_comportamentais?: string;
+            observacoes_familia?: string;
+            periodo_escolar?: string;
+            possui_beneficios?: boolean;
+            religiao?: string;
             serie_escolar?: string;
+            sinais_violencia_fisica?: boolean;
+            tratamento_medico_psicologico?: boolean;
+            tratamento_odontologico?: boolean;
             vacinacao_atualizada?: boolean;
             visitas_autorizadas?: string;
         };
@@ -7030,9 +7636,12 @@ export interface components {
             concluida: boolean;
             /** Format: date-time */
             created_at: string;
+            cultura: string;
             descricao: string;
+            esportes: string;
             /** Format: uuid */
             id: string;
+            lazer: string;
             /** Format: date-time */
             prazo: string | null;
             providencia: string;
@@ -7040,7 +7649,10 @@ export interface components {
             tipo: string;
         };
         SemprasPiaMetaRequest: {
+            cultura?: string;
             descricao: string;
+            esportes?: string;
+            lazer?: string;
             /** Format: date-time */
             prazo?: string | null;
             providencia?: string;
@@ -7096,6 +7708,35 @@ export interface components {
             tipo: "social" | "psicologico";
             /** Format: uuid */
             unidade_id: string;
+        };
+        SemprasRelatorioCasaAbrigo: {
+            acolhido_nome?: string;
+            /** Format: uuid */
+            acolhimento_id: string | null;
+            /** Format: date-time */
+            atualizado_em: string;
+            conteudo: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            data_entrega: string;
+            /** Format: uuid */
+            id: string;
+            status: string;
+            tipo: string;
+            tipo_outro: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
+        SemprasRelatorioRequest: {
+            /** Format: uuid */
+            acolhimento_id?: string | null;
+            conteudo?: string;
+            /** Format: date-time */
+            data_entrega: string;
+            status: string;
+            tipo: string;
+            tipo_outro?: string;
         };
         SemprasResponderOficioRequest: {
             numero_resposta: string;
@@ -7174,7 +7815,43 @@ export interface components {
             pop_pessoas_uso_drogas: number;
             unidade: components["schemas"]["SemprasUnidade"];
         };
+        SemprasSaidaVisitanteRequest: {
+            hora_saida: string;
+        };
+        SemprasTarefaCasaAbrigo: {
+            /** Format: date-time */
+            atualizado_em: string;
+            /** Format: date-time */
+            created_at: string;
+            descricao: string;
+            /** Format: uuid */
+            id: string;
+            ordem: number;
+            /** Format: date-time */
+            prazo: string | null;
+            prioridade: string;
+            responsavel: string;
+            sprint: string;
+            status: string;
+            titulo: string;
+            /** Format: uuid */
+            unidade_id: string;
+        };
+        SemprasTarefaRequest: {
+            descricao?: string;
+            ordem?: number;
+            /** Format: date-time */
+            prazo?: string | null;
+            /** @enum {string} */
+            prioridade?: "baixa" | "media" | "alta" | "critica";
+            responsavel?: string;
+            sprint?: string;
+            /** @enum {string} */
+            status?: "backlog" | "todo" | "doing" | "review" | "done";
+            titulo: string;
+        };
         SemprasTermo: {
+            acolhido_nome?: string;
             /** Format: uuid */
             acolhimento_id: string;
             /** Format: date-time */
@@ -7250,8 +7927,9 @@ export interface components {
             upload: components["schemas"]["ModkitUploadTicket"];
         };
         SemprasVisitante: {
+            acolhido_nome?: string;
             /** Format: uuid */
-            acolhimento_id: string;
+            acolhimento_id: string | null;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -7264,8 +7942,13 @@ export interface components {
             nome_visitante: string;
             observacoes: string;
             parentesco_vinculo: string;
+            tipo_visita: string;
+            /** Format: uuid */
+            unidade_id: string;
         };
         SemprasVisitanteRequest: {
+            /** Format: uuid */
+            acolhimento_id?: string | null;
             /** Format: date-time */
             data_visita: string;
             documento_identidade?: string;
@@ -7274,6 +7957,8 @@ export interface components {
             nome_visitante: string;
             observacoes?: string;
             parentesco_vinculo?: string;
+            /** @enum {string} */
+            tipo_visita?: "acolhido" | "instituicao" | "doacao" | "voluntariado";
         };
         SignumChallengeResponse: {
             /** Format: uuid */
@@ -13721,6 +14406,44 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    putSemprasCasaAbrigoPiaMetasId: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasPiaMetaRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasPiaMeta"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     deleteSemprasCasaAbrigoPiaMetasId: {
         parameters: {
             query?: never;
@@ -13791,6 +14514,142 @@ export interface operations {
             429: components["responses"]["TooManyRequests"];
         };
     };
+    putSemprasCasaAbrigoRelatoriosId: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasRelatorioRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasRelatorioCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    deleteSemprasCasaAbrigoRelatoriosId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: {
+                            [key: string]: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    putSemprasCasaAbrigoTarefasId: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasTarefaRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasTarefaCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    deleteSemprasCasaAbrigoTarefasId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: {
+                            [key: string]: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
     deleteSemprasCasaAbrigoTermosId: {
         parameters: {
             query?: never;
@@ -13848,6 +14707,72 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasCasaAbrigoVisitantesIdSaida: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasSaidaVisitanteRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasVisitante"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasCasaAbrigoId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasAcolhimentoDetalhe"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["ModuleDisabledOrNotFound"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyRequests"];
@@ -14065,7 +14990,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SemprasPiaFichaRequest"];
+                "application/json": components["schemas"]["SemprasPiaFichaDados"];
             };
         };
         responses: {
@@ -14560,7 +15485,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SemprasAcolhimentoRequest"];
+                "application/json": components["schemas"]["SemprasNovoAcolhimentoRequest"];
             };
         };
         responses: {
@@ -15785,6 +16710,384 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Envelope"] & {
                         data?: components["schemas"]["SemprasAbordagem"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasPainelCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoDiario: {
+        parameters: {
+            query?: {
+                mes?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasAnotacaoDiario"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasUnidadesIdCasaAbrigoDiario: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasAnotacaoDiarioRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasAnotacaoDiario"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoEstatisticas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasEstatisticasCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoEvolucoes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasEvolucaoAcolhido"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoRelatorios: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasRelatorioCasaAbrigo"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasUnidadesIdCasaAbrigoRelatorios: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasRelatorioRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasRelatorioCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoTarefas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasTarefaCasaAbrigo"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasUnidadesIdCasaAbrigoTarefas: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasTarefaRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasTarefaCasaAbrigo"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoTermos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasTermo"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasUnidadesIdCasaAbrigoVisitantes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasVisitante"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    postSemprasUnidadesIdCasaAbrigoVisitantes: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Chave única por operação lógica (recomenda-se um UUID gerado no cliente), escopada ao usuário autenticado. Reenviar a mesma requisição com a mesma chave reproduz a resposta original em vez de reexecutar a operação — ver a nota de Idempotência na descrição geral da API.
+                 * @example 3f2b9e0a-6d34-4e77-9c3e-2b6f8e6b6a3d
+                 */
+                "X-Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemprasVisitanteRequest"];
+            };
+        };
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasVisitante"];
                     };
                 };
             };

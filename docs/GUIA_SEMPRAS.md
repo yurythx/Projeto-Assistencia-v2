@@ -59,7 +59,7 @@ Abra pela fila ou pela busca. A ficha mostra só o que é da sua unidade:
 | CREAS | PAEFI, medidas socioeducativas (LA e PSC), notificações (MP, Judiciário, Disque 100) |
 | Centro POP | Atendimento especializado, perfil de rua, documentos, encaminhamento para a rede, abordagem social, benefícios |
 | Casa da Mulher | Caso: formas de violência, risco, medida protetiva, Patrulha Maria da Penha, abrigamento |
-| Casa Abrigo | Acolhimento, PIA, irmãos, diagnósticos, visitas, termos, documentos |
+| Casa Abrigo | Tudo no espaço da unidade: veja [Casa Abrigo](#casa-abrigo) |
 | Conselho Tutelar | Atendimento e medida protetiva (art. 101 do ECA) |
 
 Em todas as unidades:
@@ -73,6 +73,54 @@ Em todas as unidades:
   acompanhamento em outra unidade, sem mostrar o conteúdo. O caso da Casa da
   Mulher nunca aparece nesse aviso.
 - Toda abertura de ficha fica registrada (LGPD).
+
+## Casa Abrigo
+
+O espaço da Casa Abrigo tem as mesmas telas do sistema que a unidade já
+usava, em abas.
+
+- **Painel:**
+  - mostra crianças, adolescentes, acolhimentos ativos, PIAs vencendo e
+    desacolhidos;
+  - o **monitor de prazos** avisa a reavaliação do P.I.A. (no máximo a cada
+    3 meses, ECA art. 19), as metas, os relatórios (7 dias antes) e as
+    tarefas (3 dias antes);
+  - clique no aviso para abrir a tela certa.
+- **Acolhidos:**
+  - mostra o relatório de institucionalizados, com busca, CSV e impressão.
+    Processo e guia que faltam aparecem em destaque.
+  - **Novo acolhimento** abre o cadastro em 6 etapas: criança, responsável
+    (endereço pelo CEP), acolhimento (irmãos e motivos), jurídico, saúde
+    (checklist de diagnósticos) e contexto social, com os PDFs.
+  - A criança precisa ter data de nascimento e menos de 18 anos, e só pode
+    ter um acolhimento ativo.
+  - **Desligar** pede o tipo (reintegração, adoção, transferência…), o
+    motivo e a data da saída. O acolhido nunca é apagado.
+- **P.I.A.:**
+  - escolha o acolhido e preencha as 6 partes: identificação, saúde e
+    escola, família, plano de ação (com esportes, cultura e lazer), rotina
+    e intervenção familiar;
+  - **Salvar** registra a reavaliação.
+- **Evolução técnica:** registra no prontuário do acolhido e lista todos,
+  com busca por nome.
+- **Advertência / passeio:** gera o termo com o cabeçalho da Prefeitura e a
+  assinatura feita na tela, e manda imprimir. O histórico mostra só as
+  iniciais.
+- **Visitantes:**
+  - registra a entrada com a hora de agora, e a saída quando a pessoa sai;
+  - a visita a um acolhido exige o acolhido; doação e voluntariado, não.
+- **Diário de bordo:** escolha o dia no calendário e anote (geral ou de um
+  acolhido). Pode ser um dia futuro, como agenda.
+- **Relatórios:**
+  - o **estatístico** mostra o mês, o trimestre ou o ano: reintegrações,
+    adoções, transferências, motivos, entradas e saídas;
+  - os **relatórios escritos** têm etapa e prazo, um editor e exportação em
+    TXT, DOC ou PDF;
+  - depois de **entregue**, o relatório não muda nem pode ser excluído.
+- **Tarefas da equipe:** quadro Kanban. Arraste o cartão ou use as setas.
+
+Na ficha do munícipe, o acolhimento aparece resumido, com atalhos para o
+cadastro completo, o P.I.A., os termos e as visitas.
 
 ## Abordagem social (Centro POP)
 

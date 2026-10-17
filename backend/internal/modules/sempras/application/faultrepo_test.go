@@ -947,6 +947,160 @@ func (fr *faultRepo) DeleteDocumento(ctx context.Context, db database.DBTX, id u
 	return fr.inner.DeleteDocumento(ctx, db, id)
 }
 
+func (fr *faultRepo) UpdateVisitante(ctx context.Context, db database.DBTX, v domain.Visitante) error {
+	if err := fr.hook("UpdateVisitante"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateVisitante(ctx, db, v)
+}
+
+func (fr *faultRepo) ListVisitantesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.Visitante, error) {
+	if err := fr.hook("ListVisitantesDaUnidade"); err != nil {
+		var z0 []domain.Visitante
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListVisitantesDaUnidade(ctx, db, unidade)
+}
+
+func (fr *faultRepo) ListTermosDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.Termo, error) {
+	if err := fr.hook("ListTermosDaUnidade"); err != nil {
+		var z0 []domain.Termo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListTermosDaUnidade(ctx, db, unidade)
+}
+
+func (fr *faultRepo) AcolhidosDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.AcolhidoResumo, error) {
+	if err := fr.hook("AcolhidosDaUnidade"); err != nil {
+		var z0 []domain.AcolhidoResumo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.AcolhidosDaUnidade(ctx, db, unidade)
+}
+
+func (fr *faultRepo) MetasPendentesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.MetaPendente, error) {
+	if err := fr.hook("MetasPendentesDaUnidade"); err != nil {
+		var z0 []domain.MetaPendente
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.MetasPendentesDaUnidade(ctx, db, unidade)
+}
+
+func (fr *faultRepo) EvolucoesDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.EvolucaoAcolhido, error) {
+	if err := fr.hook("EvolucoesDaUnidade"); err != nil {
+		var z0 []domain.EvolucaoAcolhido
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.EvolucoesDaUnidade(ctx, db, unidade)
+}
+
+func (fr *faultRepo) InsertAnotacaoDiario(ctx context.Context, db database.DBTX, a domain.AnotacaoDiario, autor uuid.UUID) error {
+	if err := fr.hook("InsertAnotacaoDiario"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertAnotacaoDiario(ctx, db, a, autor)
+}
+
+func (fr *faultRepo) ListDiario(ctx context.Context, db database.DBTX, unidade uuid.UUID, inicio time.Time, fim time.Time) ([]domain.AnotacaoDiario, error) {
+	if err := fr.hook("ListDiario"); err != nil {
+		var z0 []domain.AnotacaoDiario
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListDiario(ctx, db, unidade, inicio, fim)
+}
+
+func (fr *faultRepo) InsertRelatorio(ctx context.Context, db database.DBTX, r domain.RelatorioCasaAbrigo, autor uuid.UUID) error {
+	if err := fr.hook("InsertRelatorio"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertRelatorio(ctx, db, r, autor)
+}
+
+func (fr *faultRepo) GetRelatorio(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.RelatorioCasaAbrigo, error) {
+	if err := fr.hook("GetRelatorio"); err != nil {
+		var z0 domain.RelatorioCasaAbrigo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetRelatorio(ctx, db, id, forUpdate)
+}
+
+func (fr *faultRepo) UpdateRelatorio(ctx context.Context, db database.DBTX, r domain.RelatorioCasaAbrigo) error {
+	if err := fr.hook("UpdateRelatorio"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateRelatorio(ctx, db, r)
+}
+
+func (fr *faultRepo) DeleteRelatorio(ctx context.Context, db database.DBTX, id uuid.UUID) error {
+	if err := fr.hook("DeleteRelatorio"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.DeleteRelatorio(ctx, db, id)
+}
+
+func (fr *faultRepo) ListRelatorios(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.RelatorioCasaAbrigo, error) {
+	if err := fr.hook("ListRelatorios"); err != nil {
+		var z0 []domain.RelatorioCasaAbrigo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListRelatorios(ctx, db, unidade)
+}
+
+func (fr *faultRepo) InsertTarefa(ctx context.Context, db database.DBTX, t domain.TarefaCasaAbrigo, autor uuid.UUID) error {
+	if err := fr.hook("InsertTarefa"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.InsertTarefa(ctx, db, t, autor)
+}
+
+func (fr *faultRepo) GetTarefa(ctx context.Context, db database.DBTX, id uuid.UUID, forUpdate bool) (domain.TarefaCasaAbrigo, error) {
+	if err := fr.hook("GetTarefa"); err != nil {
+		var z0 domain.TarefaCasaAbrigo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.GetTarefa(ctx, db, id, forUpdate)
+}
+
+func (fr *faultRepo) UpdateTarefa(ctx context.Context, db database.DBTX, t domain.TarefaCasaAbrigo) error {
+	if err := fr.hook("UpdateTarefa"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UpdateTarefa(ctx, db, t)
+}
+
+func (fr *faultRepo) DeleteTarefa(ctx context.Context, db database.DBTX, id uuid.UUID) error {
+	if err := fr.hook("DeleteTarefa"); err != nil {
+		return err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.DeleteTarefa(ctx, db, id)
+}
+
+func (fr *faultRepo) ListTarefas(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]domain.TarefaCasaAbrigo, error) {
+	if err := fr.hook("ListTarefas"); err != nil {
+		var z0 []domain.TarefaCasaAbrigo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.ListTarefas(ctx, db, unidade)
+}
+
 func (fr *faultRepo) UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p domain.CentroPopPerfil, autor uuid.UUID) error {
 	if err := fr.hook("UpsertCentroPopPerfil"); err != nil {
 		return err

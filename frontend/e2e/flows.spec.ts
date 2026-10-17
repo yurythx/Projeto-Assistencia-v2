@@ -277,6 +277,101 @@ test.describe("Fluxos críticos", () => {
     await expect(page.getByText("Munícipe anonimizado").first()).toBeVisible();
   });
 
+  test("Casa Abrigo: cadastro em 6 etapas, P.I.A., relatório com prazo, tarefa e desligamento", async ({ page }) => {
+    await asAdmin(page);
+    const sufixo = uniq("e2e").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16);
+    const orgTree = await page.request.get("/api/backend/v1/iam/org-tree");
+    expect(orgTree.ok(), await orgTree.text()).toBeTruthy();
+    const arvore = (await orgTree.json()).data as { id: string; slug: string }[];
+    let entidadeId = arvore.find((e) => e.slug === "sempras")?.id;
+    if (!entidadeId) {
+      const ent = await page.request.post("/api/backend/v1/iam/entidades", { data: { nome: "SEMPRAS", slug: "sempras", ativo: true } });
+      expect(ent.ok(), await ent.text()).toBeTruthy();
+      entidadeId = (await ent.json()).data.id;
+    }
+    const nomeCasa = `Casa Abrigo E2E ${sufixo}`;
+    const un = await page.request.post("/api/backend/v1/iam/unidades", {
+      data: { nome: nomeCasa, slug: `casa-abrigo-e2e-${sufixo}`, entidade_id: entidadeId, ativo: true },
+    });
+    expect(un.ok(), await un.text()).toBeTruthy();
+    const casaId = (await un.json()).data.id as string;
+    await page.goto("/configuracao/modulos");
+    const toggle = moduleCard(page, /^SEMPRAS/).getByRole("switch");
+    if (!(await toggle.isChecked())) await toggle.click();
+    await expect(toggle).toBeChecked();
+    const tipo = await page.request.put(`/api/backend/v1/sempras/unidades/${casaId}/configuracao`, {
+      data: { tipo: "casa_abrigo", painel_exibe_nome: false },
+    });
+    expect(tipo.ok(), await tipo.text()).toBeTruthy();
+
+    // assistente: criança nova (NIS e nascimento), motivo, finaliza
+    const nome = uniq("Criança E2E");
+    const nis = String(Date.now()).slice(-11).padStart(11, "2");
+    await page.goto(`/sempras/u/${casaId}`);
+    await expect(page.getByRole("heading", { level: 1, name: nomeCasa })).toBeVisible();
+    await page.getByRole("tab", { name: "Acolhidos" }).click();
+    await page.getByRole("button", { name: /Novo acolhimento/ }).click();
+    await page.getByLabel("Nome completo *").fill(nome);
+    await page.getByLabel("NIS", { exact: true }).fill(nis);
+    await page.getByLabel("Data de nascimento *").fill("2016-05-10");
+    await page.getByLabel("Nome da mãe (cadastro)").fill("Mãe E2E");
+    await page.getByRole("button", { name: "2. Responsável" }).click();
+    await page.getByLabel("Nome do(a) responsável").fill("Tia E2E");
+    await page.getByLabel("Grau de parentesco / vínculo").selectOption("tia");
+    await page.getByRole("button", { name: "3. Acolhimento" }).click();
+    await page.getByLabel("Nº do 1º processo").fill("123/2026");
+    await page.getByLabel("Negligência", { exact: true }).check();
+    await page.getByRole("button", { name: "5. Saúde" }).click();
+    await page.getByLabel("Diabetes").check();
+    await page.getByRole("button", { name: "6. Social/Fim" }).click();
+    await page.getByRole("button", { name: "Finalizar cadastro" }).click();
+    await expect(page.getByText("Acolhimento cadastrado")).toBeVisible();
+    const linha = page.getByRole("table", { name: "Relatório de institucionalizados" }).getByRole("row").filter({ hasText: nome });
+    await expect(linha).toContainText("123/2026");
+    await expect(linha).toContainText(/1\d anos/);
+
+    // P.I.A.: escolhe a criança e grava (a reavaliação conta daqui)
+    await page.getByRole("tab", { name: "P.I.A." }).click();
+    await page.getByLabel("Acolhido").selectOption({ label: nome });
+    await expect(page.getByText(/P\.I\.A\. ainda não preenchido/)).toBeVisible();
+    await page.getByLabel("Naturalidade").fill("Rondonópolis");
+    await page.getByRole("button", { name: /Salvar P\.I\.A\./ }).click();
+    await expect(page.getByText("P.I.A. salvo")).toBeVisible();
+
+    // relatório escrito com prazo em 3 dias: o monitor do painel avisa
+    const prazo = new Date(Date.now() + 3 * 86400000);
+    const dia = `${prazo.getFullYear()}-${String(prazo.getMonth() + 1).padStart(2, "0")}-${String(prazo.getDate()).padStart(2, "0")}`;
+    await page.getByRole("tab", { name: "Relatórios" }).click();
+    await page.getByRole("tab", { name: "Relatórios escritos" }).click();
+    await page.getByLabel("Tipo do relatório").selectOption("psicossocial");
+    await page.getByLabel("Data de entrega *").fill(dia);
+    await page.getByRole("button", { name: "Registrar", exact: true }).click();
+    await expect(page.getByText("Relatório registrado")).toBeVisible();
+
+    // tarefa da equipe
+    await page.getByRole("tab", { name: "Tarefas da equipe" }).click();
+    await page.getByRole("button", { name: /Nova tarefa/ }).click();
+    const tarefa = page.getByRole("dialog", { name: "Nova tarefa" });
+    await tarefa.getByLabel("Título *").fill("Levar ao pediatra");
+    await tarefa.getByRole("button", { name: "Salvar" }).click();
+    await expect(page.getByRole("region", { name: "Backlog" }).getByText("Levar ao pediatra")).toBeVisible();
+
+    await page.getByRole("tab", { name: "Painel" }).click();
+    await expect(page.getByRole("list", { name: "Avisos de prazo" }).getByText(/Relatório psicossocial a entregar/)).toBeVisible();
+
+    // desligamento pela ação própria
+    await page.getByRole("tab", { name: "Acolhidos" }).click();
+    await page.getByRole("button", { name: `Desligar ${nome}` }).click();
+    const desligar = page.getByRole("dialog", { name: "Desligar acolhimento" });
+    await desligar.getByLabel("Tipo de desligamento").selectOption("reintegracao_familia_extensa");
+    await desligar.getByLabel("Motivo *").fill("retorno à família extensa, e2e");
+    await desligar.getByRole("button", { name: "Confirmar desligamento" }).click();
+    await expect(page.getByText("Acolhimento desligado")).toBeVisible();
+    await page.getByRole("button", { name: /Ver desligados/ }).click();
+    await expect(page.getByRole("table", { name: "Desligados da unidade" }).getByRole("row").filter({ hasText: nome }))
+      .toContainText("Reintegração à família extensa");
+  });
+
   test("Auditoria: toda a movimentação acima fica na trilha e a cadeia de hash é íntegra", async ({ page }) => {
     await asAdmin(page);
     await page.goto("/auditoria");

@@ -186,11 +186,15 @@ describe("SEMPRAS — atendimento", () => {
       "GET v1/sempras/unidades/u2/fila": { data: [] },
       "GET v1/sempras/unidades/u2/encaminhamentos": { data: [] },
       "GET v1/sempras/unidades/u4/encaminhamentos": { data: [] },
+      "GET v1/sempras/unidades/u4/casa-abrigo": { data: { criancas: 0, adolescentes: 0, ativos: 0, pias_vencendo: 0, desacolhidos: 0,
+        acolhidos: [], desligados: [], alertas: [] } },
     });
     resetNavigation({ unidade: "u4" });
     const { unmount } = renderRealtime(<UnidadePage />);
     expect(await screen.findByRole("heading", { level: 1, name: "Casa Abrigo" })).toBeInTheDocument();
-    expect(screen.getByText("Busca de munícipe")).toBeInTheDocument();
+    // a Casa Abrigo tem as telas do sistema da unidade em abas (ADR 032)
+    expect(await screen.findByRole("tablist", { name: "Telas da Casa Abrigo" })).toBeInTheDocument();
+    expect(await screen.findByText("Busca de munícipe")).toBeInTheDocument();
     expect(screen.queryByLabelText("Demanda")).not.toBeInTheDocument();
     expect(screen.queryByRole("list", { name: "Fila" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Painel de chamada/ })).not.toBeInTheDocument();
@@ -926,150 +930,56 @@ describe("SEMPRAS — ficha do munícipe", () => {
     expect(await screen.findByText("Ofício respondido")).toBeInTheDocument();
   });
 
-  it("Casa Abrigo: lista, abre acolhimento, adiciona irmão/diagnóstico e desliga", async () => {
+  it("Casa Abrigo: o resumo do acolhimento, os atalhos para o espaço da unidade e o desligamento", async () => {
     resetNavigation({ id: "c1" }, "/", "unidade=u4");
     const api = mockBackend({
       ...identityRoutes(),
       "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
       "GET v1/sempras/unidades": { data: TODAS },
-      "POST v1/sempras/cidadaos/c1/casa-abrigo": {
-        status: 201,
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0], id: "acolh2" },
-      },
-      "POST v1/sempras/casa-abrigo/acolh1/irmaos": {
-        status: 201,
-        data: { id: "irmao1", acolhimento_id: "acolh1", nome: "Irmão da Criança", data_nascimento: null, esta_acolhido: false, unidade_descricao: "", observacao: "", created_at: "2026-10-08T01:30:00Z" },
-      },
-      "DELETE v1/sempras/casa-abrigo-irmaos/irmao1": { data: { removido: true } },
-      "POST v1/sempras/casa-abrigo/acolh1/diagnosticos": {
-        status: 201,
-        data: { id: "diag1", acolhimento_id: "acolh1", categoria: "doenca", diagnostico: "asma", descricao: "", created_at: "2026-10-08T01:40:00Z" },
-      },
-      "DELETE v1/sempras/casa-abrigo-diagnosticos/diag1": { data: { removido: true } },
       "POST v1/sempras/casa-abrigo/acolh1/desligar": {
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0], status: "desligado", motivo_desligamento: "família reestruturada" },
+        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0], status: "desligado", desligamento_tipo: "adocao" },
       },
     });
     renderApp(<FichaPage />);
     const lista = within(await screen.findByRole("list", { name: "Acolhimentos" }));
-    expect(lista.getByText("Negligência/abandono")).toBeInTheDocument();
-    expect(lista.getByText("Acolhido")).toBeInTheDocument();
+    expect(lista.getByText("Negligência, pais em conflito com a lei")).toBeInTheDocument();
+    expect(lista.getByText(/Em processo de guarda/)).toBeInTheDocument();
+    expect(lista.getByText(/Processo: 123\/2026/)).toBeInTheDocument();
+    expect(lista.getByText(/Próxima reavaliação do P\.I\.A\. 05\/01\/2027/)).toBeInTheDocument();
+    expect(lista.getByText(/asma \(doença\)/)).toBeInTheDocument();
+    expect(lista.getByText("Irmão da Criança")).toBeInTheDocument();
+    expect(lista.getByRole("link", { name: "P.I.A." })).toHaveAttribute("href", "/sempras/u/u1?aba=pia&acolhido=acolh1");
+    // já há acolhimento ativo: o assistente não é oferecido
+    expect(screen.queryByRole("link", { name: /Novo acolhimento/ })).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByLabelText("Situação de rua"));
-    await userEvent.click(screen.getByRole("button", { name: "Abrir acolhimento" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/cidadaos/c1/casa-abrigo")[0]!.body).toEqual({
-        unidade_id: "u4", sexo: "masculino", motivos: ["situacao_rua"], responsavel_nome: "",
-        responsavel_vinculo: "", processo_judicial: "", conselheiro_nome: "",
-      }),
-    );
-    expect(await screen.findByText("Acolhimento registrado")).toBeInTheDocument();
-
-    await userEvent.type(screen.getByLabelText("Nome do irmão"), "Irmão da Criança");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar irmão" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/irmaos")[0]!.body).toEqual({ nome: "Irmão da Criança", esta_acolhido: false }),
-    );
-    expect(await screen.findByText("Irmão adicionado")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Remover Irmão da Criança" }));
-    await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-irmaos/irmao1")).toHaveLength(1));
-    expect(await screen.findByText("Irmão removido")).toBeInTheDocument();
-
-    await userEvent.type(screen.getByLabelText("Diagnóstico"), "asma");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar diagnóstico" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/diagnosticos")[0]!.body).toEqual({ categoria: "doenca", diagnostico: "asma" }),
-    );
-    expect(await screen.findByText("Diagnóstico adicionado")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Remover diagnóstico asma" }));
-    await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-diagnosticos/diag1")).toHaveLength(1));
-    expect(await screen.findByText("Diagnóstico removido")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Desligar" }));
+    await userEvent.click(lista.getByRole("button", { name: "Desligar" }));
     const dialog = await screen.findByRole("dialog", { name: "Desligar acolhimento" });
-    await userEvent.type(within(dialog).getByLabelText("Motivo do desligamento *"), "família reestruturada");
+    await userEvent.selectOptions(within(dialog).getByLabelText("Tipo de desligamento"), "adocao");
+    await userEvent.type(within(dialog).getByLabelText("Motivo do desligamento *"), "sentença de adoção");
+    await userEvent.type(within(dialog).getByLabelText("Nº da guia de desligamento"), "GD-9");
     await userEvent.click(within(dialog).getByRole("button", { name: "Confirmar" }));
     await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/desligar")[0]!.body).toEqual({ motivo: "família reestruturada" }),
+      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/desligar")[0]!.body).toMatchObject({
+        tipo: "adocao", motivo: "sentença de adoção", guia: "GD-9",
+      }),
     );
     expect(await screen.findByText("Acolhimento desligado")).toBeInTheDocument();
   });
 
-  it("Casa Abrigo: visitantes, termos e PIA — anota, lança, salva e conclui uma meta", async () => {
+  it("Casa Abrigo: sem acolhimento ativo, a ficha leva ao assistente; o desligado mostra a saída", async () => {
     resetNavigation({ id: "c1" }, "/", "unidade=u4");
-    const api = mockBackend({
+    const desligado = { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!, status: "desligado", desligamento_tipo: "adocao",
+      motivo_desligamento: "sentença", data_desligamento: "2026-10-10T00:00:00Z", pia: null, diagnosticos: [], irmaos: [] };
+    mockBackend({
       ...identityRoutes(),
-      "GET v1/sempras/cidadaos/c1/prontuario": { data: PRONTUARIO },
+      "GET v1/sempras/cidadaos/c1/prontuario": { data: { ...PRONTUARIO, casa_abrigo_acolhimentos: [desligado] } },
       "GET v1/sempras/unidades": { data: TODAS },
-      "POST v1/sempras/casa-abrigo/acolh1/visitantes": {
-        status: 201,
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.visitantes[0], id: "visita2" },
-      },
-      "DELETE v1/sempras/casa-abrigo-visitantes/visita1": { data: { removido: true } },
-      "POST v1/sempras/casa-abrigo/acolh1/termos": {
-        status: 201,
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.termos[0], id: "termo2" },
-      },
-      "DELETE v1/sempras/casa-abrigo-termos/termo1": { data: { removido: true } },
-      "PUT v1/sempras/casa-abrigo/acolh1/pia": { data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.pia, escola: "Escola Estadual" } },
-      "POST v1/sempras/casa-abrigo/acolh1/pia-metas": {
-        status: 201,
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.pia_metas[0], id: "meta2" },
-      },
-      "POST v1/sempras/casa-abrigo-pia-metas/meta1/concluir": {
-        data: { ...PRONTUARIO.casa_abrigo_acolhimentos[0]!.pia_metas[0], concluida: true },
-      },
-      "DELETE v1/sempras/casa-abrigo-pia-metas/meta1": { data: { removido: true } },
     });
     renderApp(<FichaPage />);
     const lista = within(await screen.findByRole("list", { name: "Acolhimentos" }));
-    expect(lista.getByText(/Tia Maria/)).toBeInTheDocument();
-
-    await userEvent.type(screen.getByLabelText("Nome do visitante"), "Tia Maria");
-    await userEvent.click(screen.getByRole("button", { name: "Anotar visita" }));
-    await waitFor(() => expect(api.to("POST v1/sempras/casa-abrigo/acolh1/visitantes")).toHaveLength(1));
-    expect(await screen.findByText("Visita registrada")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Remover visita de Tia Maria" }));
-    await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-visitantes/visita1")).toHaveLength(1));
-    expect(await screen.findByText("Visita removida")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Lançar termo" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/termos")[0]!.body).toMatchObject({ tipo_termo: "passeio" }),
-    );
-    expect(await screen.findByText("Termo registrado")).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("button", { name: "Remover termo de Passeio" }));
-    await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-termos/termo1")).toHaveLength(1));
-    expect(await screen.findByText("Termo removido")).toBeInTheDocument();
-
-    await userEvent.clear(screen.getByLabelText("Escola"));
-    await userEvent.type(screen.getByLabelText("Escola"), "Escola Estadual");
-    await userEvent.click(screen.getByRole("button", { name: "Salvar PIA" }));
-    await waitFor(() =>
-      expect(api.to("PUT v1/sempras/casa-abrigo/acolh1/pia")[0]!.body).toMatchObject({ escola: "Escola Estadual" }),
-    );
-    expect(await screen.findByText("PIA atualizado")).toBeInTheDocument();
-
-    await userEvent.type(screen.getByLabelText("Descrição da meta"), "nova meta de acompanhamento");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar meta" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo/acolh1/pia-metas")[0]!.body).toEqual({ tipo: "plano", descricao: "nova meta de acompanhamento" }),
-    );
-    expect(await screen.findByText("Meta do PIA adicionada")).toBeInTheDocument();
-
-    await userEvent.click(lista.getByRole("button", { name: "Concluir meta reduzir episódios de agressividade" }));
-    await waitFor(() =>
-      expect(api.to("POST v1/sempras/casa-abrigo-pia-metas/meta1/concluir")[0]!.body).toEqual({ concluida: true }),
-    );
-    expect(await screen.findByText("Meta concluída")).toBeInTheDocument();
-
-    await userEvent.click(lista.getByRole("button", { name: "Remover meta reduzir episódios de agressividade" }));
-    await waitFor(() => expect(api.to("DELETE v1/sempras/casa-abrigo-pia-metas/meta1")).toHaveLength(1));
-    expect(await screen.findByText("Meta removida")).toBeInTheDocument();
+    expect(lista.getByText(/Desligado em 10\/10\/2026 · Adoção · sentença/)).toBeInTheDocument();
+    expect(lista.queryByRole("button", { name: "Desligar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Novo acolhimento/ })).toHaveAttribute("href", "/sempras/u/u4?novo=c1");
   });
 
   it("Casa Abrigo: documentos — envia um PDF (ticket, PUT, confirmação), baixa e remove", async () => {

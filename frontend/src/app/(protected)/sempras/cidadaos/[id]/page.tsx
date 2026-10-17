@@ -31,7 +31,6 @@ import {
   DESTINOS_EXTERNOS,
   FORMAS_ACESSO_BENEFICIO,
   MEDIDAS_PROTETIVAS,
-  MOTIVOS_ACOLHIMENTO,
   MOTIVOS_ENCERRAMENTO_PAEFI,
   MOTIVOS_VIOLACAO,
   ORIGENS_DEMANDA,
@@ -60,14 +59,12 @@ import {
   type DocumentoCentroPop,
   type FormaAcessoBeneficio,
   type MedidaProtetiva,
-  type MotivoAcolhimento,
   type MotivoEncerramentoPaefi,
   type MotivoViolacaoConselho,
   type OrigemDemandaConselho,
   type OrigemNotificacaoCreas,
   type PrioridadeEncaminhamentoExterno,
   type Prontuario,
-  type SexoAcolhido,
   type TipoAtendimentoPaif,
   type TipoBeneficio,
   type TipoDocumentoCentroPop,
@@ -541,40 +538,6 @@ export default function FichaPage() {
     if (ok) {
       setRespondendoOficio(null);
       setNumeroRespostaOficio("");
-      void ficha.mutate();
-    }
-  }
-
-  // Casa Abrigo: acolhimento institucional de criança/adolescente sob
-  // medida protetiva.
-  const [sexoAcolhido, setSexoAcolhido] = useState<SexoAcolhido>("masculino");
-  const [motivosAcolhimento, setMotivosAcolhimento] = useState<MotivoAcolhimento[]>([]);
-  const [respNomeAcolhimento, setRespNomeAcolhimento] = useState("");
-  const [respVinculoAcolhimento, setRespVinculoAcolhimento] = useState("");
-  const [processoJudicial, setProcessoJudicial] = useState("");
-  const [conselheiroNomeAcolhimento, setConselheiroNomeAcolhimento] = useState("");
-  const { run: runAcolhimento, pending: pendingAcolhimento } = useAction();
-
-  function toggleMotivoAcolhimento(m: MotivoAcolhimento) {
-    setMotivosAcolhimento((atual) => (atual.includes(m) ? atual.filter((x) => x !== m) : [...atual, m]));
-  }
-
-  async function registrarAcolhimento(e: FormEvent) {
-    e.preventDefault();
-    const ok = await runAcolhimento(
-      () => apiClient.post(`v1/sempras/cidadaos/${id}/casa-abrigo`, {
-        unidade_id: unidadeId, sexo: sexoAcolhido, motivos: motivosAcolhimento, responsavel_nome: respNomeAcolhimento.trim(),
-        responsavel_vinculo: respVinculoAcolhimento.trim(), processo_judicial: processoJudicial.trim(),
-        conselheiro_nome: conselheiroNomeAcolhimento.trim(),
-      }),
-      "Acolhimento registrado",
-    );
-    if (ok) {
-      setMotivosAcolhimento([]);
-      setRespNomeAcolhimento("");
-      setRespVinculoAcolhimento("");
-      setProcessoJudicial("");
-      setConselheiroNomeAcolhimento("");
       void ficha.mutate();
     }
   }
@@ -1403,36 +1366,11 @@ export default function FichaPage() {
                 <CardTitle as="h2">Casa Abrigo</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4 pb-5">
-                <form onSubmit={registrarAcolhimento} className="mt-3 flex flex-col gap-3">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Select id="acolhimento-sexo" label="Sexo" value={sexoAcolhido} onChange={(e) => setSexoAcolhido(e.target.value as SexoAcolhido)}
-                      options={[{ value: "masculino", label: "Masculino" }, { value: "feminino", label: "Feminino" }]} />
-                    <Input id="acolhimento-resp-nome" label="Nome do responsável" maxLength={200} value={respNomeAcolhimento}
-                      onChange={(e) => setRespNomeAcolhimento(e.target.value)} autoComplete="off" />
-                    <Input id="acolhimento-resp-vinculo" label="Vínculo do responsável" maxLength={100} value={respVinculoAcolhimento}
-                      onChange={(e) => setRespVinculoAcolhimento(e.target.value)} autoComplete="off" />
-                  </div>
-                  <fieldset className="flex flex-wrap gap-3 text-sm">
-                    <legend className="mb-1 text-muted">Motivos do acolhimento</legend>
-                    {Object.entries(MOTIVOS_ACOLHIMENTO).map(([value, label]) => (
-                      <label key={value} className="flex items-center gap-2">
-                        <input type="checkbox" checked={motivosAcolhimento.includes(value as MotivoAcolhimento)}
-                          onChange={() => toggleMotivoAcolhimento(value as MotivoAcolhimento)} /> {label}
-                      </label>
-                    ))}
-                  </fieldset>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Input id="acolhimento-processo" label="Processo judicial" maxLength={200} value={processoJudicial}
-                      onChange={(e) => setProcessoJudicial(e.target.value)} autoComplete="off" />
-                    <Input id="acolhimento-conselheiro" label="Nome do conselheiro" maxLength={200} value={conselheiroNomeAcolhimento}
-                      onChange={(e) => setConselheiroNomeAcolhimento(e.target.value)} autoComplete="off" />
-                  </div>
-                  <div>
-                    <Button type="submit" loading={pendingAcolhimento} disabled={!unidadeId || motivosAcolhimento.length === 0}>
-                      Abrir acolhimento
-                    </Button>
-                  </div>
-                </form>
+                {!ficha.data!.casa_abrigo_acolhimentos.some((a) => a.status === "acolhido") && (
+                  <Link href={`/sempras/u/${unidadeId}?novo=${id}`} className={buttonClass("primary", "md", "w-fit")}>
+                    Novo acolhimento (assistente de 6 etapas)
+                  </Link>
+                )}
                 {ficha.data!.casa_abrigo_acolhimentos.length === 0 ? (
                   <p className="text-sm text-muted">Nenhum acolhimento nas suas unidades.</p>
                 ) : (

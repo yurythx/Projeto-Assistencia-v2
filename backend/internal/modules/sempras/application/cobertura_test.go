@@ -64,8 +64,7 @@ func TestUnidadeDesativadaNaoRegistra(t *testing.T) {
 	inativa("notificação", err)
 	_, err = s.RegistrarOficioCras(ctx, c.identity, cid, c.unidade, "MPE", "1/2026", nil, "assunto do ofício")
 	inativa("ofício", err)
-	_, err = s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo,
-		application.AcolhimentoInput{Sexo: "masculino", Motivos: []string{"negligencia_abandono"}})
+	_, err = s.RegistrarAcolhimento(ctx, c.identity, cid, c.unAbrigo, acolhimentoInput())
 	inativa("acolhimento", err)
 	_, err = s.RegistrarAbordagem(ctx, c.identity, c.unPop, domain.AbordagemInput{DescricaoPessoa: "homem", Local: "Praça Brasil",
 		Resultado: "orientado", DataAbordagem: time.Now().Add(-time.Hour)})
@@ -94,7 +93,7 @@ func TestEntradasInvalidasNosCasosDeUso(t *testing.T) {
 	}
 	acolh := c.acolhimento(t)
 
-	_, err := s.SalvarPiaFicha(ctx, c.identity, acolh.ID, application.PiaFichaInput{Escola: longo})
+	_, err := s.SalvarPiaFicha(ctx, c.identity, acolh.ID, domain.PiaFichaDados{Escola: longo})
 	invalido("ficha do PIA", err)
 	_, err = s.StartUploadDocumento(ctx, c.identity, acolh.ID, "x", "doc.pdf", "application/pdf", 8)
 	invalido("tipo de documento do acolhido", err)
@@ -112,9 +111,9 @@ func TestEntradasInvalidasNosCasosDeUso(t *testing.T) {
 	invalido("origem da notificação", err)
 	_, err = s.RegistrarOficioCras(ctx, c.identity, cid, c.unidade, "", "1/2026", nil, "assunto do ofício")
 	invalido("órgão do ofício", err)
-	_, err = s.AdicionarIrmao(ctx, c.identity, acolh.ID, "", nil, false, "", "")
+	_, err = s.AdicionarIrmao(ctx, c.identity, acolh.ID, application.IrmaoInput{})
 	invalido("nome do irmão", err)
-	_, err = s.AtualizarAcolhimento(ctx, c.identity, acolh.ID, application.AcolhimentoInput{Sexo: "x", Motivos: []string{"negligencia_abandono"}})
+	_, err = s.AtualizarAcolhimento(ctx, c.identity, acolh.ID, domain.AcolhimentoDados{Sexo: "x", Motivos: []string{"negligencia"}}, time.Now())
 	invalido("sexo do acolhido", err)
 	_, err = s.TransitarEncaminhamentoExterno(ctx, c.identity, c.encaminhamentoExterno(t).ID, "x", "")
 	invalido("status do encaminhamento externo", err)
@@ -247,7 +246,7 @@ func TestProntuarioComAcolhimentoPropagaFalhas(t *testing.T) {
 	c := novoCenario(t)
 	ctx := context.Background()
 	acolh := c.acolhimento(t)
-	if _, err := c.limpo().SalvarPiaFicha(ctx, c.identity, acolh.ID, application.PiaFichaInput{Escola: "EMEB"}); err != nil {
+	if _, err := c.limpo().SalvarPiaFicha(ctx, c.identity, acolh.ID, domain.PiaFichaDados{Escola: "EMEB"}); err != nil {
 		t.Fatal(err)
 	}
 	p, err := c.limpo().Prontuario(ctx, c.identity, acolh.CidadaoID)

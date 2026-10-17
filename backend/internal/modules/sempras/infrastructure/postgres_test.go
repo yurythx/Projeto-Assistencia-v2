@@ -228,11 +228,11 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			return err
 		},
 		"InsertAcolhimento": func(db database.DBTX) error {
-			return r.InsertAcolhimento(ctx, db, domain.Acolhimento{ID: id, Sexo: "masculino", Motivos: []string{"outro"}}, id)
+			return r.InsertAcolhimento(ctx, db, domain.Acolhimento{ID: id, AcolhimentoDados: domain.AcolhimentoDados{Sexo: "masculino", Motivos: []string{"outro"}}}, id)
 		},
 		"GetAcolhimento": func(db database.DBTX) error { _, err := r.GetAcolhimento(ctx, db, id, true); return err },
 		"UpdateAcolhimento": func(db database.DBTX) error {
-			return r.UpdateAcolhimento(ctx, db, domain.Acolhimento{ID: id, Motivos: []string{"outro"}})
+			return r.UpdateAcolhimento(ctx, db, domain.Acolhimento{ID: id, AcolhimentoDados: domain.AcolhimentoDados{Motivos: []string{"outro"}}})
 		},
 		"AcolhimentosNaArea": func(db database.DBTX) error {
 			_, err := r.AcolhimentosNaArea(ctx, db, id, area)
@@ -255,7 +255,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 			return r.DeleteDiagnostico(ctx, db, id)
 		},
 		"InsertVisitante": func(db database.DBTX) error {
-			return r.InsertVisitante(ctx, db, domain.Visitante{ID: id, AcolhimentoID: id, NomeVisitante: "Visitante Teste", DataVisita: time.Now()}, id)
+			return r.InsertVisitante(ctx, db, domain.Visitante{ID: id, UnidadeID: id, AcolhimentoID: &id, TipoVisita: "acolhido", NomeVisitante: "Visitante Teste", DataVisita: time.Now()}, id)
 		},
 		"ListVisitantes": func(db database.DBTX) error { _, err := r.ListVisitantes(ctx, db, id); return err },
 		"GetVisitante":   func(db database.DBTX) error { _, err := r.GetVisitante(ctx, db, id); return err },
@@ -296,6 +296,36 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"DeleteDocumento": func(db database.DBTX) error {
 			return r.DeleteDocumento(ctx, db, id)
 		},
+		"UpdateVisitante": func(db database.DBTX) error { return r.UpdateVisitante(ctx, db, domain.Visitante{ID: id}) },
+		"ListVisitantesDaUnidade": func(db database.DBTX) error {
+			_, err := r.ListVisitantesDaUnidade(ctx, db, id)
+			return err
+		},
+		"ListTermosDaUnidade": func(db database.DBTX) error { _, err := r.ListTermosDaUnidade(ctx, db, id); return err },
+		"AcolhidosDaUnidade":  func(db database.DBTX) error { _, err := r.AcolhidosDaUnidade(ctx, db, id); return err },
+		"MetasPendentesDaUnidade": func(db database.DBTX) error {
+			_, err := r.MetasPendentesDaUnidade(ctx, db, id)
+			return err
+		},
+		"EvolucoesDaUnidade": func(db database.DBTX) error { _, err := r.EvolucoesDaUnidade(ctx, db, id); return err },
+		"InsertAnotacaoDiario": func(db database.DBTX) error {
+			return r.InsertAnotacaoDiario(ctx, db, domain.AnotacaoDiario{ID: id, UnidadeID: id, Texto: "anotação"}, id)
+		},
+		"ListDiario": func(db database.DBTX) error { _, err := r.ListDiario(ctx, db, id, time.Now(), time.Now()); return err },
+		"InsertRelatorio": func(db database.DBTX) error {
+			return r.InsertRelatorio(ctx, db, domain.RelatorioCasaAbrigo{ID: id, UnidadeID: id, Tipo: "mensal", Status: "em_elaboracao"}, id)
+		},
+		"GetRelatorio":    func(db database.DBTX) error { _, err := r.GetRelatorio(ctx, db, id, true); return err },
+		"UpdateRelatorio": func(db database.DBTX) error { return r.UpdateRelatorio(ctx, db, domain.RelatorioCasaAbrigo{ID: id}) },
+		"DeleteRelatorio": func(db database.DBTX) error { return r.DeleteRelatorio(ctx, db, id) },
+		"ListRelatorios":  func(db database.DBTX) error { _, err := r.ListRelatorios(ctx, db, id); return err },
+		"InsertTarefa": func(db database.DBTX) error {
+			return r.InsertTarefa(ctx, db, domain.TarefaCasaAbrigo{ID: id, UnidadeID: id, Titulo: "tarefa"}, id)
+		},
+		"GetTarefa":    func(db database.DBTX) error { _, err := r.GetTarefa(ctx, db, id, true); return err },
+		"UpdateTarefa": func(db database.DBTX) error { return r.UpdateTarefa(ctx, db, domain.TarefaCasaAbrigo{ID: id}) },
+		"DeleteTarefa": func(db database.DBTX) error { return r.DeleteTarefa(ctx, db, id) },
+		"ListTarefas":  func(db database.DBTX) error { _, err := r.ListTarefas(ctx, db, id); return err },
 	}
 	for name, call := range calls {
 		if err := call(dbtest.Fail{}); !errors.Is(err, dbtest.ErrInjected) {
@@ -314,7 +344,8 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"GetDocumento", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea", "GetCasoCasaMulher",
 		"CasosCasaMulherNaArea", "GetOficioCras", "OficiosCrasNaArea", "ListAtendimentosColetivos", "GetCentroPopPerfil",
 		"GetEncaminhamentoExterno", "EncaminhamentosExternosNaArea", "GetDocumentoCentroPop", "ListDocumentosCentroPop",
-		"ListAbordagens", "AbordagensNaArea"} {
+		"ListAbordagens", "AbordagensNaArea", "ListVisitantesDaUnidade", "ListTermosDaUnidade", "AcolhidosDaUnidade",
+		"MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "GetRelatorio", "ListRelatorios", "GetTarefa", "ListTarefas"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
@@ -325,7 +356,8 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"PaefiCasosNaArea", "MseMedidasNaArea", "NotificacoesCreasNaArea", "AcolhimentosNaArea", "ListIrmaos", "ListDiagnosticos",
 		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea",
 		"CasosCasaMulherNaArea", "OficiosCrasNaArea", "ListAtendimentosColetivos", "EncaminhamentosExternosNaArea",
-		"ListDocumentosCentroPop", "ListAbordagens", "AbordagensNaArea"} {
+		"ListDocumentosCentroPop", "ListAbordagens", "AbordagensNaArea", "ListVisitantesDaUnidade", "ListTermosDaUnidade",
+		"AcolhidosDaUnidade", "MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "ListRelatorios", "ListTarefas"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}
@@ -397,6 +429,12 @@ func TestRepositoryNotFound(t *testing.T) {
 	}
 	if _, err := r.GetPiaMeta(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("GetPiaMeta: %v", err)
+	}
+	if _, err := r.GetRelatorio(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetRelatorio: %v", err)
+	}
+	if _, err := r.GetTarefa(ctx, pool, id, false); !errors.Is(err, domain.ErrNotFound) {
+		t.Errorf("GetTarefa: %v", err)
 	}
 	if _, err := r.GetDocumento(ctx, pool, id); !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("GetDocumento: %v", err)
@@ -1162,115 +1200,6 @@ func TestAtendimentoColetivoRoundTrip(t *testing.T) {
 	}
 }
 
-// Round-trip da Casa Abrigo: grava o acolhimento, lista na área do
-// munícipe, adiciona irmão e diagnóstico, desliga e confirma que a
-// edição geral (Atualizar) nunca toca status/desligamento.
-func TestAcolhimentoRoundTrip(t *testing.T) {
-	pool := dbtest.Pool(t)
-	r := NewRepository()
-	ctx := context.Background()
-	autor := dbtest.User(t, pool)
-	sfx := uuid.NewString()[:8]
-
-	var ent, un, unOutra uuid.UUID
-	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
-		t.Fatal(err)
-	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
-		t.Fatal(err)
-	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-outra-"+sfx).Scan(&unOutra); err != nil {
-		t.Fatal(err)
-	}
-	crianca := uuid.New()
-	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
-		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
-		t.Fatal(err)
-	}
-
-	a, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"negligencia_abandono", "situacao_rua"},
-		"Mãe da Criança", "", "66999990000", "mãe", "", "", "", "", "", "", false, false, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	a.DataEntrada = time.Now()
-	if err := r.InsertAcolhimento(ctx, pool, a, autor); err != nil {
-		t.Fatal(err)
-	}
-
-	got, err := r.GetAcolhimento(ctx, pool, a.ID, false)
-	if err != nil || got.Status != domain.AcolhimentoStatusAcolhido || len(got.Motivos) != 2 {
-		t.Fatalf("GetAcolhimento: %+v, %v", got, err)
-	}
-
-	lista, err := r.AcolhimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{un}})
-	if err != nil || len(lista) != 1 || lista[0].ID != a.ID {
-		t.Fatalf("AcolhimentosNaArea: %+v, %v", lista, err)
-	}
-	foraDaArea, err := r.AcolhimentosNaArea(ctx, pool, crianca, domain.Area{Unidades: []uuid.UUID{unOutra}})
-	if err != nil || len(foraDaArea) != 0 {
-		t.Fatalf("AcolhimentosNaArea fora da área: %+v, %v", foraDaArea, err)
-	}
-
-	irmao, err := domain.NovoIrmao(a.ID, "Irmão da Criança", nil, true, "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	irmao.CreatedAt = time.Now()
-	if err := r.InsertIrmao(ctx, pool, irmao); err != nil {
-		t.Fatal(err)
-	}
-	irmaos, err := r.ListIrmaos(ctx, pool, a.ID)
-	if err != nil || len(irmaos) != 1 || irmaos[0].Nome != "Irmão da Criança" {
-		t.Fatalf("ListIrmaos: %+v, %v", irmaos, err)
-	}
-	if err := r.DeleteIrmao(ctx, pool, irmao.ID); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := r.GetIrmao(ctx, pool, irmao.ID); !errors.Is(err, domain.ErrNotFound) {
-		t.Errorf("irmão deveria ter sido removido: %v", err)
-	}
-
-	diag, err := domain.NovoDiagnostico(a.ID, "transtorno", "TEA nível 1", "suporte leve")
-	if err != nil {
-		t.Fatal(err)
-	}
-	diag.CreatedAt = time.Now()
-	if err := r.InsertDiagnostico(ctx, pool, diag); err != nil {
-		t.Fatal(err)
-	}
-	diagnosticos, err := r.ListDiagnosticos(ctx, pool, a.ID)
-	if err != nil || len(diagnosticos) != 1 || diagnosticos[0].Diagnostico != "TEA nível 1" {
-		t.Fatalf("ListDiagnosticos: %+v, %v", diagnosticos, err)
-	}
-	if err := r.DeleteDiagnostico(ctx, pool, diag.ID); err != nil {
-		t.Fatal(err)
-	}
-
-	// Atualizar regrava só campos descritivos — status/desligamento ficam intactos.
-	if err := got.Atualizar("feminino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "atualizado"); err != nil {
-		t.Fatal(err)
-	}
-	if err := r.UpdateAcolhimento(ctx, pool, got); err != nil {
-		t.Fatal(err)
-	}
-	atualizado, err := r.GetAcolhimento(ctx, pool, a.ID, false)
-	if err != nil || atualizado.Status != domain.AcolhimentoStatusAcolhido || atualizado.Observacoes != "atualizado" || atualizado.Sexo != "feminino" {
-		t.Fatalf("GetAcolhimento após atualizar: %+v, %v", atualizado, err)
-	}
-
-	if err := atualizado.Desligar("família reestruturada, retorno ao convívio", autor, time.Now()); err != nil {
-		t.Fatal(err)
-	}
-	if err := r.UpdateAcolhimento(ctx, pool, atualizado); err != nil {
-		t.Fatal(err)
-	}
-	desligado, err := r.GetAcolhimento(ctx, pool, a.ID, false)
-	if err != nil || desligado.Status != domain.AcolhimentoStatusDesligado || desligado.DesligadoPor == nil {
-		t.Fatalf("GetAcolhimento após desligar: %+v, %v", desligado, err)
-	}
-}
-
 // Round-trip do RMA/MDS: grava um pouco de cada entidade do módulo
 // dentro e fora da competência, e confirma que o relatório soma certo
 // — "ativos" é fotografia (não some fora da competência), os demais só
@@ -1382,11 +1311,8 @@ func TestRmaRoundTrip(t *testing.T) {
 	}
 
 	// Casa Abrigo: acolhimento ativo com entrada dentro da competência.
-	acolh, err := domain.NovoAcolhimento(cid, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	acolh.DataEntrada = dentro
+	acolh := domain.Acolhimento{ID: uuid.New(), CidadaoID: cid, UnidadeID: un, Status: domain.AcolhimentoStatusAcolhido,
+		AcolhimentoDados: domain.AcolhimentoDados{Sexo: "masculino", Motivos: []string{"outro"}, OutroMotivo: "teste"}, DataEntrada: dentro}
 	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
 		t.Fatal(err)
 	}
@@ -1427,187 +1353,6 @@ func TestRmaRoundTrip(t *testing.T) {
 	semMovimento, err := r.Rma(ctx, pool, []domain.Unidade{{ID: unOutra}}, inicio, fim)
 	if err != nil || len(semMovimento) != 1 || semMovimento[0].Atendimentos != 0 {
 		t.Fatalf("Rma unidade sem movimento: %+v, %v", semMovimento, err)
-	}
-}
-
-// Round-trip de visitantes, termos e PIA da Casa Abrigo: grava, lista,
-// e confirma o upsert do PIA e a conclusão de uma meta.
-func TestVisitanteTermoPiaRoundTrip(t *testing.T) {
-	pool := dbtest.Pool(t)
-	r := NewRepository()
-	ctx := context.Background()
-	autor := dbtest.User(t, pool)
-	sfx := uuid.NewString()[:8]
-
-	var ent, un uuid.UUID
-	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
-		t.Fatal(err)
-	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
-		t.Fatal(err)
-	}
-	crianca := uuid.New()
-	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
-		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
-		t.Fatal(err)
-	}
-	acolh, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	acolh.DataEntrada = time.Now()
-	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
-		t.Fatal(err)
-	}
-
-	v, err := domain.NovoVisitante(acolh.ID, "Maria Visitante", "", "Tia", time.Now(), "14:00", "16:30", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	v.CreatedAt = time.Now()
-	if err := r.InsertVisitante(ctx, pool, v, autor); err != nil {
-		t.Fatal(err)
-	}
-	visitantes, err := r.ListVisitantes(ctx, pool, acolh.ID)
-	if err != nil || len(visitantes) != 1 || visitantes[0].HoraEntrada != "14:00" || visitantes[0].HoraSaida != "16:30" {
-		t.Fatalf("ListVisitantes: %+v, %v", visitantes, err)
-	}
-	if err := r.DeleteVisitante(ctx, pool, v.ID); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := r.GetVisitante(ctx, pool, v.ID); !errors.Is(err, domain.ErrNotFound) {
-		t.Errorf("visitante deveria ter sido removido: %v", err)
-	}
-
-	tm, err := domain.NovoTermo(acolh.ID, "passeio", "Tia Maria", "Tia", "passeio no parque", time.Now())
-	if err != nil {
-		t.Fatal(err)
-	}
-	tm.CreatedAt = time.Now()
-	if err := r.InsertTermo(ctx, pool, tm, autor); err != nil {
-		t.Fatal(err)
-	}
-	termos, err := r.ListTermos(ctx, pool, acolh.ID)
-	if err != nil || len(termos) != 1 || termos[0].TipoTermo != "passeio" {
-		t.Fatalf("ListTermos: %+v, %v", termos, err)
-	}
-
-	// PIA ainda não preenchido.
-	if _, err := r.GetPiaFicha(ctx, pool, acolh.ID); !errors.Is(err, domain.ErrNotFound) {
-		t.Errorf("GetPiaFicha antes de preencher: %v", err)
-	}
-	pia, err := domain.NovaPiaFicha(acolh.ID, "", "", "Escola Municipal", "", "", true, "", "", "", "", "", "", "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	pia.AtualizadoEm = time.Now()
-	if err := r.UpsertPiaFicha(ctx, pool, pia, autor); err != nil {
-		t.Fatal(err)
-	}
-	got, err := r.GetPiaFicha(ctx, pool, acolh.ID)
-	if err != nil || got.Escola != "Escola Municipal" || !got.VacinacaoAtualizada {
-		t.Fatalf("GetPiaFicha: %+v, %v", got, err)
-	}
-	// upsert: uma segunda gravação atualiza, não duplica.
-	pia2, err := domain.NovaPiaFicha(acolh.ID, "", "", "Escola Estadual", "", "", false, "", "", "", "", "", "", "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	pia2.AtualizadoEm = time.Now()
-	if err := r.UpsertPiaFicha(ctx, pool, pia2, autor); err != nil {
-		t.Fatal(err)
-	}
-	atualizada, err := r.GetPiaFicha(ctx, pool, acolh.ID)
-	if err != nil || atualizada.Escola != "Escola Estadual" || atualizada.VacinacaoAtualizada {
-		t.Fatalf("GetPiaFicha após upsert: %+v, %v", atualizada, err)
-	}
-
-	meta, err := domain.NovaPiaMeta(acolh.ID, domain.PiaMetaIntervencao, "reduzir episódios de agressividade", "atendimento semanal", "Psicóloga", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	meta.CreatedAt = time.Now()
-	if err := r.InsertPiaMeta(ctx, pool, meta, autor); err != nil {
-		t.Fatal(err)
-	}
-	metas, err := r.ListPiaMetas(ctx, pool, acolh.ID)
-	if err != nil || len(metas) != 1 || metas[0].Concluida {
-		t.Fatalf("ListPiaMetas: %+v, %v", metas, err)
-	}
-	metas[0].Concluida = true
-	if err := r.UpdatePiaMeta(ctx, pool, metas[0]); err != nil {
-		t.Fatal(err)
-	}
-	concluida, err := r.GetPiaMeta(ctx, pool, meta.ID)
-	if err != nil || !concluida.Concluida {
-		t.Fatalf("GetPiaMeta após concluir: %+v, %v", concluida, err)
-	}
-	if err := r.DeletePiaMeta(ctx, pool, meta.ID); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// Round-trip dos documentos da Casa Abrigo: grava pendente, confirma
-// (tamanho/tipo reais), lista e remove.
-func TestDocumentoCasaAbrigoRoundTrip(t *testing.T) {
-	pool := dbtest.Pool(t)
-	r := NewRepository()
-	ctx := context.Background()
-	autor := dbtest.User(t, pool)
-	sfx := uuid.NewString()[:8]
-
-	var ent, un uuid.UUID
-	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
-		t.Fatal(err)
-	}
-	if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug) VALUES ($1, $2, $2) RETURNING id`, ent, "un-"+sfx).Scan(&un); err != nil {
-		t.Fatal(err)
-	}
-	crianca := uuid.New()
-	if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: crianca, Nome: "Criança Acolhida",
-		DataNascimento: "2015-01-01", NomeMae: "Mãe Teste", CreatedAt: time.Now(), UpdatedAt: time.Now()}, autor); err != nil {
-		t.Fatal(err)
-	}
-	acolh, err := domain.NovoAcolhimento(crianca, un, "masculino", []string{"outro"}, "", "", "", "", "", "", "", "", "", "", false, false, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	acolh.DataEntrada = time.Now()
-	if err := r.InsertAcolhimento(ctx, pool, acolh, autor); err != nil {
-		t.Fatal(err)
-	}
-
-	d, err := domain.NovoDocumentoCasaAbrigo(acolh.ID, domain.DocumentoTipoAcolhido, "doc.pdf", "sempras/casa-abrigo/"+acolh.ID.String()+"/2026/10/abc.pdf", "application/pdf")
-	if err != nil {
-		t.Fatal(err)
-	}
-	d.CreatedAt = time.Now()
-	if err := r.InsertDocumento(ctx, pool, d, autor); err != nil {
-		t.Fatal(err)
-	}
-	got, err := r.GetDocumento(ctx, pool, d.ID)
-	if err != nil || got.Status != domain.DocumentoStatusPending {
-		t.Fatalf("GetDocumento: %+v, %v", got, err)
-	}
-
-	if err := r.UpdateDocumentoStatus(ctx, pool, d.ID, domain.DocumentoStatusReady, 1024, "application/pdf"); err != nil {
-		t.Fatal(err)
-	}
-	confirmado, err := r.GetDocumento(ctx, pool, d.ID)
-	if err != nil || confirmado.Status != domain.DocumentoStatusReady || confirmado.SizeBytes != 1024 {
-		t.Fatalf("GetDocumento após confirmar: %+v, %v", confirmado, err)
-	}
-
-	documentos, err := r.ListDocumentos(ctx, pool, acolh.ID)
-	if err != nil || len(documentos) != 1 || documentos[0].ID != d.ID {
-		t.Fatalf("ListDocumentos: %+v, %v", documentos, err)
-	}
-
-	if err := r.DeleteDocumento(ctx, pool, d.ID); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := r.GetDocumento(ctx, pool, d.ID); !errors.Is(err, domain.ErrNotFound) {
-		t.Errorf("documento deveria ter sido removido: %v", err)
 	}
 }
 

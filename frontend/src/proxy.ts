@@ -82,13 +82,16 @@ export async function proxy(request: NextRequest) {
   // é muito menos grave que um de script.
   const vlibrasHosts = "https://vlibras.gov.br https://*.vlibras.gov.br https://cdn.jsdelivr.net";
   const connectSrcDev = isDev ? " http: https: ws: wss:" : "";
+  // Busca de endereço pelo CEP no cadastro da Casa Abrigo (ADR 032): só o
+  // CEP sai do navegador, sem dado pessoal; o BrasilAPI é a reserva.
+  const cepHosts = "https://viacep.com.br https://brasilapi.com.br";
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""};
     style-src 'self' 'unsafe-inline' ${vlibrasHosts};
     img-src 'self' blob: data: ${vlibrasHosts}${minioOrigin ? ` ${minioOrigin}` : ""};
     font-src 'self' data: ${vlibrasHosts};
-    connect-src 'self' blob: data: ${vlibrasHosts}${connectOrigins ? ` ${connectOrigins}` : ""}${connectSrcDev};
+    connect-src 'self' blob: data: ${vlibrasHosts} ${cepHosts}${connectOrigins ? ` ${connectOrigins}` : ""}${connectSrcDev};
     worker-src 'self' blob: data: https://vlibras.gov.br https://*.vlibras.gov.br;
     child-src 'self' blob: data: https://vlibras.gov.br https://*.vlibras.gov.br;
     frame-src 'self' blob: data: https://vlibras.gov.br https://*.vlibras.gov.br;
