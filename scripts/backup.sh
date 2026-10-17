@@ -14,11 +14,17 @@
 #
 # BACKUP_DIR (padrão /root/backups/nexus) e BACKUP_KEEP_DAYS (padrão 7).
 # Fica no MESMO disco do servidor: protege contra erro humano e dados
-# corrompidos, não contra perda da máquina — copie para fora (rsync/rclone).
+# corrompidos, não contra perda da máquina. Para a cópia externa, defina
+# BACKUP_REMOTE (p. ex. backup@nas.local:/srv/backups/assistencia — rsync por
+# SSH, chave do root autorizada no destino), no ambiente ou em
+# /etc/default/assistencia-backup. ATENÇÃO: o backup leva .env e secrets/;
+# o destino externo tem de ser tão protegido quanto este servidor.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
+# shellcheck disable=SC1091
+[ -f /etc/default/assistencia-backup ] && . /etc/default/assistencia-backup
 BACKUP_DIR="${BACKUP_DIR:-/root/backups/nexus}"
 KEEP_DAYS="${BACKUP_KEEP_DAYS:-7}"
 
@@ -38,8 +44,12 @@ DB_USER="$(env_val DB_USER)"; DB_USER="${DB_USER:-nexus}"
 DB_NAME="$(env_val DB_NAME)"; DB_NAME="${DB_NAME:-nexus}"
 PROJECT="$(docker compose config 2>/dev/null | sed -n 's/^name: //p' | head -1)"
 
-dest="$BACKUP_DIR/$(date +%Y%m%d-%H%M%S)"
+# Grava num .partial e só renomeia no fim: uma falha no meio (container
+# fora, disco cheio) nunca deixa um backup incompleto com cara de bom.
+final="$BACKUP_DIR/$(date +%Y%m%d-%H%M%S)"
+dest="$final.partial"
 umask 077
+trap 'rm -rf "$dest"' EXIT
 mkdir -p "$dest/config" "$dest/minio"
 log() { printf '%s %s\n' "$(date '+%F %T')" "$*"; }
 log "backup -> $dest"
@@ -67,7 +77,17 @@ cp .env "$dest/config/.env"
 [ -d secrets ] && cp -r secrets "$dest/config/"
 
 (cd "$dest" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum >SHA256SUMS)
+mv "$dest" "$final"
+trap - EXIT
+dest="$final"
 log "ok: $(du -sh "$dest" | cut -f1), $(wc -l <"$dest/SHA256SUMS") arquivos"
 
-find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +"$KEEP_DAYS" -print -exec rm -rf {} + |
+if [ -n "${BACKUP_REMOTE:-}" ]; then
+  log "cópia externa: $BACKUP_REMOTE"
+  rsync -a -e "ssh -o BatchMode=yes -o ConnectTimeout=20" "$dest" "$BACKUP_REMOTE/"
+else
+  log "AVISO: sem BACKUP_REMOTE — o backup existe só neste servidor"
+fi
+
+find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d \( -mtime +"$KEEP_DAYS" -o -name "*.partial" \) -print -exec rm -rf {} + |
   sed 's/^/removido (retenção): /'

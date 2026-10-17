@@ -68,3 +68,7 @@ deploy/terraform/*.tfplan
 
 # Ansible (deploy/ansible) — inventário real da rede interna.
 deploy/ansible/inventory.ini
+
+# Legado de referência (protocolo_digital): fica ao lado do código só para
+# consulta e tem tokens/credenciais do sistema antigo — nunca versionar.
+protocolo_digital/

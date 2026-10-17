@@ -66,7 +66,7 @@ ttdd-aplicar: ## Carrega a TTDD oficial (deploy/ttdd, gerada de docs/ttdd.pdf): 
 estrutura-aplicar: ## Aplica (idempotente) a estrutura organizacional real no Postgres
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/estrutura/estrutura.sql
 
-sempras-mapeamentos: ## Cria (idempotente) os tipos das unidades (ADR 031) e os 49 mapeamentos de grupos do AD do SEMPRAS (ADR 030)
+sempras-mapeamentos: ## Cria (idempotente) os tipos das unidades (ADR 031) e os 55 mapeamentos de grupos do AD do SEMPRAS (ADR 030)
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/sempras/tipos-unidades.sql
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/sempras/mapeamentos-ad.sql
 

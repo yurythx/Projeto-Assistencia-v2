@@ -146,6 +146,18 @@ scripts/restore.sh --verify <dir>    # restaura num banco temporário e compara 
 scripts/restore.sh --yes <dir> --minio   # SUBSTITUI banco (e objetos) pelo backup
 ```
 
+**Cópia externa:** o backup fica no mesmo disco da VM. Defina o destino em
+`/etc/default/assistencia-backup` (o playbook grava a partir de
+`backup_remote` no inventário):
+
+```bash
+BACKUP_REMOTE="backup@nas.local:/srv/backups/assistencia"   # rsync por SSH
+```
+
+A chave SSH do root precisa estar autorizada no destino. O backup leva o
+`.env` e os `secrets/`, então o destino tem de ser tão protegido quanto o
+servidor.
+
 Cada backup tem o dump do Postgres, o espelho dos buckets do MinIO, os
 volumes do Keycloak de teste e da CA do Caddy (se existirem), `.env` +
 `secrets/` e `SHA256SUMS`. Retenção de `BACKUP_KEEP_DAYS` (7) dias.

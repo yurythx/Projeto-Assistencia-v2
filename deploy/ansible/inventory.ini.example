@@ -9,3 +9,5 @@ ansible_ssh_private_key_file=~/.ssh/id_ed25519
 app_public_host=192.168.1.20
 app_repo_url=https://github.com/yurythx/projeto-assistencia-v2.git
 app_repo_dest=/opt/projeto-assistencia-v2
+# Cópia do backup diário para fora da VM (rsync por SSH). Vazio = só local.
+backup_remote=

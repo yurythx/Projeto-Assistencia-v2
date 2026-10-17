@@ -1,7 +1,8 @@
 -- Mapeamentos dos grupos do AD do SEMPRAS (ADR 030 §3, docs/ROADMAP_SEMPRAS.md).
 --
 -- Convenção: SEMPRAS_<UNIDADE>_<PERFIL> (RECEPCIONISTA, TECNICO, PSICOLOGO) por
--- unidade, e SEMPRAS_SUPERINTENDENCIA na entidade SEMPRAS. 16 × 3 + 1 = 49.
+-- unidade, e SEMPRAS_SUPERINTENDENCIA na entidade SEMPRAS. 18 × 3 + 1 = 55 (as 18
+-- unidades com tipo do ADR 031; a Sede não atende e não tem grupo).
 --
 -- Pré-requisitos: a estrutura real (make estrutura-aplicar) e as migrations
 -- (os perfis sempras-* nascem na 000143). Idempotente: rodar de novo não
@@ -21,7 +22,7 @@ un AS (
                       'conselho-tutelar-central', 'conselho-tutelar-vila-operaria',
                       'cras-alfredo-de-castro', 'cras-ana-carla', 'cras-central', 'cras-conjunto-sao-jose',
                       'cras-iguacu', 'cras-luz-dyara', 'cras-padre-lothar', 'cras-rio-vermelho',
-                      'cras-sagrada-familia', 'creas')
+                      'cras-sagrada-familia', 'creas', 'scfv-padre-lothar', 'vila-olimpica')
 ),
 pf AS (
     SELECT id, slug, nome,
@@ -42,7 +43,7 @@ SELECT 'SEMPRAS_SUPERINTENDENCIA', p.id, e.id, 'Superintendência — todas as u
  WHERE p.slug = 'sempras-superintendente' AND e.slug = 'sempras'
 ON CONFLICT DO NOTHING;
 
--- Conferência: devem ser 49 (falta unidade ou perfil = menos linhas).
+-- Conferência: devem ser 55 (falta unidade ou perfil = menos linhas).
 SELECT count(*) AS mapeamentos_sempras FROM ad_group_mappings WHERE ad_group LIKE 'SEMPRAS\_%';
 
 COMMIT;

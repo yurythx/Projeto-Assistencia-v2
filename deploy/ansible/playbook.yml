@@ -203,14 +203,30 @@
       changed_when: true
       tags: [estrutura, dados-oficiais]
 
-    # Backup diário do Postgres às 02:00 UTC (23:00 em Brasília), retenção
-    # de 7 dias em /var/backups/projeto-assistencia — scripts/backup-diario.sh.
-    - name: Agendar o backup diário do banco
-      ansible.builtin.cron:
-        name: assistencia-backup
-        cron_file: assistencia-backup
-        user: root
-        minute: "0"
-        hour: "2"
-        job: "{{ app_repo_dest }}/scripts/backup-diario.sh"
+    # Destino da cópia externa do backup (rsync por SSH). Vazio = o backup
+    # fica só na VM; defina backup_remote no inventário (p. ex.
+    # backup@nas.local:/srv/backups/assistencia).
+    - name: Configurar o destino externo do backup
+      ansible.builtin.copy:
+        dest: /etc/default/assistencia-backup
+        content: |
+          BACKUP_REMOTE="{{ backup_remote | default('') }}"
+        mode: "0600"
+      tags: [backup]
+
+    # Backup diário (scripts/backup.sh: banco, buckets do MinIO, .env e
+    # secrets/, com SHA256SUMS) às 02:30 do servidor, retenção de 7 dias em
+    # /root/backups/nexus; restauração com scripts/restore.sh.
+    - name: Agendar o backup diário
+      ansible.builtin.command: ./scripts/backup.sh --install-cron
+      args:
+        chdir: "{{ app_repo_dest }}"
+        creates: /etc/cron.d/nexus-backup
+      tags: [backup]
+
+    # O agendamento antigo (scripts/backup-diario.sh, só o banco) saiu.
+    - name: Remover o agendamento antigo do backup
+      ansible.builtin.file:
+        path: /etc/cron.d/assistencia-backup
+        state: absent
       tags: [backup]

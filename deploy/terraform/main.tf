@@ -18,6 +18,13 @@ resource "proxmox_virtual_environment_vm" "app" {
     enabled = false
   }
 
+  # Depois da criação, o agente é ligado no Proxmox (qm set <id> --agent
+  # enabled=1 + desligar/ligar a VM), quando o Ansible já instalou o
+  # qemu-guest-agent — o Terraform não deve desligá-lo de novo num apply.
+  lifecycle {
+    ignore_changes = [agent]
+  }
+
   cpu {
     cores = var.vm_cores
     # "qemu64" (padrão) não tem SSE4.2/POPCNT e quebra imagens Docker que
