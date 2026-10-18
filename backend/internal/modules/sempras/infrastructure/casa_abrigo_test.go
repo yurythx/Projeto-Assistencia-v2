@@ -310,6 +310,24 @@ func TestCasaAbrigoRoundTrip(t *testing.T) {
 	if l, err := r.ListRelatorios(ctx, pool, un); err != nil || len(l) != 1 {
 		t.Fatalf("ListRelatorios: %+v %v", l, err)
 	}
+	// a linha do tempo do acolhido: evoluções na unidade, diário e relatórios dele
+	if err := r.InsertRegistro(ctx, pool, domain.Registro{ID: uuid.New(), CidadaoID: caio, UnidadeID: un, Tipo: "social", Texto: "evolução",
+		AutorID: &autor, CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.InsertRegistro(ctx, pool, domain.Registro{ID: uuid.New(), CidadaoID: caio, UnidadeID: unOutra, Tipo: "social", Texto: "outra unidade",
+		CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	if l, err := r.RegistrosDoAcolhido(ctx, pool, caio, un); err != nil || len(l) != 2 || l[0].Texto != "evolução" || l[1].UnidadeID != un {
+		t.Fatalf("RegistrosDoAcolhido: %+v %v", l, err)
+	}
+	if l, err := r.DiarioDoAcolhimento(ctx, pool, ativo.ID); err != nil || len(l) != 1 || l[0].Texto != "consulta" {
+		t.Fatalf("DiarioDoAcolhimento: %+v %v", l, err)
+	}
+	if l, err := r.RelatoriosDoAcolhimento(ctx, pool, ativo.ID); err != nil || len(l) != 0 {
+		t.Fatalf("RelatoriosDoAcolhimento (o relatório deixou de ser do acolhido): %+v %v", l, err)
+	}
 	if err := r.DeleteRelatorio(ctx, pool, rel.ID); err != nil {
 		t.Fatal(err)
 	}
@@ -334,5 +352,127 @@ func TestCasaAbrigoRoundTrip(t *testing.T) {
 	}
 	if err := r.DeleteTarefa(ctx, pool, tf.ID); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// O RMA da Casa Abrigo (ADR 032): ativos por faixa do ECA, desligamentos
+// do mês pelo tipo e P.I.A. sem reavaliação há mais de 90 dias.
+func TestRmaCasaAbrigo(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	autor := dbtest.User(t, pool)
+	un := dbtest.Unidade(t, pool)
+	agora := time.Now().UTC()
+	inicio := time.Date(agora.Year(), agora.Month(), 1, 0, 0, 0, 0, time.UTC)
+	acolher := func(nasc string, entrada time.Time, desligamento string) domain.Acolhimento {
+		t.Helper()
+		c := uuid.New()
+		if err := r.InsertCidadao(ctx, pool, domain.Cidadao{ID: c, Nome: "Criança RMA", DataNascimento: nasc, NomeMae: "Mãe",
+			CreatedAt: agora, UpdatedAt: agora}, autor); err != nil {
+			t.Fatal(err)
+		}
+		a := domain.Acolhimento{ID: uuid.New(), CidadaoID: c, UnidadeID: un, Status: domain.AcolhimentoStatusAcolhido, DataEntrada: entrada,
+			AcolhimentoDados: domain.AcolhimentoDados{Sexo: "feminino", Motivos: []string{"negligencia"}}}
+		if err := r.InsertAcolhimento(ctx, pool, a, autor); err != nil {
+			t.Fatal(err)
+		}
+		if desligamento != "" {
+			a.Status, a.DesligamentoTipo, a.MotivoDesligamento, a.DataDesligamento = domain.AcolhimentoStatusDesligado, desligamento, "fim", &inicio
+			if err := r.UpdateAcolhimento(ctx, pool, a); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return a
+	}
+	velho := agora.AddDate(0, 0, -120)
+	acolher("2018-01-01", velho, "")                // criança, P.I.A. nunca feito: atrasado
+	adolescente := acolher("2010-01-01", velho, "") // adolescente, P.I.A. em dia
+	acolher("2016-01-01", velho, "adocao")          // desligados no mês
+	acolher("2016-01-01", velho, "reintegracao_familia_extensa")
+	acolher("2016-01-01", velho, "transferencia")
+	if err := r.UpsertPiaFicha(ctx, pool, domain.PiaFicha{AcolhimentoID: adolescente.ID, AtualizadoEm: agora}, autor); err != nil {
+		t.Fatal(err)
+	}
+	rma, err := r.Rma(ctx, pool, []domain.Unidade{{ID: un}}, inicio, inicio.AddDate(0, 1, 0))
+	if err != nil || len(rma) != 1 {
+		t.Fatalf("Rma: %+v %v", rma, err)
+	}
+	m := rma[0]
+	if m.CasaAbrigoAcolhidosAtivos != 2 || m.CasaAbrigoCriancasAtivas != 1 || m.CasaAbrigoAdolescentesAtivos != 1 ||
+		m.CasaAbrigoDesligamentosNoMes != 3 || m.CasaAbrigoReintegracoesNoMes != 1 || m.CasaAbrigoAdocoesNoMes != 1 ||
+		m.CasaAbrigoTransferenciasNoMes != 1 || m.CasaAbrigoPiasAtrasados != 1 {
+		t.Errorf("RMA da Casa Abrigo: %+v", m)
+	}
+}
+
+// Quem recebe os avisos de prazo: as Casas Abrigo ativas e, em cada uma, a
+// equipe lotada nela (manual ou por grupo do AD) com perfil que atende.
+func TestAvisosDestinatarios(t *testing.T) {
+	pool := dbtest.Pool(t)
+	r := NewRepository()
+	ctx := context.Background()
+	sfx := uuid.NewString()[:8]
+	var ent, un, inativa uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO entidades (nome, slug) VALUES ($1, $1) RETURNING id`, "ent-"+sfx).Scan(&ent); err != nil {
+		t.Fatal(err)
+	}
+	for _, u := range []struct {
+		id    *uuid.UUID
+		ativo bool
+	}{{&un, true}, {&inativa, false}} {
+		if err := pool.QueryRow(ctx, `INSERT INTO unidades (entidade_id, nome, slug, ativo) VALUES ($1, $2, $2, $3) RETURNING id`,
+			ent, "un-"+uuid.NewString()[:8], u.ativo).Scan(u.id); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := pool.Exec(ctx, `INSERT INTO sempras_unidades (unidade_id, tipo, painel_exibe_nome) VALUES ($1, 'casa_abrigo', false)`, *u.id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ids, err := r.UnidadesDoTipo(ctx, pool, "casa_abrigo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tem := func(l []uuid.UUID, id uuid.UUID) bool {
+		for _, x := range l {
+			if x == id {
+				return true
+			}
+		}
+		return false
+	}
+	if !tem(ids, un) || tem(ids, inativa) {
+		t.Fatalf("UnidadesDoTipo: %v", ids)
+	}
+
+	perfil := func(perms []string) uuid.UUID {
+		var id uuid.UUID
+		if err := pool.QueryRow(ctx, `INSERT INTO perfis (slug, nome, permissoes) VALUES ($1, $1, $2) RETURNING id`,
+			"perfil-"+uuid.NewString()[:8], perms).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	atende, recepcao := perfil([]string{"sempras:atendimento"}), perfil([]string{"sempras:recepcao"})
+	manual, doAD, soLe, inativo := dbtest.User(t, pool), dbtest.User(t, pool), dbtest.User(t, pool), dbtest.User(t, pool)
+	grupo := "GG-Abrigo-" + sfx
+	for _, q := range []struct {
+		sql  string
+		args []any
+	}{
+		{`INSERT INTO user_scopes (user_id, perfil_id, unidade_id) VALUES ($1, $2, $3)`, []any{manual, atende, un}},
+		{`INSERT INTO user_scopes (user_id, perfil_id, unidade_id) VALUES ($1, $2, $3)`, []any{soLe, recepcao, un}},
+		{`INSERT INTO user_scopes (user_id, perfil_id, unidade_id) VALUES ($1, $2, $3)`, []any{inativo, atende, un}},
+		{`UPDATE users SET active = false WHERE id = $1`, []any{inativo}},
+		{`INSERT INTO ad_group_mappings (ad_group, perfil_id, unidade_id) VALUES ($1, $2, $3)`, []any{grupo, atende, un}},
+		{`UPDATE users SET groups = ARRAY[lower($2)] WHERE id = $1`, []any{doAD, grupo}},
+	} {
+		if _, err := pool.Exec(ctx, q.sql, q.args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	equipe, err := r.EquipeDaUnidade(ctx, pool, un)
+	if err != nil || len(equipe) != 2 || !tem(equipe, manual) || !tem(equipe, doAD) {
+		t.Fatalf("EquipeDaUnidade: %v %v", equipe, err)
 	}
 }

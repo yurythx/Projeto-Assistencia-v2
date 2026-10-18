@@ -23,6 +23,7 @@ import (
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/auth"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/database"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/modkit"
+	"github.com/yurythx/projeto-assistencia-v2/internal/platform/notificacoes"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/outbox"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/storage"
 	"github.com/yurythx/projeto-assistencia-v2/internal/platform/ws"
@@ -71,6 +72,7 @@ type Service struct {
 	uploadExpiry time.Duration
 	logger       *slog.Logger
 	now          func() time.Time
+	avisos       *notificacoes.Service // entrega em tempo real dos avisos de prazo (WithNotificacoes)
 }
 
 // NewService cria o serviço.

@@ -1101,6 +1101,51 @@ func (fr *faultRepo) ListTarefas(ctx context.Context, db database.DBTX, unidade 
 	return fr.inner.ListTarefas(ctx, db, unidade)
 }
 
+func (fr *faultRepo) RegistrosDoAcolhido(ctx context.Context, db database.DBTX, cidadao uuid.UUID, unidade uuid.UUID) ([]domain.Registro, error) {
+	if err := fr.hook("RegistrosDoAcolhido"); err != nil {
+		var z0 []domain.Registro
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.RegistrosDoAcolhido(ctx, db, cidadao, unidade)
+}
+
+func (fr *faultRepo) DiarioDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]domain.AnotacaoDiario, error) {
+	if err := fr.hook("DiarioDoAcolhimento"); err != nil {
+		var z0 []domain.AnotacaoDiario
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.DiarioDoAcolhimento(ctx, db, acolhimento)
+}
+
+func (fr *faultRepo) RelatoriosDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]domain.RelatorioCasaAbrigo, error) {
+	if err := fr.hook("RelatoriosDoAcolhimento"); err != nil {
+		var z0 []domain.RelatorioCasaAbrigo
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.RelatoriosDoAcolhimento(ctx, db, acolhimento)
+}
+
+func (fr *faultRepo) UnidadesDoTipo(ctx context.Context, db database.DBTX, tipo string) ([]uuid.UUID, error) {
+	if err := fr.hook("UnidadesDoTipo"); err != nil {
+		var z0 []uuid.UUID
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.UnidadesDoTipo(ctx, db, tipo)
+}
+
+func (fr *faultRepo) EquipeDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]uuid.UUID, error) {
+	if err := fr.hook("EquipeDaUnidade"); err != nil {
+		var z0 []uuid.UUID
+		return z0, err
+	}
+	defer fr.post(ctx, db)
+	return fr.inner.EquipeDaUnidade(ctx, db, unidade)
+}
+
 func (fr *faultRepo) UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p domain.CentroPopPerfil, autor uuid.UUID) error {
 	if err := fr.hook("UpsertCentroPopPerfil"); err != nil {
 		return err

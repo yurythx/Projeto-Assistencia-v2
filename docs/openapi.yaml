@@ -6217,6 +6217,24 @@ components:
                 - transferencias
             type: object
             x-nexus-generated: true
+        SemprasEventoLinhaDoTempo:
+            properties:
+                data:
+                    format: date-time
+                    type: string
+                detalhe:
+                    type: string
+                tipo:
+                    type: string
+                titulo:
+                    type: string
+            required:
+                - data
+                - detalhe
+                - tipo
+                - titulo
+            type: object
+            x-nexus-generated: true
         SemprasEvolucaoAcolhido:
             properties:
                 acolhido_nome:
@@ -7656,9 +7674,21 @@ components:
                     type: integer
                 casa_abrigo_acolhidos_ativos:
                     type: integer
+                casa_abrigo_adocoes_no_mes:
+                    type: integer
+                casa_abrigo_adolescentes_ativos:
+                    type: integer
+                casa_abrigo_criancas_ativas:
+                    type: integer
                 casa_abrigo_desligamentos_no_mes:
                     type: integer
                 casa_abrigo_entradas_no_mes:
+                    type: integer
+                casa_abrigo_pias_atrasados:
+                    type: integer
+                casa_abrigo_reintegracoes_no_mes:
+                    type: integer
+                casa_abrigo_transferencias_no_mes:
                     type: integer
                 casa_mulher_abrigadas:
                     type: integer
@@ -7763,8 +7793,14 @@ components:
                 - atendimentos_sociais
                 - beneficios_concedidos_no_mes
                 - casa_abrigo_acolhidos_ativos
+                - casa_abrigo_adocoes_no_mes
+                - casa_abrigo_adolescentes_ativos
+                - casa_abrigo_criancas_ativas
                 - casa_abrigo_desligamentos_no_mes
                 - casa_abrigo_entradas_no_mes
+                - casa_abrigo_pias_atrasados
+                - casa_abrigo_reintegracoes_no_mes
+                - casa_abrigo_transferencias_no_mes
                 - casa_mulher_abrigadas
                 - casa_mulher_casos_ativos
                 - casa_mulher_casos_novos_no_mes
@@ -16920,6 +16956,43 @@ paths:
             security:
                 - bearerAuth: []
             summary: SEMPRAS — Executar ação /sempras/casa-abrigo/{id}/irmaos
+            tags:
+                - sempras
+    /api/v1/sempras/casa-abrigo/{id}/linha-do-tempo:
+        get:
+            operationId: getSemprasCasaAbrigoIdLinhaDoTempo
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                    - $ref: '#/components/schemas/Envelope'
+                                    - properties:
+                                        data:
+                                            items:
+                                                $ref: '#/components/schemas/SemprasEventoLinhaDoTempo'
+                                            type: array
+                                      type: object
+                    description: Sucesso — payload em `data`.
+                    x-nexus-generated: true
+                "401":
+                    $ref: '#/components/responses/Unauthorized'
+                "404":
+                    $ref: '#/components/responses/ModuleDisabledOrNotFound'
+                "422":
+                    $ref: '#/components/responses/ValidationError'
+                "429":
+                    $ref: '#/components/responses/TooManyRequests'
+            security:
+                - bearerAuth: []
+            summary: SEMPRAS — Listar/consultar /sempras/casa-abrigo/{id}/linha-do-tempo
             tags:
                 - sempras
     /api/v1/sempras/casa-abrigo/{id}/pia:

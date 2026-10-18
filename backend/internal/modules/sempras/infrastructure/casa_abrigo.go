@@ -830,3 +830,79 @@ func (r *Repository) ListTarefas(ctx context.Context, db database.DBTX, unidade 
 	}
 	return collect(rows, "ListTarefas", scanTarefa)
 }
+
+// --------------------------------- Casa Abrigo: linha do tempo e avisos
+
+// RegistrosDoAcolhido lista as evoluções do munícipe registradas na unidade.
+func (r *Repository) RegistrosDoAcolhido(ctx context.Context, db database.DBTX, cidadao, unidade uuid.UUID) ([]domain.Registro, error) {
+	rows, err := db.Query(ctx, `SELECT r.id, r.cidadao_id, r.unidade_id, r.atendimento_id, r.tipo, r.texto, r.autor_id,
+			COALESCE(au.display_name, ''), r.created_at
+		FROM sempras_registros r LEFT JOIN users au ON au.id = r.autor_id
+		WHERE r.cidadao_id = $1 AND r.unidade_id = $2 ORDER BY r.created_at DESC LIMIT 1000`, cidadao, unidade)
+	if err != nil {
+		return nil, wrap("RegistrosDoAcolhido", err)
+	}
+	return collect(rows, "RegistrosDoAcolhido", func(row pgx.Row) (domain.Registro, error) {
+		var reg domain.Registro
+		err := row.Scan(&reg.ID, &reg.CidadaoID, &reg.UnidadeID, &reg.AtendimentoID, &reg.Tipo, &reg.Texto, &reg.AutorID,
+			&reg.AutorNome, &reg.CreatedAt)
+		return reg, err
+	})
+}
+
+// DiarioDoAcolhimento lista as anotações do diário sobre o acolhido.
+func (r *Repository) DiarioDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]domain.AnotacaoDiario, error) {
+	rows, err := db.Query(ctx, `SELECT d.id, d.unidade_id, d.acolhimento_id, d.data_referencia, d.texto, d.autor_nome, d.created_at, ''
+		FROM sempras_casa_abrigo_diario d WHERE d.acolhimento_id = $1 ORDER BY d.data_referencia DESC LIMIT 1000`, acolhimento)
+	if err != nil {
+		return nil, wrap("DiarioDoAcolhimento", err)
+	}
+	return collect(rows, "DiarioDoAcolhimento", func(row pgx.Row) (domain.AnotacaoDiario, error) {
+		var a domain.AnotacaoDiario
+		err := row.Scan(&a.ID, &a.UnidadeID, &a.AcolhimentoID, &a.DataReferencia, &a.Texto, &a.AutorNome, &a.CreatedAt, &a.AcolhidoNome)
+		return a, err
+	})
+}
+
+// RelatoriosDoAcolhimento lista os relatórios escritos sobre o acolhido.
+func (r *Repository) RelatoriosDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]domain.RelatorioCasaAbrigo, error) {
+	rows, err := db.Query(ctx, `SELECT `+relatorioCols+relatorioFrom+` WHERE r.acolhimento_id = $1 ORDER BY r.data_entrega DESC LIMIT 500`, acolhimento)
+	if err != nil {
+		return nil, wrap("RelatoriosDoAcolhimento", err)
+	}
+	return collect(rows, "RelatoriosDoAcolhimento", scanRelatorio)
+}
+
+// UnidadesDoTipo lista as unidades ativas de um tipo (os avisos de prazo
+// percorrem as Casas Abrigo).
+func (r *Repository) UnidadesDoTipo(ctx context.Context, db database.DBTX, tipo string) ([]uuid.UUID, error) {
+	return ids1(ctx, db, "UnidadesDoTipo", `SELECT su.unidade_id FROM sempras_unidades su JOIN unidades u ON u.id = su.unidade_id
+		WHERE su.tipo = $1 AND u.ativo ORDER BY su.unidade_id`, tipo)
+}
+
+// EquipeDaUnidade: quem está lotado na própria unidade (manualmente ou por
+// grupo do AD) com um perfil que atende ou coordena — a equipe que recebe
+// os avisos (a recepção não).
+// A superintendência (lotação na entidade) não entra: seria ruído.
+func (r *Repository) EquipeDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]uuid.UUID, error) {
+	return ids1(ctx, db, "EquipeDaUnidade", `SELECT us.user_id FROM user_scopes us
+			JOIN perfis p ON p.id = us.perfil_id JOIN users u ON u.id = us.user_id
+			WHERE us.unidade_id = $1 AND p.ativo AND u.active AND p.permissoes && $2
+		UNION
+		SELECT u.id FROM users u
+			JOIN ad_group_mappings m ON lower(m.ad_group) = ANY (SELECT lower(g) FROM unnest(u.groups) g)
+			JOIN perfis p ON p.id = m.perfil_id
+			WHERE m.unidade_id = $1 AND p.ativo AND u.active AND p.permissoes && $2
+		ORDER BY 1`, unidade, []string{"sempras:atendimento", "sempras:gestao", "sempras:*", "*"})
+}
+
+func ids1(ctx context.Context, db database.DBTX, op, sql string, args ...any) ([]uuid.UUID, error) {
+	rows, err := db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, wrap(op, err)
+	}
+	return collect(rows, op, func(row pgx.Row) (uuid.UUID, error) {
+		var id uuid.UUID
+		return id, row.Scan(&id)
+	})
+}

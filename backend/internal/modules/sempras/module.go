@@ -27,7 +27,8 @@ type Module struct {
 // New constrói o módulo.
 func New(deps modkit.Deps) *Module {
 	svc := application.NewService(deps.Pool, infrastructure.NewRepository(), deps.Outbox, deps.Hub, deps.Storage,
-		deps.Config.MinIO.Bucket, deps.Config.Upload.MaxFileBytes, deps.Config.Upload.URLExpiry, deps.Logger)
+		deps.Config.MinIO.Bucket, deps.Config.Upload.MaxFileBytes, deps.Config.Upload.URLExpiry, deps.Logger).
+		WithNotificacoes(deps.Notificacoes)
 	return &Module{svc: svc, handlers: transport.NewHandlers(svc, deps.Logger)}
 }
 
@@ -51,6 +52,12 @@ func (m *Module) Manifest() kernel.Manifest {
 
 // RegisterRoutes implementa kernel.RouteProvider.
 func (m *Module) RegisterRoutes(r kernel.Routes) { m.handlers.RegisterRoutes(r.Authed) }
+
+// Workers implementa kernel.WorkerProvider: os avisos de prazo da Casa
+// Abrigo no sino (ADR 032).
+func (m *Module) Workers() []kernel.Worker {
+	return []kernel.Worker{{Name: "sempras-casa-abrigo-avisos", Process: kernel.ProcessWorker, Run: m.svc.AvisarPrazosCasaAbrigo}}
+}
 
 // WSAuthorizer implementa kernel.WSProvider.
 func (m *Module) WSAuthorizer() ws.Authorizer { return m.svc.Authorize }

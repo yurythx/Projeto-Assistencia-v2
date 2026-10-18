@@ -122,6 +122,74 @@ usava, em abas.
 Na ficha do munícipe, o acolhimento aparece resumido, com atalhos para o
 cadastro completo, o P.I.A., os termos e as visitas.
 
+**Linha do tempo:** em **Acolhidos**, o botão de relógio de cada criança
+mostra toda a história dela na unidade, do mais recente ao mais antigo:
+
+- entrada;
+- evoluções;
+- P.I.A. e metas;
+- visitas e termos;
+- diário e relatórios;
+- documentos;
+- desligamento.
+
+Dá para imprimir, por exemplo para a audiência concentrada. O texto
+psicológico só aparece para a psicologia.
+
+**Avisos no sino:** quem está lotado na Casa Abrigo e atende ou coordena
+recebe no sino os prazos do monitor:
+
+- reavaliação do P.I.A.;
+- metas;
+- relatórios;
+- tarefas.
+
+Cada prazo avisa uma vez quando se aproxima e outra se atrasar. O aviso
+traz só as iniciais da criança. Clique para abrir a aba certa.
+
+### Importar o histórico do 4.0 (TI)
+
+Faça uma vez, antes de desligar o sistema antigo. O comando nunca escreve
+no 4.0 e pode ser repetido: o que já entrou não entra de novo.
+
+1. **Prepare o acesso.** Tenha o endereço do banco do 4.0 e a
+   `ENCRYPTION_KEY` dele.
+   - Se o 4.0 só existe como backup, restaure-o antes num PostgreSQL
+     temporário. Nunca restaure no banco do SEMPRAS.
+   - Ponha os dois só no ambiente da sessão:
+
+   ```bash
+   read -rs LEGADO_DATABASE_URL; export LEGADO_DATABASE_URL
+   read -rs LEGADO_ENCRYPTION_KEY; export LEGADO_ENCRYPTION_KEY
+   ```
+
+2. **Simule.** Nada é gravado:
+
+   ```bash
+   make prod-importar-casa-abrigo ARGS="-unidade <id da Casa Abrigo> -autor <seu usuário>" | tee simulacao.txt
+   ```
+
+3. **Leia o relatório** (`simulacao.txt`).
+   - O arquivo tem dados sensíveis: guarde-o como o prontuário e apague
+     depois da importação.
+   - Ele mostra, por tabela, o que entraria, o que entra com ajuste a
+     revisar e o que fica de fora, sempre pelo número do registro no 4.0
+     (nunca pelo nome).
+   - Corrija no 4.0 o que ficou de fora, por exemplo uma data que falta,
+     e simule de novo.
+4. **Aplique** quando o relatório estiver aceito:
+
+   ```bash
+   make prod-importar-casa-abrigo ARGS="-unidade <id> -autor <seu usuário> -aplicar" | tee importacao.txt
+   ```
+
+5. **Revise na ficha** o que o relatório marcou: o tipo de desligamento
+   deduzido do texto e os campos que foram para as observações.
+6. **Anexe os PDFs.** Eles estão na pasta `uploads/` do servidor do 4.0, e
+   o relatório lista quais são. Anexe pela tela de cada acolhido.
+7. **Desligue o 4.0** e troque todas as credenciais do `.env` dele: banco,
+   AD, JWT e a chave de cifra.
+
 ## Abordagem social (Centro POP)
 
 No espaço do Centro POP, em **Abordagem social**, registre:

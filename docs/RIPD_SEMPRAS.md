@@ -12,7 +12,7 @@
 - **Sistema:** SEMPRAS — atendimento socioassistencial (ADR 030), módulo do Projeto-Assistencia-v2
 - **Controlador:** Secretaria Municipal de Promoção e Assistência Social de Rondonópolis/MT
 - **Base legal principal:** LOAS (Lei 8.742/1993) e Tipificação Nacional dos Serviços Socioassistenciais (SUAS) — execução de política pública (LGPD art. 7º, III); ECA (Lei 8.069/1990) para os atendimentos do Conselho Tutelar e das medidas socioeducativas
-- **Data desta minuta:** 2026-10-08 (revisada em 2026-10-14 — Fase 8: PAIF, benefícios eventuais, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo, RMA/MDS, painel de chamada; revisada em 2026-10-15 — Fase 9: Centro POP — cadastro anônimo, perfil de rua com dado de saúde/drogas, encaminhamento externo, documentos; revisada em 2026-10-16 — ADR 031: atendimento por tipo de unidade, perfil de rua só para o Centro POP, painel de chamada só com a senha nas unidades sigilosas, caso da Casa da Mulher; revisada em 2026-10-17 — ADR 032: cadastro completo da Casa Abrigo, P.I.A. em 6 partes, diário, relatórios escritos, visitas da unidade e tarefas)
+- **Data desta minuta:** 2026-10-08 (revisada em 2026-10-14 — Fase 8: PAIF, benefícios eventuais, encaminhamentos, Conselho Tutelar, CREAS, Casa Abrigo, RMA/MDS, painel de chamada; revisada em 2026-10-15 — Fase 9: Centro POP — cadastro anônimo, perfil de rua com dado de saúde/drogas, encaminhamento externo, documentos; revisada em 2026-10-16 — ADR 031: atendimento por tipo de unidade, perfil de rua só para o Centro POP, painel de chamada só com a senha nas unidades sigilosas, caso da Casa da Mulher; revisada em 2026-10-17 — ADR 032: cadastro completo da Casa Abrigo, P.I.A. em 6 partes, diário, relatórios escritos, visitas da unidade e tarefas; revisada em 2026-10-18 — ADR 033: importação do histórico do Casa Abrigo 4.0, avisos de prazo no sino e linha do tempo do acolhido)
 
 ---
 
@@ -108,6 +108,9 @@ O titular nunca acessa o sistema diretamente — todo tratamento é mediado por 
 | Listas da Casa Abrigo com nome de criança (painel, evoluções, visitas, termos, diário, relatórios, acolhimento completo) gravam a leitura na auditoria, como a ficha | ✅ |
 | Busca de endereço pelo CEP (ViaCEP, com o BrasilAPI de reserva): só o CEP sai do navegador, sem nome nem outro dado do responsável | ✅ |
 | Histórico de termos e avisos do monitor mostram só as iniciais da criança (ECA art. 143) | ✅ |
+| Avisos de prazo da Casa Abrigo no sino: só para quem está lotado na unidade com perfil que atende ou coordena (a recepção não recebe), e o texto leva só as iniciais da criança | ✅ |
+| Linha do tempo do acolhido: leitura auditada; o texto psicológico some para quem não tem o sigilo | ✅ |
+| Importação do Casa Abrigo 4.0 (ADR 033): só lê o banco antigo; o relatório aponta registros pelo id do 4.0, nunca pelo nome; a chave de cifra do 4.0 só existe em memória durante a execução | ✅ |
 | Indicadores do RMA/MDS são só contagens agregadas por unidade — nenhum dado pessoal sai do módulo nesse relatório | ✅ |
 | Diagnósticos de saúde e PIA da Casa Abrigo **não têm sigilo adicional** ao de quem atende a unidade (mesmo nível de `sempras:atendimento`/`psicologia` do restante do prontuário) | ⚠️ decisão consciente — ver §5 e §7 |
 | Cadastro anônimo (Centro POP): quando o munícipe não tem nenhuma identificação confiável, o sistema **não inventa** dado (nome placeholder fixo, demais campos vazios) em vez de forçar preenchimento de CPF/NIS/nascimento/mãe fictícios | ✅ |
@@ -129,6 +132,8 @@ O titular nunca acessa o sistema diretamente — todo tratamento é mediado por 
 | Dado de saúde/drogas do perfil de rua (Centro POP) acessível a qualquer perfil com `sempras:atendimento` na unidade, sem sigilo equivalente ao da psicologia | média | médio | mesma decisão de produto já registrada para os diagnósticos da Casa Abrigo (§5 acima) — **registrada aqui para avaliação do DPO**, não é lacuna não percebida |
 | Encaminhamento externo (Centro POP) sem fluxo de confirmação da outra ponta — não há como verificar se o destino (CAPS AD, albergue, polícia) de fato recebeu ou agiu sobre o encaminhamento | baixa | baixo | decisão consciente — a "outra ponta" não é um sistema nosso; o registro é só o log de que o encaminhamento foi feito por quem atende, auditado como qualquer escrita do módulo |
 | Vazamento de documento do Centro POP via URL pré-assinada compartilhada indevidamente | baixa | alto | mesma salvaguarda dos documentos da Casa Abrigo — URL expira em minutos, toda emissão/upload/exclusão é auditada |
+| Sistema Casa Abrigo 4.0 mantido no ar depois da importação, com a chave de cifra, a senha do banco e a do AD em claro no `.env` do servidor dele | média | alto | roteiro do GUIA_SEMPRAS: desligar o 4.0 e trocar todas as credenciais logo depois da importação — **pendência operacional da TI** |
+| Munícipe do 4.0 ligado ao cadastro errado daqui (mesmo nome e nascimento, sem CPF/NIS) | baixa | médio | a ligação só acontece com nome e nascimento iguais e vai para o relatório como "a revisar"; uma criança já acolhida em outro lugar é recusada (um acolhimento ativo por criança) |
 
 ## 6. Direitos do titular — operacionalização (ADR 030 §8)
 

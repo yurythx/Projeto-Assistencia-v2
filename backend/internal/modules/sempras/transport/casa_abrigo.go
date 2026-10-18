@@ -31,6 +31,7 @@ func (h *Handlers) rotasCasaAbrigo(r chi.Router, atendimento func(http.Handler) 
 
 	a.Post("/sempras/cidadaos/{id}/casa-abrigo", h.RegistrarAcolhimento)
 	a.Get("/sempras/casa-abrigo/{id}", h.ObterAcolhimento)
+	a.Get("/sempras/casa-abrigo/{id}/linha-do-tempo", h.LinhaDoTempoAcolhimento)
 	a.Put("/sempras/casa-abrigo/{id}", h.AtualizarAcolhimento)
 	a.Post("/sempras/casa-abrigo/{id}/desligar", h.DesligarAcolhimento)
 	a.Post("/sempras/casa-abrigo/{id}/irmaos", h.AdicionarIrmao)
@@ -140,6 +141,22 @@ func (h *Handlers) ObterAcolhimento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httputil.WriteOK(w, a)
+}
+
+// LinhaDoTempoAcolhimento devolve a história do acolhido na unidade
+// (leitura auditada).
+func (h *Handlers) LinhaDoTempoAcolhimento(w http.ResponseWriter, r *http.Request) {
+	id, err := httputil.UUIDParam(r, "id")
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	ev, err := h.svc.LinhaDoTempoAcolhimento(r.Context(), identity(r), id)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	httputil.WriteOK(w, ev)
 }
 
 // AtualizarAcolhimento regrava o assistente e a data de entrada.

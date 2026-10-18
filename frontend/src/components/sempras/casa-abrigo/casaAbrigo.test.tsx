@@ -172,6 +172,38 @@ describe("Casa Abrigo — painel e acolhidos", () => {
     expect(await screen.findByText("data inválida")).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "Desligar acolhimento" })).toBeInTheDocument();
   });
+
+  it("linha do tempo do acolhido: eventos do mais recente ao mais antigo, sigilo e impressão", async () => {
+    backend({
+      "GET v1/sempras/casa-abrigo/a1/linha-do-tempo": { data: [
+        { data: "2026-10-12T15:00:00-04:00", tipo: "evolucao", titulo: "Evolução psicológica", detalhe: "Registro sigiloso da psicologia" },
+        { data: "2026-10-05T00:00:00Z", tipo: "visita", titulo: "Visita de Avó", detalhe: "" },
+        { data: "invalida", tipo: "documento", titulo: "Documento anexado", detalhe: "rg.pdf" },
+        { data: "2026-09-01T00:00:00Z", tipo: "entrada", titulo: "Entrada na unidade", detalhe: "Processo 123." },
+      ] },
+      "GET v1/sempras/casa-abrigo/a2/linha-do-tempo": { data: [] },
+    });
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    renderApp(<CasaAbrigoWorkspace unidadeId="u4" />);
+    await aba("Acolhidos");
+    await userEvent.click(await screen.findByRole("button", { name: "Linha do tempo de Ana Souza" }));
+    const dialog = await screen.findByRole("dialog", { name: "Linha do tempo — Ana Souza" });
+    expect(await within(dialog).findAllByText("Registro sigiloso da psicologia")).not.toHaveLength(0);
+    expect(within(dialog).getAllByText("12/10/2026")).not.toHaveLength(0);
+    expect(within(dialog).getAllByText("05/10/2026")).not.toHaveLength(0);
+    expect(within(dialog).getAllByText("—")).not.toHaveLength(0);
+    expect(within(dialog).getAllByText("Processo 123.")).not.toHaveLength(0);
+    await userEvent.click(within(dialog).getByRole("button", { name: /Imprimir/ }));
+    expect(print).toHaveBeenCalled();
+    fireEvent(dialog, new Event("cancel"));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: /Linha do tempo/ })).not.toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "Linha do tempo de Bruno Lima" }));
+    const vazio = await screen.findByRole("dialog", { name: "Linha do tempo — Bru" });
+    expect(await within(vazio).findByText("Nada registrado ainda")).toBeInTheDocument();
+    expect(within(vazio).getByRole("button", { name: /Imprimir/ })).toBeDisabled();
+    print.mockRestore();
+  });
 });
 
 describe("Casa Abrigo — assistente de 6 etapas", () => {

@@ -634,6 +634,12 @@ type RmaUnidade struct {
 	CasaAbrigoAcolhidosAtivos         int     `json:"casa_abrigo_acolhidos_ativos"`
 	CasaAbrigoEntradasNoMes           int     `json:"casa_abrigo_entradas_no_mes"`
 	CasaAbrigoDesligamentosNoMes      int     `json:"casa_abrigo_desligamentos_no_mes"`
+	CasaAbrigoCriancasAtivas          int     `json:"casa_abrigo_criancas_ativas"`
+	CasaAbrigoAdolescentesAtivos      int     `json:"casa_abrigo_adolescentes_ativos"`
+	CasaAbrigoReintegracoesNoMes      int     `json:"casa_abrigo_reintegracoes_no_mes"`
+	CasaAbrigoAdocoesNoMes            int     `json:"casa_abrigo_adocoes_no_mes"`
+	CasaAbrigoTransferenciasNoMes     int     `json:"casa_abrigo_transferencias_no_mes"`
+	CasaAbrigoPiasAtrasados           int     `json:"casa_abrigo_pias_atrasados"`
 	EncaminhamentosEnviadosNoMes      int     `json:"encaminhamentos_enviados_no_mes"`
 	OficiosCrasRecebidosNoMes         int     `json:"oficios_cras_recebidos_no_mes"`
 	OficiosCrasRespondidosNoMes       int     `json:"oficios_cras_respondidos_no_mes"`

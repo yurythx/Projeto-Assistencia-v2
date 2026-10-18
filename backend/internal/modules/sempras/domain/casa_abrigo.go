@@ -1221,3 +1221,75 @@ type EvolucaoAcolhido struct {
 	Registro
 	AcolhidoNome string `json:"acolhido_nome"`
 }
+
+// ------------------------------------------------------- linha do tempo
+
+// Rótulos dos tipos de desligamento e de termo na linha do tempo.
+var (
+	rotulosDesligamento = map[string]string{"reintegracao_familia_natural": "reintegração à família natural",
+		"reintegracao_familia_extensa": "reintegração à família extensa", "adocao": "adoção", "guarda": "guarda",
+		"transferencia": "transferência", "maioridade": "maioridade", "evasao": "evasão", "outro": "outro"}
+	rotulosTermo = map[string]string{"advertencia": "advertência", "passeio": "passeio", "saida": "saída", "outro": "outro"}
+)
+
+// EventoLinhaDoTempo é um fato da história do acolhido na unidade.
+type EventoLinhaDoTempo struct {
+	Data    time.Time `json:"data"`
+	Tipo    string    `json:"tipo"` // entrada, desligamento, pia, meta, evolucao, visita, termo, diario, relatorio, documento
+	Titulo  string    `json:"titulo"`
+	Detalhe string    `json:"detalhe"`
+}
+
+// LinhaDoTempo junta, do mais recente ao mais antigo, o que aconteceu com
+// o acolhido — base para o relatório ao Judiciário. As evoluções já vêm
+// filtradas pelo sigilo de quem consulta.
+func LinhaDoTempo(a Acolhimento, evolucoes []Registro, diario []AnotacaoDiario, relatorios []RelatorioCasaAbrigo) []EventoLinhaDoTempo {
+	ev := []EventoLinhaDoTempo{{Data: a.DataEntrada, Tipo: "entrada", Titulo: "Entrada na unidade",
+		Detalhe: strings.TrimSpace(strings.Join([]string{rotulo("Processo", a.ProcessoJudicial), rotulo("Guia", a.GuiaAcolhimento)}, " "))}}
+	if a.DataDesligamento != nil {
+		ev = append(ev, EventoLinhaDoTempo{Data: *a.DataDesligamento, Tipo: "desligamento",
+			Titulo: "Desligamento (" + rotulosDesligamento[a.DesligamentoTipo] + ")", Detalhe: a.MotivoDesligamento})
+	}
+	if a.Pia != nil {
+		ev = append(ev, EventoLinhaDoTempo{Data: a.Pia.AtualizadoEm, Tipo: "pia", Titulo: "P.I.A. reavaliado"})
+	}
+	for _, m := range a.PiaMetas {
+		ev = append(ev, EventoLinhaDoTempo{Data: m.CreatedAt, Tipo: "meta", Titulo: "Ação do P.I.A. registrada", Detalhe: m.Descricao})
+	}
+	for _, r := range evolucoes {
+		e := EventoLinhaDoTempo{Data: r.CreatedAt, Tipo: "evolucao", Titulo: "Evolução social", Detalhe: r.Texto}
+		if r.Tipo == TipoPsicologico {
+			e.Titulo = "Evolução psicológica"
+		}
+		if r.Sigiloso {
+			e.Detalhe = "Registro sigiloso da psicologia"
+		}
+		ev = append(ev, e)
+	}
+	for _, v := range a.Visitantes {
+		ev = append(ev, EventoLinhaDoTempo{Data: v.DataVisita, Tipo: "visita", Titulo: "Visita de " + v.NomeVisitante,
+			Detalhe: strings.TrimSpace(v.ParentescoVinculo + " " + v.HoraEntrada)})
+	}
+	for _, t := range a.Termos {
+		ev = append(ev, EventoLinhaDoTempo{Data: t.DataTermo, Tipo: "termo", Titulo: "Termo de " + rotulosTermo[t.TipoTermo],
+			Detalhe: t.MotivoObservacao})
+	}
+	for _, d := range diario {
+		ev = append(ev, EventoLinhaDoTempo{Data: d.DataReferencia, Tipo: "diario", Titulo: "Diário de bordo", Detalhe: d.Texto})
+	}
+	for _, r := range relatorios {
+		ev = append(ev, EventoLinhaDoTempo{Data: r.DataEntrega, Tipo: "relatorio", Titulo: "Relatório " + r.Nome(), Detalhe: "etapa: " + r.Status})
+	}
+	for _, d := range a.Documentos {
+		ev = append(ev, EventoLinhaDoTempo{Data: d.CreatedAt, Tipo: "documento", Titulo: "Documento anexado", Detalhe: d.NomeOriginal})
+	}
+	slices.SortStableFunc(ev, func(x, y EventoLinhaDoTempo) int { return y.Data.Compare(x.Data) })
+	return ev
+}
+
+func rotulo(nome, valor string) string {
+	if valor == "" {
+		return ""
+	}
+	return nome + " " + valor + "."
+}

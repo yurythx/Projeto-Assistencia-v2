@@ -149,6 +149,27 @@ const FORMULARIOS: Record<string, { label: string; tipos: TipoUnidade[] | null; 
       col("Encaminhamentos para a rede", (l) => l.encaminhamentos_externos_no_mes),
     ],
   },
+  casa_abrigo: {
+    label: "Casa Abrigo (indicadores municipais)",
+    tipos: ["casa_abrigo"],
+    colunas: [
+      col("Acolhidos ativos", (l) => l.casa_abrigo_acolhidos_ativos),
+      col("Crianças (0 a 11)", (l) => l.casa_abrigo_criancas_ativas),
+      col("Adolescentes (12 a 17)", (l) => l.casa_abrigo_adolescentes_ativos),
+      col("Entradas no mês", (l) => l.casa_abrigo_entradas_no_mes),
+      col("Desligamentos no mês", (l) => l.casa_abrigo_desligamentos_no_mes),
+      col("Reintegrações familiares", (l) => l.casa_abrigo_reintegracoes_no_mes),
+      col("Adoções", (l) => l.casa_abrigo_adocoes_no_mes),
+      col("Transferências", (l) => l.casa_abrigo_transferencias_no_mes),
+      col("P.I.A. sem reavaliação há 90 dias", (l) => l.casa_abrigo_pias_atrasados),
+    ],
+    destaques: [
+      col("Acolhidos ativos", (l) => l.casa_abrigo_acolhidos_ativos),
+      col("Entradas no mês", (l) => l.casa_abrigo_entradas_no_mes),
+      col("Desligamentos no mês", (l) => l.casa_abrigo_desligamentos_no_mes),
+      col("P.I.A. atrasados", (l) => l.casa_abrigo_pias_atrasados),
+    ],
+  },
   casa_mulher: {
     label: "Casa da Mulher (indicadores municipais)",
     tipos: ["casa_mulher"],
@@ -172,7 +193,7 @@ const FORMULARIOS: Record<string, { label: string; tipos: TipoUnidade[] | null; 
 /** RMA/MDS (sempras:gestao): consolida, por unidade e por competência, os
  * indicadores que o SUAS exige reportar — reais (booleans, enums, datas),
  * não inferidos de texto livre como no legado de referência. Um formulário
- * por tipo de unidade (CRAS, CREAS, Centro POP), mais a Casa da Mulher. */
+ * por tipo de unidade (CRAS, CREAS, Centro POP), mais a Casa Abrigo e a Casa da Mulher. */
 export function Rma() {
   const [competencia, setCompetencia] = useState(competenciaAtual);
   const [formulario, setFormulario] = useState("geral");

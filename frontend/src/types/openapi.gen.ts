@@ -2979,6 +2979,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sempras/casa-abrigo/{id}/linha-do-tempo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SEMPRAS — Listar/consultar /sempras/casa-abrigo/{id}/linha-do-tempo */
+        get: operations["getSemprasCasaAbrigoIdLinhaDoTempo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sempras/casa-abrigo/{id}/pia": {
         parameters: {
             query?: never;
@@ -7208,6 +7225,13 @@ export interface components {
             };
             transferencias: number;
         };
+        SemprasEventoLinhaDoTempo: {
+            /** Format: date-time */
+            data: string;
+            detalhe: string;
+            tipo: string;
+            titulo: string;
+        };
         SemprasEvolucaoAcolhido: {
             acolhido_nome: string;
             /** Format: uuid */
@@ -7764,8 +7788,14 @@ export interface components {
             atendimentos_sociais: number;
             beneficios_concedidos_no_mes: number;
             casa_abrigo_acolhidos_ativos: number;
+            casa_abrigo_adocoes_no_mes: number;
+            casa_abrigo_adolescentes_ativos: number;
+            casa_abrigo_criancas_ativas: number;
             casa_abrigo_desligamentos_no_mes: number;
             casa_abrigo_entradas_no_mes: number;
+            casa_abrigo_pias_atrasados: number;
+            casa_abrigo_reintegracoes_no_mes: number;
+            casa_abrigo_transferencias_no_mes: number;
             casa_mulher_abrigadas: number;
             casa_mulher_casos_ativos: number;
             casa_mulher_casos_novos_no_mes: number;
@@ -14968,6 +14998,34 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["ModuleDisabledOrNotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
+        };
+    };
+    getSemprasCasaAbrigoIdLinhaDoTempo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sucesso — payload em `data`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["SemprasEventoLinhaDoTempo"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["ModuleDisabledOrNotFound"];
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyRequests"];

@@ -376,6 +376,8 @@ describe("SEMPRAS — RMA/MDS", () => {
       "mse_novas_psc_no_mes", "pop_pessoas_atendidas_no_mes", "pop_pessoas_novas_no_mes", "pop_pessoas_uso_drogas",
       "pop_pessoas_com_doenca", "pop_pessoas_trecheiras", "encaminhamentos_externos_no_mes", "casa_mulher_casos_ativos",
       "casa_mulher_casos_novos_no_mes", "casa_mulher_risco_alto_extremo", "casa_mulher_abrigadas", "casa_mulher_medidas_deferidas",
+      "casa_abrigo_criancas_ativas", "casa_abrigo_adolescentes_ativos", "casa_abrigo_reintegracoes_no_mes", "casa_abrigo_adocoes_no_mes",
+      "casa_abrigo_transferencias_no_mes", "casa_abrigo_pias_atrasados",
     ].map((k) => [k, 0]));
     const MULHER = unidade("u6", "Casa da Mulher", "casa_mulher", ["fila", "prontuario", "encaminhamento", "casa_mulher"], ["acolhida_inicial"], false);
     mockBackend({
@@ -390,6 +392,8 @@ describe("SEMPRAS — RMA/MDS", () => {
             paefi_novos_por_violacao: {} },
           { ...zero, unidade: MULHER, casa_mulher_casos_ativos: 8, casa_mulher_abrigadas: 2, atendimentos_por_demanda: {},
             paefi_novos_por_violacao: {} },
+          { ...zero, unidade: ABRIGO, casa_abrigo_acolhidos_ativos: 6, casa_abrigo_pias_atrasados: 2, casa_abrigo_adocoes_no_mes: 1,
+            atendimentos_por_demanda: {}, paefi_novos_por_violacao: {} },
         ],
       },
     });
@@ -416,6 +420,12 @@ describe("SEMPRAS — RMA/MDS", () => {
     await userEvent.selectOptions(screen.getByLabelText("Formulário"), "casa_mulher");
     expect(within(screen.getAllByRole("table")[0]!).getByText("Casa da Mulher")).toBeInTheDocument();
     expect(within(screen.getByRole("list", { name: "Totais da competência" })).getByText("Abrigadas").previousSibling).toHaveTextContent("2");
+
+    await userEvent.selectOptions(screen.getByLabelText("Formulário"), "casa_abrigo");
+    const abrigo = within(screen.getAllByRole("table")[0]!);
+    expect(abrigo.getByText("Casa Abrigo")).toBeInTheDocument();
+    expect(abrigo.getByRole("columnheader", { name: "Adoções" })).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: "Totais da competência" })).getByText("P.I.A. atrasados").previousSibling).toHaveTextContent("2");
   });
 
   it("sem a permissão de gestão: explica de quem é o RMA", async () => {

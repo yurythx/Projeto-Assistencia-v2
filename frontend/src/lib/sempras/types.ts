@@ -676,6 +676,12 @@ export interface RmaUnidade {
   casa_abrigo_acolhidos_ativos: number;
   casa_abrigo_entradas_no_mes: number;
   casa_abrigo_desligamentos_no_mes: number;
+  casa_abrigo_criancas_ativas: number;
+  casa_abrigo_adolescentes_ativos: number;
+  casa_abrigo_reintegracoes_no_mes: number;
+  casa_abrigo_adocoes_no_mes: number;
+  casa_abrigo_transferencias_no_mes: number;
+  casa_abrigo_pias_atrasados: number;
   encaminhamentos_enviados_no_mes: number;
   oficios_cras_recebidos_no_mes: number;
   oficios_cras_respondidos_no_mes: number;

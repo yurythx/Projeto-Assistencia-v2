@@ -570,12 +570,26 @@ func (r *Repository) Rma(ctx context.Context, db database.DBTX, unidades []domai
 			},
 		},
 		{
-			`SELECT unidade_id, count(*) FILTER (WHERE status = 'acolhido'),
-			 count(*) FILTER (WHERE data_entrada >= $2 AND data_entrada < $3),
-			 count(*) FILTER (WHERE data_desligamento >= $2 AND data_desligamento < $3)
-			 FROM sempras_casa_abrigo_acolhimentos WHERE unidade_id = ANY($1::uuid[]) GROUP BY unidade_id`,
+			// Casa Abrigo (ADR 032): ativos por faixa do ECA, movimento do
+			// mês pelo tipo do desligamento e P.I.A. sem reavaliação há 90 dias.
+			`SELECT a.unidade_id, count(*) FILTER (WHERE a.status = 'acolhido'),
+			 count(*) FILTER (WHERE a.data_entrada >= $2 AND a.data_entrada < $3),
+			 count(*) FILTER (WHERE a.data_desligamento >= $2 AND a.data_desligamento < $3),
+			 count(*) FILTER (WHERE a.status = 'acolhido' AND date_part('year', age(c.data_nascimento)) < 12),
+			 count(*) FILTER (WHERE a.status = 'acolhido' AND date_part('year', age(c.data_nascimento)) >= 12),
+			 count(*) FILTER (WHERE a.data_desligamento >= $2 AND a.data_desligamento < $3
+			                    AND a.desligamento_tipo IN ('reintegracao_familia_natural', 'reintegracao_familia_extensa')),
+			 count(*) FILTER (WHERE a.data_desligamento >= $2 AND a.data_desligamento < $3 AND a.desligamento_tipo = 'adocao'),
+			 count(*) FILTER (WHERE a.data_desligamento >= $2 AND a.data_desligamento < $3 AND a.desligamento_tipo = 'transferencia'),
+			 count(*) FILTER (WHERE a.status = 'acolhido' AND COALESCE(p.atualizado_em, a.data_entrada)::date + 90 < current_date)
+			 FROM sempras_casa_abrigo_acolhimentos a
+			 JOIN sempras_cidadaos c ON c.id = a.cidadao_id
+			 LEFT JOIN sempras_casa_abrigo_pia p ON p.acolhimento_id = a.id
+			 WHERE a.unidade_id = ANY($1::uuid[]) GROUP BY a.unidade_id`,
 			func(row pgx.Row, m *domain.RmaUnidade) error {
-				return row.Scan(&m.CasaAbrigoAcolhidosAtivos, &m.CasaAbrigoEntradasNoMes, &m.CasaAbrigoDesligamentosNoMes)
+				return row.Scan(&m.CasaAbrigoAcolhidosAtivos, &m.CasaAbrigoEntradasNoMes, &m.CasaAbrigoDesligamentosNoMes,
+					&m.CasaAbrigoCriancasAtivas, &m.CasaAbrigoAdolescentesAtivos, &m.CasaAbrigoReintegracoesNoMes,
+					&m.CasaAbrigoAdocoesNoMes, &m.CasaAbrigoTransferenciasNoMes, &m.CasaAbrigoPiasAtrasados)
 			},
 		},
 		{

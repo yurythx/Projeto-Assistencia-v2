@@ -322,10 +322,15 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"InsertTarefa": func(db database.DBTX) error {
 			return r.InsertTarefa(ctx, db, domain.TarefaCasaAbrigo{ID: id, UnidadeID: id, Titulo: "tarefa"}, id)
 		},
-		"GetTarefa":    func(db database.DBTX) error { _, err := r.GetTarefa(ctx, db, id, true); return err },
-		"UpdateTarefa": func(db database.DBTX) error { return r.UpdateTarefa(ctx, db, domain.TarefaCasaAbrigo{ID: id}) },
-		"DeleteTarefa": func(db database.DBTX) error { return r.DeleteTarefa(ctx, db, id) },
-		"ListTarefas":  func(db database.DBTX) error { _, err := r.ListTarefas(ctx, db, id); return err },
+		"GetTarefa":               func(db database.DBTX) error { _, err := r.GetTarefa(ctx, db, id, true); return err },
+		"UpdateTarefa":            func(db database.DBTX) error { return r.UpdateTarefa(ctx, db, domain.TarefaCasaAbrigo{ID: id}) },
+		"DeleteTarefa":            func(db database.DBTX) error { return r.DeleteTarefa(ctx, db, id) },
+		"ListTarefas":             func(db database.DBTX) error { _, err := r.ListTarefas(ctx, db, id); return err },
+		"RegistrosDoAcolhido":     func(db database.DBTX) error { _, err := r.RegistrosDoAcolhido(ctx, db, id, id); return err },
+		"DiarioDoAcolhimento":     func(db database.DBTX) error { _, err := r.DiarioDoAcolhimento(ctx, db, id); return err },
+		"RelatoriosDoAcolhimento": func(db database.DBTX) error { _, err := r.RelatoriosDoAcolhimento(ctx, db, id); return err },
+		"UnidadesDoTipo":          func(db database.DBTX) error { _, err := r.UnidadesDoTipo(ctx, db, "abrigo"); return err },
+		"EquipeDaUnidade":         func(db database.DBTX) error { _, err := r.EquipeDaUnidade(ctx, db, id); return err },
 	}
 	for name, call := range calls {
 		if err := call(dbtest.Fail{}); !errors.Is(err, dbtest.ErrInjected) {
@@ -345,7 +350,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"CasosCasaMulherNaArea", "GetOficioCras", "OficiosCrasNaArea", "ListAtendimentosColetivos", "GetCentroPopPerfil",
 		"GetEncaminhamentoExterno", "EncaminhamentosExternosNaArea", "GetDocumentoCentroPop", "ListDocumentosCentroPop",
 		"ListAbordagens", "AbordagensNaArea", "ListVisitantesDaUnidade", "ListTermosDaUnidade", "AcolhidosDaUnidade",
-		"MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "GetRelatorio", "ListRelatorios", "GetTarefa", "ListTarefas"} {
+		"MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "GetRelatorio", "ListRelatorios", "GetTarefa", "ListTarefas", "RegistrosDoAcolhido", "DiarioDoAcolhimento", "RelatoriosDoAcolhimento", "UnidadesDoTipo", "EquipeDaUnidade"} {
 		if err := calls[name](dbtest.ScanFail{}); err == nil {
 			t.Errorf("%s com linha ilegível deveria falhar", name)
 		}
@@ -357,7 +362,7 @@ func TestRepositoryPropagatesDatabaseErrors(t *testing.T) {
 		"ListVisitantes", "ListTermos", "ListPiaMetas", "ListDocumentos", "RegistrosDeOrigem", "AcompanhamentosForaDaArea",
 		"CasosCasaMulherNaArea", "OficiosCrasNaArea", "ListAtendimentosColetivos", "EncaminhamentosExternosNaArea",
 		"ListDocumentosCentroPop", "ListAbordagens", "AbordagensNaArea", "ListVisitantesDaUnidade", "ListTermosDaUnidade",
-		"AcolhidosDaUnidade", "MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "ListRelatorios", "ListTarefas"} {
+		"AcolhidosDaUnidade", "MetasPendentesDaUnidade", "EvolucoesDaUnidade", "ListDiario", "ListRelatorios", "ListTarefas", "RegistrosDoAcolhido", "DiarioDoAcolhimento", "RelatoriosDoAcolhimento", "UnidadesDoTipo", "EquipeDaUnidade"} {
 		if err := calls[name](dbtest.RowsErr{}); !errors.Is(err, dbtest.ErrInjected) {
 			t.Errorf("%s com a conexão perdida na leitura: %v", name, err)
 		}

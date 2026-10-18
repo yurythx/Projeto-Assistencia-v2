@@ -274,6 +274,50 @@ func (s *Service) ObterAcolhimento(ctx context.Context, identity auth.Identity, 
 	return out, nil
 }
 
+// LinhaDoTempoAcolhimento reúne a história do acolhido na unidade, da
+// entrada ao desligamento: evoluções, P.I.A., visitas, termos, diário,
+// relatórios e documentos, do mais recente ao mais antigo. O psicológico
+// sai sem o texto para quem não tem o sigilo (ADR 030 §5) — leitura auditada.
+func (s *Service) LinhaDoTempoAcolhimento(ctx context.Context, identity auth.Identity, id uuid.UUID) ([]domain.EventoLinhaDoTempo, error) {
+	var out []domain.EventoLinhaDoTempo
+	err := s.lerAuditado(ctx, "sempras.casa_abrigo.linha_do_tempo_visualizada", "sempras_casa_abrigo_acolhimento", id.String(),
+		func(ctx context.Context, tx pgx.Tx) (int, error) {
+			a, err := s.repo.GetAcolhimento(ctx, tx, id, false)
+			if err != nil {
+				return 0, err
+			}
+			u, err := s.casaAbrigo(ctx, tx, identity, a.UnidadeID)
+			if err != nil {
+				return 0, err
+			}
+			if err := s.completarAcolhimento(ctx, tx, &a); err != nil {
+				return 0, err
+			}
+			evolucoes, err := s.repo.RegistrosDoAcolhido(ctx, tx, a.CidadaoID, a.UnidadeID)
+			if err != nil {
+				return 0, err
+			}
+			if !u.PodePsicologia(identity) {
+				for i, r := range evolucoes {
+					if r.Tipo == domain.TipoPsicologico {
+						evolucoes[i] = r.Ocultar()
+					}
+				}
+			}
+			diario, err := s.repo.DiarioDoAcolhimento(ctx, tx, id)
+			if err != nil {
+				return 0, err
+			}
+			relatorios, err := s.repo.RelatoriosDoAcolhimento(ctx, tx, id)
+			if err != nil {
+				return 0, err
+			}
+			out = domain.LinhaDoTempo(a, evolucoes, diario, relatorios)
+			return len(out), nil
+		})
+	return out, err
+}
+
 // AdicionarIrmao registra um irmão do acolhido.
 func (s *Service) AdicionarIrmao(ctx context.Context, identity auth.Identity, acolhimento uuid.UUID, in IrmaoInput) (domain.Irmao, error) {
 	i, err := domain.NovoIrmao(acolhimento, in.Nome, in.DataNascimento, in.EstaAcolhido, in.UnidadeDescricao, in.Observacao)

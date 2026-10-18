@@ -1,5 +1,5 @@
 .PHONY: dev up down logs build test lint format \
-	deploy prod-seed-admin prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar sempras-mapeamentos ttdd-impacto ttdd-aplicar \
+	deploy prod-seed-admin prod-importar-casa-abrigo prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar sempras-mapeamentos ttdd-impacto ttdd-aplicar \
 	demo-keycloak demo-generate demo-seed demo-test demo-popular \
 	migrate-up migrate-down migrate-status migrate-redo seed-admin \
 	backend-shell frontend-shell rabbitmq-status clean \
@@ -36,6 +36,10 @@ deploy: ## git pull + gera .env/chave na 1ª vez + build + sobe e espera healthy
 
 prod-seed-admin: ## Cria/reseta o admin local dentro do container (sem Go no host)
 	$(COMPOSE_PROD) run --rm --no-deps --entrypoint ./seedadmin backend-api
+
+prod-importar-casa-abrigo: ## Histórico do Casa Abrigo 4.0 (ARGS="-unidade <id> -autor <user> [-aplicar]"; LEGADO_* no ambiente)
+	$(COMPOSE_PROD) run --rm --no-deps -e LEGADO_DATABASE_URL -e LEGADO_ENCRYPTION_KEY \
+		--entrypoint ./importar-casa-abrigo backend-api $(ARGS)
 
 prod-ps: ## Estado dos serviços de produção
 	$(COMPOSE_PROD) ps

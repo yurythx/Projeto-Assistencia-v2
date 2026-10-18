@@ -524,3 +524,36 @@ func TestEstatisticas(t *testing.T) {
 		t.Errorf("período: %s a %s", e.De, e.Ate)
 	}
 }
+
+func TestLinhaDoTempo(t *testing.T) {
+	d := func(s string) time.Time { return dia(s) }
+	saida := d("2026-10-10")
+	a := Acolhimento{DataEntrada: d("2026-09-01"), AcolhimentoDados: AcolhimentoDados{ProcessoJudicial: "123"},
+		DataDesligamento: &saida, DesligamentoTipo: "adocao", MotivoDesligamento: "sentença",
+		Pia: &PiaFicha{AtualizadoEm: d("2026-09-05")}, PiaMetas: []PiaMeta{{CreatedAt: d("2026-09-06"), Descricao: "RG"}},
+		Visitantes: []Visitante{{DataVisita: d("2026-09-07"), NomeVisitante: "Avó", ParentescoVinculo: "avó", HoraEntrada: "14:00"}},
+		Termos:     []Termo{{DataTermo: d("2026-09-08"), TipoTermo: "passeio"}},
+		Documentos: []DocumentoCasaAbrigo{{CreatedAt: d("2026-09-02"), NomeOriginal: "rg.pdf"}}}
+	evolucoes := []Registro{{CreatedAt: d("2026-09-03"), Tipo: TipoSocial, Texto: "chegou bem"},
+		{CreatedAt: d("2026-09-04"), Tipo: TipoPsicologico, Sigiloso: true}}
+	diario := []AnotacaoDiario{{DataReferencia: d("2026-09-09"), Texto: "consulta"}}
+	relatorios := []RelatorioCasaAbrigo{{DataEntrega: d("2026-09-20"), Tipo: "psicossocial", Status: "entregue"}}
+	ev := LinhaDoTempo(a, evolucoes, diario, relatorios)
+	tipos := []string{}
+	for _, e := range ev {
+		tipos = append(tipos, e.Tipo)
+	}
+	if strings.Join(tipos, ",") != "desligamento,relatorio,diario,termo,visita,meta,pia,evolucao,evolucao,documento,entrada" {
+		t.Fatalf("ordem: %v", tipos)
+	}
+	if ev[0].Titulo != "Desligamento (adoção)" || ev[1].Titulo != "Relatório psicossocial" || ev[3].Titulo != "Termo de passeio" ||
+		ev[4].Detalhe != "avó 14:00" || ev[7].Detalhe != "Registro sigiloso da psicologia" || ev[7].Titulo != "Evolução psicológica" ||
+		ev[8].Titulo != "Evolução social" || ev[10].Detalhe != "Processo 123." {
+		t.Errorf("eventos: %+v", ev)
+	}
+	// sem desligamento, PIA, processo nem guia
+	so := LinhaDoTempo(Acolhimento{DataEntrada: d("2026-09-01")}, nil, nil, nil)
+	if len(so) != 1 || so[0].Detalhe != "" {
+		t.Errorf("só a entrada: %+v", so)
+	}
+}

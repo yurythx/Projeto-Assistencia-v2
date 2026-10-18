@@ -12,7 +12,8 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api && \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/migrate ./cmd/migrate && \
-    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/seedadmin ./cmd/seedadmin
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/seedadmin ./cmd/seedadmin && \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/importar-casa-abrigo ./cmd/importar-casa-abrigo
 
 # ---- runtime ----
 FROM debian:bookworm-slim AS runtime
@@ -28,6 +29,9 @@ COPY --from=builder --chown=nix:nix /out/migrate ./migrate
 # seedadmin: cria/reseta o admin local num servidor sem Go instalado
 # (`make prod-seed-admin`, ver docs/DEPLOY.md).
 COPY --from=builder --chown=nix:nix /out/seedadmin ./seedadmin
+# importar-casa-abrigo: traz o histórico do Casa Abrigo 4.0 (ADR 033;
+# docs/GUIA_SEMPRAS.md, "Importar o histórico do 4.0"). Simula por padrão.
+COPY --from=builder --chown=nix:nix /out/importar-casa-abrigo ./importar-casa-abrigo
 # docs/openapi.json é servido em runtime por GET /openapi.json e /docs
 # (router.go, http.ServeFile com caminho relativo ao WORKDIR) — sem esta
 # linha, o binário sobe normalmente mas as duas rotas sempre devolviam 404

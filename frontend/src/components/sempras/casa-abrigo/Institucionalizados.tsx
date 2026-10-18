@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { Download, FileText, Pencil, Plus, Printer, UserMinus } from "lucide-react";
+import { Download, FileText, History, Pencil, Plus, Printer, UserMinus } from "lucide-react";
 
 import { useAction } from "@/components/nexus/useAction";
 import { Badge } from "@/components/ui/Badge";
@@ -25,13 +25,15 @@ import {
   type TipoDesligamento,
 } from "@/lib/sempras/types";
 
+import { LinhaDoTempo } from "./LinhaDoTempo";
+
 const vazio = (v: string) => !v.trim();
 
 /**
  * Relatório de institucionalizados (o do sistema da unidade): quem está
  * acolhido, idade, entrada, processo e guia (em destaque quando faltam),
  * documentos, totais por faixa etária, impressão e CSV — mais o cadastro,
- * a edição e o desligamento (ação própria da equipe técnica).
+ * a edição, a linha do tempo e o desligamento (ação própria da equipe técnica).
  */
 export function Institucionalizados({
   unidadeId,
@@ -53,6 +55,7 @@ export function Institucionalizados({
   );
 
   const [desligando, setDesligando] = useState<AcolhidoResumo | null>(null);
+  const [historia, setHistoria] = useState<AcolhidoResumo | null>(null);
   const [tipo, setTipo] = useState<TipoDesligamento>("reintegracao_familia_natural");
   const [motivo, setMotivo] = useState("");
   const [dataSaida, setDataSaida] = useState(hojeISO());
@@ -156,6 +159,9 @@ export function Institucionalizados({
                 <span className="flex flex-wrap items-center gap-1">
                   {a.documento_acolhido && <Badge tone="success"><FileText size={12} className="mr-0.5 inline" aria-hidden="true" />Ac.</Badge>}
                   {a.documento_responsavel && <Badge tone="success"><FileText size={12} className="mr-0.5 inline" aria-hidden="true" />Resp.</Badge>}
+                  <Button type="button" size="sm" variant="ghost" aria-label={`Linha do tempo de ${a.nome}`} onClick={() => setHistoria(a)}>
+                    <History size={14} aria-hidden="true" />
+                  </Button>
                   <Button type="button" size="sm" variant="ghost" aria-label={`Editar ${a.nome}`} onClick={() => onEditar(a.acolhimento_id)}>
                     <Pencil size={14} aria-hidden="true" />
                   </Button>
@@ -187,6 +193,8 @@ export function Institucionalizados({
           </div>
         </dl>
       )}
+
+      {historia && <LinhaDoTempo acolhido={historia} onFechar={() => setHistoria(null)} />}
 
       <Dialog open={desligando !== null} onClose={() => setDesligando(null)} title="Desligar acolhimento"
         description={desligando ? `${desligando.nome_social || desligando.nome} — só a equipe técnica desliga.` : undefined}>

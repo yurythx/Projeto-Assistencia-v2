@@ -79,6 +79,15 @@ func TestCasaAbrigoFalhasPropagadas(t *testing.T) {
 			_, err := s.ObterAcolhimento(ctx, id, c.comPia(t).ID)
 			return err
 		},
+		"LinhaDoTempoAcolhimento": func(t *testing.T, s *application.Service) error {
+			a := c.comPia(t)
+			if _, err := c.limpo().RegistrarAnotacaoDiario(ctx, id, c.unAbrigo, &a.ID, agora, "consulta"); err != nil {
+				t.Fatal(err)
+			}
+			c.relatorio(t, &a.ID)
+			_, err := s.LinhaDoTempoAcolhimento(ctx, id, a.ID)
+			return err
+		},
 		"AdicionarIrmao": func(t *testing.T, s *application.Service) error {
 			_, err := s.AdicionarIrmao(ctx, id, c.acolhimento(t).ID, application.IrmaoInput{Nome: "Irmão"})
 			return err
@@ -409,6 +418,25 @@ func TestCasaAbrigoRegras(t *testing.T) {
 			t.Errorf("sigilo psicológico na lista: %+v", e)
 		}
 	}
+	// a linha do tempo: a entrada e as duas evoluções; o psicológico sem o
+	// texto para o técnico, com o texto para quem tem o sigilo
+	for _, quem := range []struct {
+		nome     string
+		identity auth.Identity
+		sigilo   bool
+	}{{"técnico", tecnico, true}, {"psicologia", c.identity, false}} {
+		ev, err := s.LinhaDoTempoAcolhimento(ctx, quem.identity, a.ID)
+		if err != nil || len(ev) < 3 || ev[len(ev)-1].Tipo != "entrada" {
+			t.Fatalf("linha do tempo (%s): %+v %v", quem.nome, ev, err)
+		}
+		for _, e := range ev {
+			if e.Titulo == "Evolução psicológica" && (e.Detalhe == "Registro sigiloso da psicologia") != quem.sigilo {
+				t.Errorf("sigilo psicológico na linha do tempo (%s): %+v", quem.nome, e)
+			}
+		}
+	}
+	_, err = s.LinhaDoTempoAcolhimento(ctx, recepcao, a.ID)
+	proibido("recepção vê a linha do tempo", err)
 	if evo, _ := s.EvolucoesCasaAbrigo(ctx, c.identity, c.unAbrigo); evo[0].Texto == "" || evo[1].Texto == "" {
 		t.Errorf("com o sigilo, a psicologia lê: %+v", evo)
 	}
@@ -504,6 +532,7 @@ func TestCasaAbrigoHandlers(t *testing.T) {
 	ac := a.id("POST", "/sempras/cidadaos/"+c.crianca(t).ID.String()+"/casa-abrigo", `{"unidade_id":"`+un+`",`+assistente+
 		`,"irmaos":[{"nome":"Irmã"}],"diagnosticos":[{"categoria":"doenca","diagnostico":"Asma"}]}`)
 	a.do(200, "GET", "/sempras/casa-abrigo/"+ac, "")
+	a.do(200, "GET", "/sempras/casa-abrigo/"+ac+"/linha-do-tempo", "")
 	a.do(200, "PUT", "/sempras/casa-abrigo/"+ac, `{`+assistente+`,"observacoes_gerais":"editado"}`)
 	irmao := a.id("POST", "/sempras/casa-abrigo/"+ac+"/irmaos", `{"nome":"Irmão"}`)
 	a.do(200, "DELETE", "/sempras/casa-abrigo-irmaos/"+irmao, "")
@@ -577,6 +606,7 @@ func TestCasaAbrigoHandlers(t *testing.T) {
 		{http.MethodPost, ub + "/tarefas", `{"titulo":"Relatório"}`, 500},
 		{http.MethodPost, "/sempras/cidadaos/" + x + "/casa-abrigo", `{"unidade_id":"` + x + `",` + assistente + `}`, 500},
 		{http.MethodGet, "/sempras/casa-abrigo/" + x, "", 500},
+		{http.MethodGet, "/sempras/casa-abrigo/" + x + "/linha-do-tempo", "", 500},
 		{http.MethodPut, "/sempras/casa-abrigo/" + x, `{` + assistente + `}`, 500},
 		{http.MethodPost, "/sempras/casa-abrigo/" + x + "/desligar", `{"tipo":"adocao","motivo":"sentença","data_saida":"` + ontem + `"}`, 500},
 		{http.MethodPost, "/sempras/casa-abrigo/" + x + "/irmaos", `{"nome":"Irmão"}`, 500},

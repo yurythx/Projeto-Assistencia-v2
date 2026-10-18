@@ -109,11 +109,59 @@ def povoar(api, u, agora):
             "unidade_id": uid, "violencias": ["psicologica"], "relacao_agressor": "ex_conjuge_companheiro",
             "nivel_risco": "medio", "medida_protetiva_status": "em_analise"})
     if "acolhimento" in s:
-        api.call("POST", f"sempras/cidadaos/{c0}/casa-abrigo", {"unidade_id": uid, "sexo": "feminino",
-                                                               "motivos": ["negligencia_abandono"]})
+        povoar_casa_abrigo(api, uid, agora)
     if "conselho" in s:
         api.call("POST", f"sempras/cidadaos/{c0}/conselho-tutelar", {"unidade_id": uid, "origem_demanda": "escola",
                                                                     "motivo_violacao": "evasao_escolar"})
+
+
+def dia(d):
+    """Data "pura" no formato da API (meia-noite UTC)."""
+    return d.strftime("%Y-%m-%dT00:00:00Z")
+
+
+def povoar_casa_abrigo(api, uid, agora):
+    """Duas crianças acolhidas (ADR 032) com uma amostra de cada tela: o
+    assistente completo, P.I.A., plano de ação, visita, termo, diário,
+    relatório com prazo perto (o monitor avisa) e uma tarefa da equipe."""
+    criancas = [("Ana Clara Fictícia", "2015-03-10", "feminino", 40), ("Bruno Fictício", "2011-08-21", "masculino", 85)]
+    for nome, nasc, sexo, dias_na_casa in criancas:
+        _, c = api.call("POST", "sempras/cidadaos", {"nome": nome, "nis": nis(), "sexo": sexo, "data_nascimento": nasc,
+                                                     "nome_mae": "Mãe de " + nome.split()[0]})
+        entrada = agora - timedelta(days=dias_na_casa)
+        status, a = api.call("POST", f"sempras/cidadaos/{c['id']}/casa-abrigo", {
+            "unidade_id": uid, "data_entrada": dia(entrada), "sexo": sexo, "raca_cor": "parda", "filiacao_1": "Mãe de " + nome.split()[0],
+            "responsavel_nome": "Tia Fictícia", "responsavel_vinculo": "tia", "responsavel_cep": "78700000",
+            "responsavel_logradouro": "Rua Fictícia", "responsavel_numero": "100", "responsavel_cidade": "Rondonópolis", "responsavel_uf": "MT",
+            "processo_judicial": f"{random.randint(1000, 9999)}/2026", "guia_acolhimento": f"G-{random.randint(100, 999)}",
+            "data_guia": dia(entrada), "historico_acolhido_anteriormente": "nao", "motivos": ["negligencia", "conflito_familiar"],
+            "situacao_juridica": "emergencial_conselho_tutelar", "conselheiro_nome": "Conselheira Fictícia", "cna": "nao",
+            "estuda": "sim", "recebe_visita": "sim", "relacao_trabalho": "nao",
+            "irmaos": [{"nome": "Irmão de " + nome.split()[0], "esta_acolhido": False}],
+            "diagnosticos": [{"categoria": "doenca", "diagnostico": "Hipertensão"}] if sexo == "masculino" else [],
+        }, ok=(201, 409))
+        if status == 409:  # já acolhida numa rodada anterior
+            continue
+        ac = a["id"]
+        api.call("PUT", f"sempras/casa-abrigo/{ac}/pia", {"naturalidade": "Rondonópolis", "escola": "EMEB Fictícia",
+                                                         "periodo_escolar": "matutino", "doc_certidao_nascimento": True,
+                                                         "intervencao_objetivos": "fortalecer os vínculos com a família extensa"})
+        api.call("POST", f"sempras/casa-abrigo/{ac}/pia-metas", {"tipo": "plano", "descricao": "segunda via do RG",
+                                                                "responsavel": "Assistente social", "prazo": dia(agora + timedelta(days=5)),
+                                                                "esportes": "futsal", "lazer": "parque"})
+        api.call("POST", f"sempras/casa-abrigo/{ac}/visitantes", {"nome_visitante": "Tia Fictícia", "parentesco_vinculo": "tia",
+                                                                 "data_visita": dia(agora), "hora_entrada": "14:00"})
+        api.call("POST", f"sempras/casa-abrigo/{ac}/termos", {"tipo_termo": "passeio", "responsavel_retirada": "Tia Fictícia",
+                                                             "parentesco_responsavel": "tia", "data_termo": dia(agora)})
+        api.call("POST", f"sempras/unidades/{uid}/casa-abrigo/diario", {"acolhimento_id": ac, "data_referencia": dia(agora),
+                                                                       "texto": "Consulta no posto de saúde às 9h."})
+    base = f"sempras/unidades/{uid}/casa-abrigo"
+    api.call("POST", f"{base}/visitantes", {"tipo_visita": "doacao", "nome_visitante": "Igreja Fictícia", "data_visita": dia(agora),
+                                            "hora_entrada": "10:00", "observacoes": "doação de roupas"})
+    api.call("POST", f"{base}/diario", {"data_referencia": dia(agora + timedelta(days=2)), "texto": "Reunião da equipe técnica (agenda)."})
+    api.call("POST", f"{base}/relatorios", {"tipo": "psicossocial", "status": "em_elaboracao", "data_entrega": dia(agora + timedelta(days=4))})
+    api.call("POST", f"{base}/tarefas", {"titulo": "Organizar as doações de inverno", "prioridade": "alta",
+                                         "prazo": dia(agora + timedelta(days=2))})
 
 
 def main():

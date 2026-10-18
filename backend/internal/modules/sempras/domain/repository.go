@@ -178,6 +178,11 @@ type Repository interface {
 	UpdateTarefa(ctx context.Context, db database.DBTX, t TarefaCasaAbrigo) error
 	DeleteTarefa(ctx context.Context, db database.DBTX, id uuid.UUID) error
 	ListTarefas(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]TarefaCasaAbrigo, error)
+	RegistrosDoAcolhido(ctx context.Context, db database.DBTX, cidadao, unidade uuid.UUID) ([]Registro, error)
+	DiarioDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]AnotacaoDiario, error)
+	RelatoriosDoAcolhimento(ctx context.Context, db database.DBTX, acolhimento uuid.UUID) ([]RelatorioCasaAbrigo, error)
+	UnidadesDoTipo(ctx context.Context, db database.DBTX, tipo string) ([]uuid.UUID, error)
+	EquipeDaUnidade(ctx context.Context, db database.DBTX, unidade uuid.UUID) ([]uuid.UUID, error)
 
 	// Centro POP
 	UpsertCentroPopPerfil(ctx context.Context, db database.DBTX, p CentroPopPerfil, autor uuid.UUID) error

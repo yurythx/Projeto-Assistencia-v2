@@ -625,6 +625,22 @@ export interface RelatorioCasaAbrigo {
   atualizado_em: string;
 }
 
+export type TipoEventoLinhaDoTempo =
+  | "entrada" | "desligamento" | "pia" | "meta" | "evolucao" | "visita" | "termo" | "diario" | "relatorio" | "documento";
+
+/** Um acontecimento da história do acolhido na unidade (linha do tempo). */
+export interface EventoLinhaDoTempo {
+  data: string;
+  tipo: TipoEventoLinhaDoTempo;
+  titulo: string;
+  detalhe: string;
+}
+
+/** Os eventos com data "pura" (dia do calendário); os demais são instantes. */
+export const EVENTOS_DE_DIA: ReadonlySet<TipoEventoLinhaDoTempo> = new Set([
+  "entrada", "desligamento", "visita", "termo", "diario", "relatorio",
+]);
+
 /** Nome do relatório como aparece na lista e no editor. */
 export function nomeRelatorio(r: Pick<RelatorioCasaAbrigo, "tipo" | "tipo_outro">): string {
   return r.tipo === "outro" ? r.tipo_outro : TIPOS_RELATORIO[r.tipo];

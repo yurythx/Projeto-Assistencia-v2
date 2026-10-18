@@ -64,6 +64,14 @@ Cada um entra com o próprio usuário e segue o [guia de uso](GUIA_SEMPRAS.md):
 - [ ] **Encaminhamento:** um CRAS encaminha para o CREAS; o CREAS aceita e
   vê o resumo.
 - [ ] **Superintendência:** painel, RMA por formulário e tela de Unidades.
+- [ ] **Casa Abrigo:** cadastre uma criança nas 6 etapas, preencha o P.I.A.,
+  gere um termo impresso, registre uma visita, anote no diário, escreva e
+  entregue um relatório, mova uma tarefa no Kanban e confira os avisos do
+  painel. As duas crianças fictícias já trazem um caso de cada tela.
+- [ ] **Casa Abrigo — linha do tempo e sino:**
+  - abra a linha do tempo de uma criança e imprima;
+  - entre com um usuário lotado na Casa Abrigo e confira no sino os avisos
+    do relatório que vence em 4 dias. O worker avisa ao subir.
 - [ ] Anote o que falta na rotina da unidade (campo, lista, relatório).
 
 ## Desmontar
