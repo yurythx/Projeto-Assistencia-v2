@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -46,6 +47,15 @@ func TestArgumentos(t *testing.T) {
 func TestSimulacao(t *testing.T) {
 	url := os.Getenv("TEST_DATABASE_URL")
 	pool := dbtest.Pool(t)
+	// o destino vem das DB_* (como na API); no CI o passo de testes só tem a URL
+	cfg, err := pgx.ParseConfig(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for k, v := range map[string]string{"DB_HOST": cfg.Host, "DB_PORT": strconv.Itoa(int(cfg.Port)), "DB_NAME": cfg.Database,
+		"DB_USER": cfg.User, "DB_PASSWORD": cfg.Password} {
+		t.Setenv(k, v)
+	}
 	ctx := context.Background()
 	schema := "Casa Abrigo cmd" + uuid.NewString()[:6]
 	if _, err := pool.Exec(ctx, `CREATE SCHEMA `+pgx.Identifier{schema}.Sanitize()); err != nil {
