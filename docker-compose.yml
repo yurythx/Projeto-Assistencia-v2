@@ -239,6 +239,11 @@ services:
       NEXT_PUBLIC_WS_URL: ${WEBSOCKET_PUBLIC_URL:-ws://localhost:8002/ws}
       NEXT_PUBLIC_MINIO_URL: ${MINIO_PUBLIC_URL:-http://localhost:9002}
       BACKEND_INTERNAL_URL: http://backend-api:${HTTP_PORT:-8002}
+      # Login SSO: a sessão (cookies do NextAuth) leva os tokens do Keycloak
+      # com todos os grupos do AD da pessoa — há contas em 80 grupos. O
+      # limite padrão do Node (16 KB de cabeçalho) recusaria essas
+      # requisições depois do login; 64 KB, como o proxy na frente.
+      NODE_OPTIONS: --max-http-header-size=65536
       # Sem isto, o NextAuth infere a origem sozinho e (achado de
       # auditoria) acerta a porta INTERNA do container (3000) em vez da
       # porta publicada (${FRONTEND_PORT:-3002}) — todo redirecionamento
