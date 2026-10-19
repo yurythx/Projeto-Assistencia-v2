@@ -83,6 +83,20 @@ São 16 × 3 + 1 = **49 grupos**. A lista completa e o SQL idempotente dos
 mapeamentos ficam em `deploy/sempras/`. Até os grupos existirem, as
 lotações podem ser cadastradas na tela de Usuários: mesmo efeito, sem AD.
 
+> **Atualização (2026-10-19).** Os grupos já existiam no AD com outra
+> convenção: `Grupo <Unidade>`, `Grupo <Unidade> Administração` e
+> `Grupo <Unidade> Coordenação`, além de `Sempras_Sup_*` para as
+> superintendências. O mapeamento passou a usar os grupos reais:
+>
+> - o grupo base vira técnico;
+> - o grupo de administração vira recepção;
+> - o grupo de coordenação vira o perfil novo de **Coordenador**, com
+>   gestão só da unidade;
+> - `Sempras_Sup_*`, `Sempras_Gabinete` e `SEMPRAS` viram superintendência.
+>
+> O AD não separa a psicologia: ela é dada pela lotação manual. Ver o
+> [ROADMAP_SEMPRAS](../ROADMAP_SEMPRAS.md#grupos-do-ad).
+
 ### 4. Munícipe, fila e atendimento
 
 - **Cadastro do munícipe compartilhado** na SEMPRAS: uma pessoa, um

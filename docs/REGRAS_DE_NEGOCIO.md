@@ -772,9 +772,10 @@ e o plano, em [ROADMAP_SEMPRAS.md](ROADMAP_SEMPRAS.md). O módulo nasce
 **desativado**.
 
 - **Unidades:** são as Unidades da entidade SEMPRAS (estrutura real). Cada
-  pessoa atua só onde foi lotada, por lotação ou grupo do AD
-  `SEMPRAS_<UNIDADE>_<PERFIL>`. O Superintendente, lotado **na entidade**,
-  atua em todas as unidades.
+  pessoa atua só onde foi lotada, por lotação ou grupo do AD da unidade
+  (`Grupo <Unidade>`, `… Administração`, `… Coordenação`). O Coordenador
+  tem a gestão só da sua unidade. O Superintendente, lotado **na
+  entidade**, atua em todas as unidades.
 - **Munícipe:** o cadastro é único na secretaria.
   - **Identificação:** CPF (dígitos verificadores conferidos), NIS ou data
     de nascimento + nome da mãe. CPF e NIS não se repetem.

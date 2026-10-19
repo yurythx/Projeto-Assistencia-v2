@@ -60,41 +60,35 @@ de plataforma que já exista (DRY):
 Recepcionista, técnico e psicólogo atuam **na própria unidade**. O
 Superintendente atua em **todas as unidades da SEMPRAS**.
 
-## Grupos do AD a pedir à TI
+## Grupos do AD
 
-Convenção: `SEMPRAS_<UNIDADE>_<PERFIL>`, com o perfil em `RECEPCIONISTA`,
-`TECNICO` ou `PSICOLOGO`. Mais um grupo, `SEMPRAS_SUPERINTENDENCIA`.
+Os grupos já existem no AD e chegam pelo Keycloak (realm `rondonopolis`).
+Mapeamento atual, aprovado pela gestão em 2026-10-19:
 
-| Unidade | Sufixo do grupo |
-|---|---|
-| Casa Abrigo | `CASA_ABRIGO` |
-| Casa da Mulher | `CASA_DA_MULHER` |
-| Centro POP | `CENTRO_POP` |
-| CEU | `CEU` |
-| Conselho Tutelar Central | `CONSELHO_TUTELAR_CENTRAL` |
-| Conselho Tutelar Vila Operária | `CONSELHO_TUTELAR_VILA_OPERARIA` |
-| CRAS Alfredo de Castro | `CRAS_ALFREDO_DE_CASTRO` |
-| CRAS Ana Carla | `CRAS_ANA_CARLA` |
-| CRAS Central | `CRAS_CENTRAL` |
-| CRAS Conjunto São José | `CRAS_CONJUNTO_SAO_JOSE` |
-| CRAS Iguaçu | `CRAS_IGUACU` |
-| CRAS Luz Dyara | `CRAS_LUZ_DYARA` |
-| CRAS Padre Lothar | `CRAS_PADRE_LOTHAR` |
-| CRAS Rio Vermelho | `CRAS_RIO_VERMELHO` |
-| CRAS Sagrada Família | `CRAS_SAGRADA_FAMILIA` |
-| CREAS | `CREAS` |
-| SCFV Padre Lothar | `SCFV_PADRE_LOTHAR` |
-| Vila Olímpica | `VILA_OLIMPICA` |
+| Grupo do AD | Perfil | Onde |
+|---|---|---|
+| `Grupo <Unidade>` | Técnico | na unidade |
+| `Grupo <Unidade> Administração` | Recepcionista | na unidade |
+| `Grupo <Unidade> Coordenação` | Coordenador (atendimento + gestão) | na unidade |
+| `Sempras_Casa_da_Mulher` | Técnico | Casa da Mulher |
+| `SEMPRAS`, `Sempras_Gabinete`, `Sempras_Sup_*` | Superintendente | todas as unidades |
 
-Exemplo: `SEMPRAS_CRAS_CENTRAL_TECNICO`. Depois que os grupos existirem,
-`deploy/sempras/mapeamentos-ad.sql` cria os 55 mapeamentos (18 unidades × 3 perfis + Superintendência). O SQL é
-idempotente e localiza as unidades pelo slug da estrutura real.
+- O AD não separa recepção e psicologia dentro da unidade. Quem for
+  psicólogo (sigilo) ou só recepção é ajustado na tela de lotação.
+- Unidades sem grupo no AD ficam por lotação manual até a TI confirmar o
+  grupo: Conselhos Tutelares (há um `CTCENTRAL`), SCFV Padre Lothar e Vila
+  Olímpica (há `Vila Olimpica` e `VilaOlimpica`).
+- O CRAS Central tem grupo, mas não está na estrutura (`estrutura.sql`). O
+  SQL lista no fim os grupos cuja unidade não existe.
+
+`deploy/sempras/mapeamentos-ad.sql` é gerado a partir da lista de grupos do
+Keycloak. É idempotente e localiza as unidades pelo slug da estrutura real.
 
 ## Como implantar
 
 1. `make estrutura-aplicar`: entidade SEMPRAS e as unidades.
-2. Migrations: `make migrate-up` cria as tabelas e os 4 perfis.
-3. `make sempras-mapeamentos`: o tipo das unidades e os 55 mapeamentos dos grupos do AD
+2. Migrations: `make migrate-up` cria as tabelas e os 5 perfis.
+3. `make sempras-mapeamentos`: o tipo das unidades e os mapeamentos dos grupos do AD
    (`deploy/sempras/mapeamentos-ad.sql`).
    Antes de os grupos existirem, cadastre as lotações em Configurações →
    Usuários.
