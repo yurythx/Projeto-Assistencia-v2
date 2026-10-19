@@ -349,7 +349,21 @@ Chamadas avulsas como qualquer usuário:
 
 ### Trocar pelo Keycloak oficial
 
-No realm oficial, dois clients (o realm de teste em
+> **Produção (Prefeitura de Rondonópolis, desde 2026-10-19):** um client
+> só, `assistenciav2`, no realm `rondonopolis` de
+> `https://sso.rondonopolis.mt.gov.br`. Ele faz os dois papéis abaixo:
+> - **Configuração:** confidencial, Standard Flow com PKCE S256 e Direct
+>   Access Grants, redirect `https://192.168.1.20/*`.
+> - **Mappers:** de audience com o próprio `assistenciav2` e de `groups`
+>   com `full.path=false`.
+> - **No `.env`:** `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_AUDIENCE` e
+>   `KEYCLOAK_FRONTEND_CLIENT_ID` = `assistenciav2`; os dois secrets são
+>   iguais; `FRONTEND_URL=https://192.168.1.20`.
+>
+> Se o endereço do sistema mudar, atualize o redirect do client e o
+> `FRONTEND_URL`.
+
+O modelo genérico tem dois clients (o realm de teste em
 `deploy/keycloak/realm-nexus.json` serve de modelo):
 
 - **`nexus-frontend`** — confidencial, Standard Flow com PKCE S256,
