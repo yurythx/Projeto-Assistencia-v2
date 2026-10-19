@@ -305,6 +305,37 @@ func TestSuperviseWaitsWhileDisabledUntilShutdown(t *testing.T) {
 	<-done
 }
 
+// Uma mudança qualquer (outro módulo ligado/desligado) acorda a unidade do
+// módulo desligado, que confere de novo e volta a esperar sem rodar. O
+// sinal fica no buffer do canal: chegue antes ou depois de a unidade entrar
+// na espera, ela passa pelo "continue" — sem depender do escalonamento.
+func TestSuperviseDisabledUnitIgnoresUnrelatedChanges(t *testing.T) {
+	k, _ := newKernel(t, &fakePlugin{m: Manifest{Key: "desligado"}})
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	var rodou atomic.Bool
+	go func() {
+		k.superviseUnit(ctx, unit{module: "desligado", name: "w", run: func(context.Context) error { rodou.Store(true); return nil }})
+		close(done)
+	}()
+	var ch chan struct{}
+	waitFor(t, func() bool {
+		k.subsMu.Lock()
+		defer k.subsMu.Unlock()
+		if len(k.subs) > 0 {
+			ch = k.subs[0]
+		}
+		return ch != nil
+	})
+	k.notify()
+	waitFor(t, func() bool { return len(ch) == 0 }) // a unidade consumiu o sinal
+	cancel()
+	<-done
+	if rodou.Load() {
+		t.Fatal("a unidade de um módulo desligado não pode rodar")
+	}
+}
+
 // Sem nenhuma unidade, Supervise ainda bloqueia até ctx acabar — antes
 // voltava na hora e o processo da API o reiniciava em loop com WARN.
 func TestSuperviseWithoutUnitsBlocksUntilShutdown(t *testing.T) {
