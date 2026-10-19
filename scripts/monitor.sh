@@ -53,8 +53,12 @@ check_api() {
 
 check_containers() {
   local ruins
-  ruins="$(docker compose ps -a --format '{{.Service}} {{.State}} {{.Health}}' 2>/dev/null |
-    awk '$1 != "migrate" && ($2 != "running" || ($3 != "" && $3 != "healthy")) {print $1 "(" $2 ($3 != "" ? "/" $3 : "") ")"}' |
+  # Serviços de uma vez só (migrate, *-init) terminam de propósito: só contam
+  # se terminarem com erro.
+  ruins="$(docker compose ps -a --format '{{.Service}} {{.State}} {{.ExitCode}} {{.Health}}' 2>/dev/null |
+    awk '{umavez = ($1 == "migrate" || $1 ~ /-init$/)}
+         umavez && $2 == "exited" && $3 == "0" {next}
+         $2 != "running" || ($4 != "" && $4 != "healthy") {print $1 "(" $2 ($4 != "" ? "/" $4 : "") ")"}' |
     tr '\n' ' ')"
   if [ -n "$ruins" ]; then echo "containers com problema: $ruins"; else echo ok; fi
 }
