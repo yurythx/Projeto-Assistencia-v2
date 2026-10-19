@@ -134,7 +134,7 @@ export default async function SeriePublicaPage({ params }: Props) {
             <ul className="mt-3 flex flex-col gap-1 text-sm">
               {procedimentos.map((w) => (
                 <li key={w.id}>
-                  <Link href={`/procedimentos/${w.id}`} className="text-primary hover:underline">
+                  <Link href={`/procedimentos/${w.id}`} prefetch={false} className="text-primary hover:underline">
                     {w.codigo_processual} — {w.titulo}
                   </Link>
                 </li>

@@ -41,7 +41,7 @@ export default async function ProcedimentosPublicosPage() {
             {lista.map((w) => (
               <li key={w.id}>
                 <Link
-                  href={`/procedimentos/${w.id}`}
+                  href={`/procedimentos/${w.id}`} prefetch={false}
                   className="flex h-full items-start gap-3 rounded-xl border border-surface-border bg-surface p-4 hover:border-primary/50"
                 >
                   <ClipboardList
