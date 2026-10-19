@@ -5,12 +5,14 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/redis/go-redis/v9"
 
 	apperrors "github.com/yurythx/projeto-assistencia-v2/internal/domain/errors"
@@ -147,6 +149,104 @@ func TestResolverDatabaseFailures(t *testing.T) {
 	if _, err := r.Enrich(ctx, auth.Identity{Subject: uid.String(), Source: auth.SourceLocal}); status(err) != http.StatusInternalServerError {
 		t.Errorf("permissões com falha no Enrich: %v", err)
 	}
+}
+
+// Primeiro login com várias chamadas em paralelo: todas resolvem para a
+// mesma conta federada, nenhuma recebe o "conflito com conta local".
+func TestResolverPrimeiroLoginConcorrente(t *testing.T) {
+	ctx := context.Background()
+	pool := dbtest.Pool(t)
+	r := NewResolver(pool, nil, quiet())
+	sfx := uuid.NewString()[:8]
+	fed := auth.Identity{Subject: "kc-" + uuid.NewString(), Source: auth.SourceKeycloak, Username: "u.concorrente." + sfx,
+		Email: "concorrente." + sfx + "@exemplo.gov.br", Name: "Concorrente"}
+	const n = 12
+	ids := make(chan uuid.UUID, n)
+	errs := make(chan error, n)
+	var wg sync.WaitGroup
+	for range n {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			id, err := r.Enrich(ctx, fed)
+			ids <- id.UserID
+			errs <- err
+		}()
+	}
+	wg.Wait()
+	close(ids)
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("chamada do primeiro login falhou: %v", err)
+		}
+	}
+	var primeiro uuid.UUID
+	for id := range ids {
+		if primeiro == uuid.Nil {
+			primeiro = id
+		}
+		if id != primeiro || id == uuid.Nil {
+			t.Fatalf("contas diferentes no primeiro login: %v e %v", primeiro, id)
+		}
+	}
+}
+
+// A colisão do primeiro login, de forma determinística: o upsert esbarra no
+// índice do usuário (23505) e a releitura pelo keycloak_subject decide —
+// achou (mesma pessoa), não achou (conta local: conflito) ou falhou (500).
+func TestResolverProvisionColisao(t *testing.T) {
+	ctx := context.Background()
+	fed := auth.Identity{Subject: "kc-x", Source: auth.SourceKeycloak, Username: "x"}
+	dup := &pgconn.PgError{Code: "23505"}
+	casos := []struct {
+		nome   string
+		segue  pgx.Row
+		status int
+	}{
+		{"conta criada pela chamada vizinha", linhaConta{}, 0},
+		{"conta local com o mesmo usuário", linhaErro{pgx.ErrNoRows}, http.StatusConflict},
+		{"banco cai na releitura", linhaErro{dbtest.ErrInjected}, http.StatusInternalServerError},
+	}
+	for _, c := range casos {
+		r := NewResolver(nil, nil, quiet())
+		r.db = &linhas{rows: []pgx.Row{linhaErro{dup}, c.segue}}
+		id, active, err := r.provision(ctx, fed)
+		if c.status == 0 {
+			if err != nil || id == uuid.Nil || !active {
+				t.Errorf("%s: %v %v %v", c.nome, id, active, err)
+			}
+			continue
+		}
+		if status(err) != c.status {
+			t.Errorf("%s: %v", c.nome, err)
+		}
+	}
+}
+
+// linhas devolve, em ordem, as linhas de cada QueryRow.
+type linhas struct {
+	database.DBTX
+	rows []pgx.Row
+	i    int
+}
+
+func (l *linhas) QueryRow(context.Context, string, ...any) pgx.Row {
+	r := l.rows[l.i]
+	l.i++
+	return r
+}
+
+type linhaErro struct{ err error }
+
+func (l linhaErro) Scan(...any) error { return l.err }
+
+type linhaConta struct{}
+
+func (linhaConta) Scan(dst ...any) error {
+	*dst[0].(*uuid.UUID) = uuid.New()
+	*dst[1].(*bool) = true
+	return nil
 }
 
 // grantsFail lê a conta de verdade, mas a consulta de permissões falha.

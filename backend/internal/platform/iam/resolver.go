@@ -193,6 +193,18 @@ func (r *Resolver) provision(ctx context.Context, identity auth.Identity) (uuid.
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			// Primeiro login: a tela dispara várias chamadas ao mesmo tempo e
+			// todas tentam criar a conta. O ON CONFLICT só arbitra o
+			// keycloak_subject; se a colisão cair antes no índice do usuário
+			// ou do e-mail, vem 23505 — mas a conta é desta mesma pessoa,
+			// criada pela chamada vizinha instantes antes.
+			err = r.db.QueryRow(ctx, `SELECT id, active FROM users WHERE keycloak_subject = $1`, identity.Subject).Scan(&id, &active)
+			if err == nil {
+				return id, active, nil
+			}
+			if !errors.Is(err, pgx.ErrNoRows) {
+				return uuid.Nil, false, apperrors.Internal(fmt.Errorf("iam: provision user: %w", err))
+			}
 			// username/e-mail já pertencem a uma conta LOCAL: nunca
 			// vinculamos automaticamente (seria tomada de conta).
 			return uuid.Nil, false, apperrors.Conflict(
