@@ -72,7 +72,10 @@ Mapeamento atual, aprovado pela gestão em 2026-10-19:
 | `Grupo <Unidade> Coordenação` | Coordenador (atendimento + gestão) | na unidade |
 | `Sempras_Casa_da_Mulher` | Técnico | Casa da Mulher |
 | `SEMPRAS`, `Sempras_Gabinete`, `Sempras_Sup_*` | Superintendente | todas as unidades |
+| `Departamento de Tecnologia da Informação` | Administrador da Plataforma (`*`) | tudo, inclusive o sigilo (`deploy/iam/administradores-ad.sql`) |
 
+- Quem não está em grupo da unidade no AD recebe lotação manual, que fica registrada na auditoria. Exemplo: a conta `casa.abrigo`, em 2026-10-19.
+- A TI começou a criar grupos de função (`Grupo_AS_Recepcao`, `Grupo_AS_Tecnico`, `Grupo_AS_Coordenacao`). Quando estiverem completos, podem definir a função dentro da unidade.
 - O AD não separa recepção e psicologia dentro da unidade. Quem for
   psicólogo (sigilo) ou só recepção é ajustado na tela de lotação.
 - Unidades sem grupo no AD ficam por lotação manual até a TI confirmar o
