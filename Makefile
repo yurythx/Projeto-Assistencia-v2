@@ -1,5 +1,5 @@
 .PHONY: dev up down logs build test lint format \
-	deploy prod-seed-admin prod-importar-casa-abrigo prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar sempras-mapeamentos ttdd-impacto ttdd-aplicar \
+	deploy prod-seed-admin prod-importar-casa-abrigo prod-ps prod-logs prod-limpeza prod-down iam-scope-report ia-modelo estrutura-gerar estrutura-aplicar sempras-mapeamentos iam-administradores ttdd-impacto ttdd-aplicar \
 	demo-keycloak demo-generate demo-seed demo-test demo-popular \
 	migrate-up migrate-down migrate-status migrate-redo seed-admin \
 	backend-shell frontend-shell rabbitmq-status clean \
@@ -69,6 +69,9 @@ ttdd-aplicar: ## Carrega a TTDD oficial (deploy/ttdd, gerada de docs/ttdd.pdf): 
 
 estrutura-aplicar: ## Aplica (idempotente) a estrutura organizacional real no Postgres
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/estrutura/estrutura.sql
+
+iam-administradores: ## Mapeia o grupo do AD de administradores da plataforma (acesso total)
+	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/iam/administradores-ad.sql
 
 sempras-mapeamentos: ## Cria (idempotente) os tipos das unidades (ADR 031) e os mapeamentos dos grupos reais do AD do SEMPRAS (ADR 030)
 	$(COMPOSE_PROD) exec -T postgres psql -q -v ON_ERROR_STOP=1 -U $(DB_USER) -d $(DB_NAME) < deploy/sempras/tipos-unidades.sql
